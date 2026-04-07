@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- v2 force update -->
 <html>
 <head>
   <title>ReelMind AI</title>
@@ -27,7 +28,7 @@
       img.src = "";
 
       try {
-        const response = await fetch("https://backend-ppyz.onrender.com/generate", {
+        const response = await fetch("https://backend-ppyz.onrender.com/generate?v=2", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
