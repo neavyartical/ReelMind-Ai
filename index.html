@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v3 final -->
+<!-- v4 final clean -->
 <html>
 <head>
   <title>ReelMind AI</title>
@@ -15,7 +15,9 @@
   <button onclick="generate()">Generate</button>
   <br><br>
 
-  <button id="downloadBtn" style="display:none;">Download Image</button>
+  <button id="downloadBtn" style="display:none;padding:10px 20px;background:#3b82f6;color:white;border:none;">
+    Download Image
+  </button>
 
   <p id="status"></p>
 
@@ -35,7 +37,7 @@
       downloadBtn.style.display = "none";
 
       try {
-        const response = await fetch("https://backend-ppyz.onrender.com/generate?v=3", {
+        const response = await fetch("https://backend-ppyz.onrender.com/generate?v=4", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
