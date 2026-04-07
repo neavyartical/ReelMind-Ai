@@ -11,12 +11,17 @@
       padding: 40px;
     }
 
+    h1 {
+      margin-bottom: 20px;
+    }
+
     input {
       width: 80%;
       padding: 12px;
       border-radius: 6px;
       border: none;
       margin-bottom: 15px;
+      font-size: 16px;
     }
 
     button {
@@ -28,12 +33,25 @@
       color: white;
       font-size: 16px;
       cursor: pointer;
+      margin-top: 5px;
+    }
+
+    #downloadBtn {
+      display: none;
+      width: 80%;
+      margin: auto;
+      text-decoration: none;
     }
 
     img {
       margin-top: 20px;
       width: 90%;
       border-radius: 10px;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -42,11 +60,15 @@
 
   <h1>🎬 ReelMind AI</h1>
 
-  <input id="prompt" placeholder="Generate a lion" />
+  <input id="prompt" placeholder="Generate a lion, cinematic, 8k..." />
 
   <br>
 
   <button onclick="generateImage()">Generate</button>
+
+  <a id="downloadBtn" download="reelmind.png">
+    <button>Download Image</button>
+  </a>
 
   <p id="status"></p>
 
@@ -57,9 +79,11 @@
       const prompt = document.getElementById("prompt").value;
       const status = document.getElementById("status");
       const img = document.getElementById("result");
+      const downloadBtn = document.getElementById("downloadBtn");
 
       status.innerText = "Generating...";
       img.src = "";
+      downloadBtn.style.display = "none";
 
       try {
         const res = await fetch("https://backend-ppyz.onrender.com/generate", {
@@ -74,6 +98,8 @@
 
         if (data.image) {
           img.src = data.image;
+          downloadBtn.href = data.image;
+          downloadBtn.style.display = "block";
           status.innerText = "Done!";
         } else {
           status.innerText = "Error: " + JSON.stringify(data);
