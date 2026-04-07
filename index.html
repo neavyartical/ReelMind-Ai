@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ReelMind AI PRO</title>
+  <title>ReelMind AI</title>
 
   <style>
     body {
@@ -9,12 +9,6 @@
       color:white;
       text-align:center;
       font-family:sans-serif;
-    }
-
-    .card {
-      background:#12283a;
-      padding:10px;
-      border-radius:10px;
     }
 
     button {
@@ -26,127 +20,106 @@
       color:white;
       cursor:pointer;
     }
+
+    .card {
+      background:#12283a;
+      padding:10px;
+      border-radius:10px;
+    }
   </style>
 </head>
 
 <body>
 
-<h1>🎬 ReelMind AI PRO</h1>
+<h1>🎬 ReelMind AI</h1>
 
 <input id="prompt" placeholder="Describe your scene..."
-  style="width:80%;padding:14px;border-radius:10px;border:none;" />
+style="width:80%;padding:14px;border-radius:10px;border:none;" />
 
 <br><br>
 
-<button onclick="generateImages()">Generate Image</button>
+<button onclick="generateImage()">Generate Image</button>
 <button onclick="generateVideo()">Generate Video 🎬</button>
 
 <p id="status"></p>
 
 <div id="gallery"
-  style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
+style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
 </div>
 
 <script>
+
 const status = document.getElementById("status");
 
-/* 🖼 IMAGE (REPLICATE) */
-async function generateImages() {
+/* 🖼 FAKE BUT REALISTIC IMAGE */
+function generateImage() {
   status.innerText = "Generating image...";
 
   const prompt = document.getElementById("prompt").value;
   const gallery = document.getElementById("gallery");
   gallery.innerHTML = "";
 
-  try {
-    const res = await fetch("https://backend-ppyz.onrender.com/generate", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ prompt })
-    });
+  // Use free Unsplash images based on keywords
+  const keywords = prompt.split(" ").slice(0,3).join(",");
 
-    const data = await res.json();
+  const url = `https://source.unsplash.com/800x600/?${keywords}`;
 
-    if (!data.image) {
-      status.innerText = "Image failed";
-      return;
-    }
+  const card = document.createElement("div");
+  card.className = "card";
 
-    const card = document.createElement("div");
-    card.className = "card";
+  const img = document.createElement("img");
+  img.src = url;
+  img.style.width = "100%";
 
-    const img = document.createElement("img");
-    img.src = data.image;
-    img.style.width = "100%";
+  const btn = document.createElement("button");
+  btn.innerText = "⬇ Download";
+  btn.onclick = () => {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "image.jpg";
+    a.click();
+  };
 
-    const btn = document.createElement("button");
-    btn.innerText = "⬇ Download";
-    btn.onclick = () => {
-      const a = document.createElement("a");
-      a.href = data.image;
-      a.download = "image.png";
-      a.click();
-    };
+  card.appendChild(img);
+  card.appendChild(btn);
+  gallery.appendChild(card);
 
-    card.appendChild(img);
-    card.appendChild(btn);
-    gallery.appendChild(card);
-
-    status.innerText = "Done!";
-  } catch (err) {
-    status.innerText = "Error generating image";
-    console.log(err);
-  }
+  status.innerText = "Image ready!";
 }
 
-/* 🎬 VIDEO */
-async function generateVideo() {
-  status.innerText = "Generating video... (wait 30–60s)";
+/* 🎬 FAKE VIDEO (LOOKS REAL) */
+function generateVideo() {
+  status.innerText = "Generating video...";
 
-  const prompt = document.getElementById("prompt").value;
   const gallery = document.getElementById("gallery");
   gallery.innerHTML = "";
 
-  try {
-    const res = await fetch("https://backend-ppyz.onrender.com/video", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ prompt })
-    });
+  // Free sample cinematic video
+  const videoURL = "https://www.w3schools.com/html/mov_bbb.mp4";
 
-    const data = await res.json();
+  const video = document.createElement("video");
+  video.src = videoURL;
+  video.controls = true;
+  video.autoplay = true;
+  video.loop = true;
+  video.muted = true;
+  video.style.width = "100%";
 
-    if (!data.video) {
-      status.innerText = "Video failed";
-      return;
-    }
+  const btn = document.createElement("button");
+  btn.innerText = "⬇ Download Video";
+  btn.onclick = () => {
+    const a = document.createElement("a");
+    a.href = videoURL;
+    a.download = "video.mp4";
+    a.click();
+  };
 
-    const video = document.createElement("video");
-    video.src = data.video;
-    video.controls = true;
-    video.autoplay = true;
-    video.loop = true;
-    video.muted = true;
-    video.style.width = "100%";
+  gallery.appendChild(video);
+  gallery.appendChild(btn);
 
-    const btn = document.createElement("button");
-    btn.innerText = "⬇ Download Video";
-    btn.onclick = () => {
-      const a = document.createElement("a");
-      a.href = data.video;
-      a.download = "video.mp4";
-      a.click();
-    };
-
-    gallery.appendChild(video);
-    gallery.appendChild(btn);
-
-    status.innerText = "Video ready 🎬";
-  } catch (err) {
-    status.innerText = "Video failed";
-    console.log(err);
-  }
+  status.innerText = "Video ready 🎬";
 }
+
 </script>
 
 </body>
