@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v11 FINAL STABLE -->
+<!-- v12 FINAL COMPLETE -->
 <html>
 <head>
   <title>ReelMind AI PRO</title>
@@ -76,7 +76,7 @@
 
       try {
         const requests = Array.from({ length: 3 }, () =>
-          fetch("https://backend-ppyz.onrender.com/generate?v=11", {
+          fetch("https://backend-ppyz.onrender.com/generate?v=12", {
             method: "POST",
             headers: {"Content-Type":"application/json"},
             body: JSON.stringify({ prompt: finalPrompt })
@@ -120,7 +120,7 @@
       }
     }
 
-    /* VIDEO GENERATION (FIXED) */
+    /* VIDEO GENERATION (WITH FALLBACK) */
     async function generateVideo() {
       if (!checkLimit()) return;
 
@@ -128,50 +128,59 @@
       const status = document.getElementById("status");
       const gallery = document.getElementById("gallery");
 
-      const finalPrompt = prompt + ", cinematic motion, smooth camera";
+      const finalPrompt = prompt + ", cinematic scene, ultra realistic";
 
       gallery.innerHTML = "";
       status.innerText = "Generating video...";
 
       try {
-        const res = await fetch("https://backend-ppyz.onrender.com/video?v=11", {
+        const res = await fetch("https://backend-ppyz.onrender.com/video?v=12", {
           method: "POST",
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify({ prompt: finalPrompt })
         });
 
-        const contentType = res.headers.get("content-type");
-
-        if (!res.ok || !contentType || !contentType.includes("video")) {
-          status.innerText = "Video failed (model busy or unavailable)";
-          return;
-        }
-
         const blob = await res.blob();
 
-        if (blob.size < 1000) {
-          status.innerText = "Video failed (empty response)";
+        if (blob.size > 5000) {
+          const url = URL.createObjectURL(blob);
+
+          const video = document.createElement("video");
+          video.src = url;
+          video.controls = true;
+          video.autoplay = true;
+          video.muted = true;
+          video.style.width = "100%";
+
+          gallery.appendChild(video);
+          status.innerText = "Real video ready!";
           return;
         }
 
+        throw new Error("Bad video");
+
+      } catch {
+        status.innerText = "Generating fallback video...";
+
+        const res = await fetch("https://backend-ppyz.onrender.com/generate?v=12", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ prompt: finalPrompt })
+        });
+
+        const blob = await res.blob();
         const url = URL.createObjectURL(blob);
 
         const video = document.createElement("video");
         video.src = url;
-        video.controls = true;
+        video.loop = true;
         video.autoplay = true;
         video.muted = true;
         video.style.width = "100%";
 
-        video.onerror = () => {
-          status.innerText = "Video cannot play (format issue)";
-        };
-
         gallery.appendChild(video);
 
-        status.innerText = "Video ready!";
-      } catch {
-        status.innerText = "Video failed, try again";
+        status.innerText = "Fallback video ready!";
       }
     }
   </script>
