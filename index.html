@@ -1,42 +1,104 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>ReelMind AI</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>ReelMind AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #0f172a;
+      color: white;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 12px;
+      margin: 10px;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      background: #22c55e;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #16a34a;
+    }
+    img {
+      margin-top: 20px;
+      max-width: 90%;
+      border-radius: 10px;
+      display: none;
+    }
+    #status {
+      margin-top: 15px;
+      color: #ccc;
+    }
+  </style>
 </head>
-
 <body>
 
-<h1>🎬 ReelMind AI</h1>
+  <h1>🎬 ReelMind AI</h1>
 
-<div class="tabs">
-  <button onclick="switchTab('story')">Viral Story</button>
-  <button onclick="switchTab('scene')">Cinematic Scene</button>
-  <button onclick="switchTab('video')">Text → Video</button>
-</div>
+  <input type="text" id="prompt" placeholder="Enter your prompt..." />
+  <br>
+  <button onclick="generateImage()">Generate</button>
 
-<div id="story" class="tab">
-  <h2>🧠 Viral Story Generator</h2>
-  <textarea id="storyInput" placeholder="Enter story idea..."></textarea>
-  <button onclick="generateStory()">Generate Story</button>
-  <p id="storyOutput"></p>
-</div>
+  <p id="status"></p>
 
-<div id="scene" class="tab hidden">
-  <h2>🎬 Cinematic Scene Generator</h2>
-  <textarea id="sceneInput" placeholder="Describe a scene..."></textarea>
-  <button onclick="generateScene()">Generate Scene</button>
-  <p id="sceneOutput"></p>
-</div>
+  <img id="outputImage" />
 
-<div id="video" class="tab hidden">
-  <h2>🎥 Text → Video Concept</h2>
-  <textarea id="videoInput" placeholder="Describe your video..."></textarea>
-  <button onclick="generateVideo()">Generate Video Plan</button>
-  <p id="videoOutput"></p>
-</div>
+  <script>
+    async function generateImage() {
+      const prompt = document.getElementById("prompt").value;
+      const status = document.getElementById("status");
+      const image = document.getElementById("outputImage");
 
-<script src="script.js"></script>
+      if (!prompt) {
+        alert("Please enter a prompt");
+        return;
+      }
+
+      status.innerText = "Generating image... ⏳";
+      image.style.display = "none";
+
+      try {
+        const response = await fetch("https://backend-ppyz.onrender.com/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            prompt: prompt
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("Server error");
+        }
+
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+
+        image.src = imageUrl;
+        image.style.display = "block";
+        status.innerText = "✅ Image generated!";
+
+      } catch (error) {
+        status.innerText = "❌ Error generating image";
+        console.error(error);
+      }
+    }
+  </script>
+
 </body>
 </html>
