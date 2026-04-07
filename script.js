@@ -1,106 +1,46 @@
-const API_URL = "https://backend-ppyz.onrender.com/generate";
+import express from "express";
+import fetch from "node-fetch";
+import cors from "cors";
 
-async function generateVideo() {
-  const prompt = document.getElementById("prompt").value;
+const app = express();
+app.use(express.json());
+app.use(cors());
 
-  if (!prompt) {
-    alert("Please enter a prompt");
-    return;
-  }
+const API_KEY = process.env.HF_API_KEY;
 
-  const resultBox = document.getElementById("result");
-  resultBox.innerHTML = "Generating... ⏳";
+app.get("/", (req, res) => {
+  res.send("Backend is running");
+});
 
+app.post("/generate", async (req, res) => {
   try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: req.body.inputs
+        }),
+      }
+    );
 
-    const data = await response.json();
-
-    if (data.video) {
-      resultBox.innerHTML = `
-        <video controls width="100%">
-          <source src="${data.video}" type="video/mp4">
-        </video>
-      `;
-    } else {
-      resultBox.innerHTML = "❌ Failed to generate video";
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(text);
+      return res.status(500).send(text);
     }
 
+    const buffer = await response.arrayBuffer();
+    res.set("Content-Type", "image/png");
+    res.send(Buffer.from(buffer));
   } catch (error) {
-    resultBox.innerHTML = "⚠️ Error connecting to backend";
     console.error(error);
+    res.status(500).send("Error generating image");
   }
-}
-  <input type="text" id="prompt" placeholder="Enter your prompt..." />
-  <br>
-  <button onclick="generateImage()">Generate</button>
+});
 
-  <br>
-  <img id="outputImage" />
-
-  <script>
-    async function generateImage() {
-      const prompt = document.getElementById("prompt").value;
-
-      if (!prompt) {
-        alert("Please enter a prompt");
-        return;
-      }
-
-      try {
-        const response = await fetch("https://backend-ppyz.onrender.com/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            inputs: prompt
-          })
-        });
-
-        const blob = await response.blob();
-        const imageUrl = URL.createObjectURL(blob);
-
-        document.getElementById("outputImage").src = imageUrl;
-
-      } catch (error) {
-        alert("Error generating image");
-        console.error(error);
-      }
-    }
-  </script>
-
-</body>
-</html>      inputs: `Create a cinematic scene with camera angles, lighting and emotions: ${input}`
-    })
-  });
-
-  let data = await response.json();
-  document.getElementById("sceneOutput").innerText =
-    data[0]?.generated_text || "Error";
-}
-
-async function generateVideo() {
-  let input = document.getElementById("videoInput").value;
-
-  let response = await fetch("https://api-inference.huggingface.co/models/gpt2", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + API_KEY,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      inputs: `Break this into a short cinematic video with scenes, shots and transitions: ${input}`
-    })
-  });
-
-  let data = await response.json();
-  document.getElementById("videoOutput").innerText =
-    data[0]?.generated_text || "Error";
-}
+app.listen(3000, () => console.log("Server running"));
