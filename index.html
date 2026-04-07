@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ReelMind AI</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>🎬 ReelMind AI</h1>
+
+<div class="tabs">
+  <button onclick="switchTab('story')">Viral Story</button>
+  <button onclick="switchTab('scene')">Cinematic Scene</button>
+  <button onclick="switchTab('video')">Text → Video</button>
+</div>
+
+<div id="story" class="tab">
+  <h2>🧠 Viral Story Generator</h2>
+  <textarea id="storyInput" placeholder="Enter story idea..."></textarea>
+  <button onclick="generateStory()">Generate Story</button>
+  <p id="storyOutput"></p>
+</div>
+
+<div id="scene" class="tab hidden">
+  <h2>🎬 Cinematic Scene Generator</h2>
+  <textarea id="sceneInput" placeholder="Describe a scene..."></textarea>
+  <button onclick="generateScene()">Generate Scene</button>
+  <p id="sceneOutput"></p>
+</div>
+
+<div id="video" class="tab hidden">
+  <h2>🎥 Text → Video Concept</h2>
+  <textarea id="videoInput" placeholder="Describe your video..."></textarea>
+  <button onclick="generateVideo()">Generate Video Plan</button>
+  <p id="videoOutput"></p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
