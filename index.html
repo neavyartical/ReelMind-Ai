@@ -51,7 +51,7 @@ style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap
 
 const status = document.getElementById("status");
 
-/* 🖼 SMART IMAGE GENERATOR */
+/* 🖼 CONTROLLED IMAGE OUTPUT */
 function generateImage() {
   status.innerText = "Generating image...";
 
@@ -59,10 +59,10 @@ function generateImage() {
   const gallery = document.getElementById("gallery");
   gallery.innerHTML = "";
 
-  let url;
+  let url = "";
 
   if (prompt.includes("car")) {
-    url = "https://images.unsplash.com/photo-1503376780353-7e6692767b70";
+    url = "https://images.unsplash.com/photo-1502877338535-766e1452684a";
   } else if (prompt.includes("lion")) {
     url = "https://images.unsplash.com/photo-1546182990-dffeafbe841d";
   } else if (prompt.includes("dog")) {
@@ -71,8 +71,10 @@ function generateImage() {
     url = "https://images.unsplash.com/photo-1494526585095-c41746248156";
   } else if (prompt.includes("money")) {
     url = "https://images.unsplash.com/photo-1565514020179-026b92b2d1c1";
+  } else if (prompt.includes("baby")) {
+    url = "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9";
   } else {
-    url = "https://picsum.photos/800/600?random=" + Math.floor(Math.random()*1000);
+    url = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"; // fallback
   }
 
   const card = document.createElement("div");
@@ -99,7 +101,7 @@ function generateImage() {
   gallery.appendChild(card);
 }
 
-/* 🎬 VIDEO GENERATOR */
+/* 🎬 VIDEO */
 function generateVideo() {
   status.innerText = "Generating video...";
 
