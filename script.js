@@ -1,46 +1,42 @@
-import express from "express";
-import fetch from "node-fetch";
-import cors from "cors";
+const API_URL = "https://backend-ppyz.onrender.com/generate";
 
-const app = express();
-app.use(express.json());
-app.use(cors());
+async function generateImage() {
+  const prompt = document.getElementById("prompt").value;
+  const status = document.getElementById("status");
+  const image = document.getElementById("outputImage");
 
-const API_KEY = process.env.HF_API_KEY;
+  if (!prompt) {
+    alert("Please enter a prompt");
+    return;
+  }
 
-app.get("/", (req, res) => {
-  res.send("Backend is running");
-});
+  status.innerText = "Generating image... ⏳";
+  image.style.display = "none";
 
-app.post("/generate", async (req, res) => {
   try {
-    const response = await fetch(
-      "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: req.body.inputs
-        }),
-      }
-    );
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        inputs: prompt
+      })
+    });
 
     if (!response.ok) {
-      const text = await response.text();
-      console.error(text);
-      return res.status(500).send(text);
+      throw new Error("Server error");
     }
 
-    const buffer = await response.arrayBuffer();
-    res.set("Content-Type", "image/png");
-    res.send(Buffer.from(buffer));
+    const blob = await response.blob();
+    const imageUrl = URL.createObjectURL(blob);
+
+    image.src = imageUrl;
+    image.style.display = "block";
+    status.innerText = "✅ Image generated!";
+
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error generating image");
+    status.innerText = "❌ Error generating image";
   }
-});
-
-app.listen(3000, () => console.log("Server running"));
+}
