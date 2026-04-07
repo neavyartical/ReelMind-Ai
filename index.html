@@ -64,23 +64,22 @@
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            inputs: prompt
+            prompt: prompt
           })
         });
 
-        if (!response.ok) {
-          throw new Error("Backend error");
+        const data = await response.json();
+
+        if (data.image) {
+          img.src = data.image;
+          img.style.display = "block";
+          status.innerText = "✅ Done!";
+        } else {
+          status.innerText = "❌ Error generating image";
         }
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-
-        img.src = url;
-        img.style.display = "block";
-        status.innerText = "✅ Done!";
       } catch (err) {
-        console.error(err);
-        status.innerText = "❌ Error generating image";
+        status.innerText = "❌ Error connecting to server";
       }
     }
   </script>
