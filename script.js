@@ -1,40 +1,81 @@
-const API_KEY = "YOUR_HF_API_KEY";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ReelMind AI</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #0f172a;
+      color: white;
+      padding: 20px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      background: #22c55e;
+      color: white;
+      cursor: pointer;
+    }
+    img {
+      margin-top: 20px;
+      max-width: 90%;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
 
-function switchTab(tab) {
-  document.querySelectorAll(".tab").forEach(t => t.classList.add("hidden"));
-  document.getElementById(tab).classList.remove("hidden");
-}
+  <h1>🎬 ReelMind AI</h1>
 
-async function generateStory() {
-  let input = document.getElementById("storyInput").value;
+  <input type="text" id="prompt" placeholder="Enter your prompt..." />
+  <br>
+  <button onclick="generateImage()">Generate</button>
 
-  let response = await fetch("https://api-inference.huggingface.co/models/gpt2", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + API_KEY,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      inputs: `Create a viral emotional story with hook, suspense and ending: ${input}`
-    })
-  });
+  <br>
+  <img id="outputImage" />
 
-  let data = await response.json();
-  document.getElementById("storyOutput").innerText =
-    data[0]?.generated_text || "Error";
-}
+  <script>
+    async function generateImage() {
+      const prompt = document.getElementById("prompt").value;
 
-async function generateScene() {
-  let input = document.getElementById("sceneInput").value;
+      if (!prompt) {
+        alert("Please enter a prompt");
+        return;
+      }
 
-  let response = await fetch("https://api-inference.huggingface.co/models/gpt2", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + API_KEY,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      inputs: `Create a cinematic scene with camera angles, lighting and emotions: ${input}`
+      try {
+        const response = await fetch("https://backend-ppyz.onrender.com/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            inputs: prompt
+          })
+        });
+
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+
+        document.getElementById("outputImage").src = imageUrl;
+
+      } catch (error) {
+        alert("Error generating image");
+        console.error(error);
+      }
+    }
+  </script>
+
+</body>
+</html>      inputs: `Create a cinematic scene with camera angles, lighting and emotions: ${input}`
     })
   });
 
