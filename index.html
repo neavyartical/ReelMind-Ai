@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v15 ULTIMATE ALL-IN-ONE -->
+<!-- v16 FINAL PRO SYSTEM -->
 <html>
 <head>
   <title>ReelMind AI PRO</title>
@@ -34,14 +34,10 @@
       border-radius:10px;
     }
 
-    @keyframes zoom {
-      from { transform: scale(1); }
-      to { transform: scale(1.1); }
-    }
-
     @keyframes panzoom {
-      0% { transform: scale(1) translateX(0); }
-      100% { transform: scale(1.2) translateX(-20px); }
+      0% { transform: scale(1) translate(0px,0px); }
+      50% { transform: scale(1.2) translate(-15px,10px); }
+      100% { transform: scale(1.3) translate(10px,-10px); }
     }
 
     button {
@@ -59,7 +55,6 @@
 
   <h1>🎬 ReelMind AI PRO</h1>
 
-  <!-- TOP AD -->
   <div class="ad-box">🚀 Your Ad Here</div>
 
   <input id="prompt" placeholder="Describe your scene..."
@@ -67,52 +62,61 @@
 
   <br><br>
 
-  <div>
-    <button onclick="setStyle('cinematic lighting, ultra realistic')">🎬 Cinematic</button>
-    <button onclick="setStyle('anime style, vibrant colors')">🎌 Anime</button>
-    <button onclick="setStyle('pixar style, 3d render')">🧸 Pixar</button>
-    <button onclick="setStyle('photorealistic, ultra detailed')">📸 Realistic</button>
-  </div>
+  <button onclick="setStyle('cinematic lighting')">🎬 Cinematic</button>
+  <button onclick="setStyle('anime style')">🎌 Anime</button>
+  <button onclick="setStyle('realistic')">📸 Realistic</button>
 
-  <br>
+  <br><br>
 
   <button id="imgBtn">Generate Images</button>
   <button id="vidBtn">Generate Video 🎬</button>
-  <button onclick="playSound()">🔊 Sound</button>
+  <button onclick="goPro()">💰 Upgrade PRO</button>
 
   <p id="status"></p>
 
-  <div id="gallery"
-    style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
-  </div>
-
-  <!-- BOTTOM AD -->
-  <div class="ad-box">🔥 Ads = Money 💰</div>
-
-  <!-- SOUND -->
-  <audio id="bgMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+  <div id="gallery" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;"></div>
 
   <script defer>
-    let selectedStyle = "cinematic lighting, ultra realistic";
+
+    let selectedStyle = "cinematic lighting";
 
     function setStyle(style) {
       selectedStyle = style;
     }
 
-    function playSound() {
-      document.getElementById("bgMusic").play();
+    /* PRO SYSTEM */
+    let isPro = false;
+
+    if (window.location.href.includes("success=true")) {
+      isPro = true;
+      localStorage.setItem("pro", "true");
     }
 
+    if (localStorage.getItem("pro") === "true") {
+      isPro = true;
+    }
+
+    /* LIMIT */
     function checkLimit() {
       let count = localStorage.getItem("usage") || 0;
 
-      if (count >= 5) {
+      if (!isPro && count >= 5) {
         alert("Free limit reached. Upgrade to PRO 💰");
         return false;
       }
 
       localStorage.setItem("usage", parseInt(count) + 1);
       return true;
+    }
+
+    /* PAYMENT */
+    async function goPro() {
+      const res = await fetch("https://backend-ppyz.onrender.com/create-checkout-session", {
+        method: "POST"
+      });
+
+      const data = await res.json();
+      window.location.href = data.url;
     }
 
     document.getElementById("imgBtn").onclick = generateImages;
@@ -123,54 +127,36 @@
 
       const prompt = document.getElementById("prompt").value;
       const gallery = document.getElementById("gallery");
-      const status = document.getElementById("status");
 
       gallery.innerHTML = "";
-      status.innerText = "Generating images...";
 
       const finalPrompt = prompt + ", " + selectedStyle;
 
-      const requests = Array.from({ length: 3 }, () =>
-        fetch("https://backend-ppyz.onrender.com/generate?v=15", {
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ prompt: finalPrompt })
-        })
-      );
+      const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ prompt: finalPrompt })
+      });
 
-      const responses = await Promise.all(requests);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
 
-      for (let res of responses) {
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
+      const card = document.createElement("div");
+      card.className = "card";
 
-        const card = document.createElement("div");
-        card.className = "card";
+      const img = document.createElement("img");
+      img.src = url;
+      img.style.width = "100%";
 
-        const img = document.createElement("img");
-        img.src = url;
-        img.style.width = "100%";
-
+      if (!isPro) {
         const mark = document.createElement("div");
         mark.className = "watermark";
         mark.innerText = "NeavyArtical";
-
-        const btn = document.createElement("button");
-        btn.innerText = "Download";
-        btn.onclick = () => {
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "image.png";
-          a.click();
-        };
-
-        card.appendChild(img);
         card.appendChild(mark);
-        card.appendChild(btn);
-        gallery.appendChild(card);
       }
 
-      status.innerText = "Images ready!";
+      card.appendChild(img);
+      gallery.appendChild(card);
     }
 
     async function generateVideo() {
@@ -178,70 +164,28 @@
 
       const prompt = document.getElementById("prompt").value;
       const gallery = document.getElementById("gallery");
-      const status = document.getElementById("status");
 
       gallery.innerHTML = "";
-      status.innerText = "Creating cinematic video...";
 
       const finalPrompt = prompt + ", cinematic scene";
 
-      try {
-        const res = await fetch("https://backend-ppyz.onrender.com/video?v=15", {
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ prompt: finalPrompt })
-        });
+      const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ prompt: finalPrompt })
+      });
 
-        const blob = await res.blob();
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
 
-        if (blob.size > 5000) {
-          const url = URL.createObjectURL(blob);
+      const img = document.createElement("img");
+      img.src = url;
+      img.style.width = "100%";
+      img.style.animation = "panzoom 10s infinite alternate";
 
-          const video = document.createElement("video");
-          video.src = url;
-          video.controls = true;
-          video.autoplay = true;
-          video.muted = true;
-          video.style.width = "100%";
-
-          gallery.appendChild(video);
-          status.innerText = "Real video ready!";
-          return;
-        }
-
-        throw new Error();
-
-      } catch {
-        status.innerText = "Generating cinematic animation...";
-
-        const res = await fetch("https://backend-ppyz.onrender.com/generate?v=15", {
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ prompt: finalPrompt })
-        });
-
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-
-        const card = document.createElement("div");
-        card.className = "card";
-
-        const img = document.createElement("img");
-        img.src = url;
-        img.style.width = "100%";
-        img.style.animation = "panzoom 8s infinite alternate";
-
-        const mark = document.createElement("div");
-        mark.className = "watermark";
-        mark.innerText = "NeavyArtical";
-
-        card.appendChild(img);
-        card.appendChild(mark);
-        gallery.appendChild(card);
-
-        status.innerText = "Cinematic animation ready!";
-      }
+      gallery.appendChild(img);
     }
+
   </script>
 
 </body>
