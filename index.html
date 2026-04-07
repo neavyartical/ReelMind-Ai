@@ -1,8 +1,15 @@
 <!DOCTYPE html>
-<!-- v12 FINAL COMPLETE -->
+<!-- v13 FINAL ULTIMATE -->
 <html>
 <head>
   <title>ReelMind AI PRO</title>
+
+  <style>
+    @keyframes zoom {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
+    }
+  </style>
 </head>
 
 <body style="background:#0b1d2a;color:white;text-align:center;font-family:sans-serif;">
@@ -44,7 +51,6 @@
       selectedStyle = style;
     }
 
-    /* LIMIT SYSTEM */
     function checkLimit() {
       let count = localStorage.getItem("usage") || 0;
 
@@ -57,11 +63,9 @@
       return true;
     }
 
-    /* BUTTON BINDING */
     document.getElementById("imgBtn").onclick = generateImages;
     document.getElementById("vidBtn").onclick = generateVideo;
 
-    /* IMAGE GENERATION */
     async function generateImages() {
       if (!checkLimit()) return;
 
@@ -76,7 +80,7 @@
 
       try {
         const requests = Array.from({ length: 3 }, () =>
-          fetch("https://backend-ppyz.onrender.com/generate?v=12", {
+          fetch("https://backend-ppyz.onrender.com/generate?v=13", {
             method: "POST",
             headers: {"Content-Type":"application/json"},
             body: JSON.stringify({ prompt: finalPrompt })
@@ -120,7 +124,6 @@
       }
     }
 
-    /* VIDEO GENERATION (WITH FALLBACK) */
     async function generateVideo() {
       if (!checkLimit()) return;
 
@@ -134,7 +137,7 @@
       status.innerText = "Generating video...";
 
       try {
-        const res = await fetch("https://backend-ppyz.onrender.com/video?v=12", {
+        const res = await fetch("https://backend-ppyz.onrender.com/video?v=13", {
           method: "POST",
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify({ prompt: finalPrompt })
@@ -160,9 +163,9 @@
         throw new Error("Bad video");
 
       } catch {
-        status.innerText = "Generating fallback video...";
+        status.innerText = "Generating fallback animation...";
 
-        const res = await fetch("https://backend-ppyz.onrender.com/generate?v=12", {
+        const res = await fetch("https://backend-ppyz.onrender.com/generate?v=13", {
           method: "POST",
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify({ prompt: finalPrompt })
@@ -171,16 +174,15 @@
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
 
-        const video = document.createElement("video");
-        video.src = url;
-        video.loop = true;
-        video.autoplay = true;
-        video.muted = true;
-        video.style.width = "100%";
+        const img = document.createElement("img");
+        img.src = url;
+        img.style.width = "100%";
+        img.style.borderRadius = "10px";
+        img.style.animation = "zoom 6s infinite alternate";
 
-        gallery.appendChild(video);
+        gallery.appendChild(img);
 
-        status.innerText = "Fallback video ready!";
+        status.innerText = "Fallback animation ready!";
       }
     }
   </script>
