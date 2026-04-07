@@ -1,40 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>ReelMind AI</title>
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: #0f172a;
-      color: white;
-      padding: 20px;
-    }
-    input, button {
-      padding: 10px;
-      margin: 10px;
-      width: 80%;
-      max-width: 400px;
-      border-radius: 8px;
-      border: none;
-    }
-    button {
-      background: #22c55e;
-      color: white;
-      cursor: pointer;
-    }
-    img {
-      margin-top: 20px;
-      max-width: 90%;
-      border-radius: 10px;
-    }
-  </style>
-</head>
-<body>
+const API_URL = "https://backend-ppyz.onrender.com/generate";
 
-  <h1>🎬 ReelMind AI</h1>
+async function generateVideo() {
+  const prompt = document.getElementById("prompt").value;
 
+  if (!prompt) {
+    alert("Please enter a prompt");
+    return;
+  }
+
+  const resultBox = document.getElementById("result");
+  resultBox.innerHTML = "Generating... ⏳";
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await response.json();
+
+    if (data.video) {
+      resultBox.innerHTML = `
+        <video controls width="100%">
+          <source src="${data.video}" type="video/mp4">
+        </video>
+      `;
+    } else {
+      resultBox.innerHTML = "❌ Failed to generate video";
+    }
+
+  } catch (error) {
+    resultBox.innerHTML = "⚠️ Error connecting to backend";
+    console.error(error);
+  }
+}
   <input type="text" id="prompt" placeholder="Enter your prompt..." />
   <br>
   <button onclick="generateImage()">Generate</button>
