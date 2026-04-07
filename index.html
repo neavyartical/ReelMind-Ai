@@ -8,30 +8,23 @@
 
   <h1>🎬 ReelMind AI</h1>
 
-  <input id="prompt" placeholder="Generate image..." style="width:80%;padding:10px;" />
+  <input id="prompt" placeholder="Type prompt..." style="width:80%;padding:10px;" />
   <br><br>
 
-  <button onclick="generateImage()" style="padding:10px 20px;background:green;color:white;">
-    Generate
-  </button>
-
-  <br><br>
-
-  <a id="downloadBtn" style="display:block;margin-bottom:10px;color:white;">Download Image</a>
+  <button onclick="generate()">Generate</button>
 
   <p id="status"></p>
 
-  <img id="resultImage" style="max-width:90%;border-radius:10px;" />
+  <img id="result" style="max-width:90%;margin-top:20px;border-radius:10px;" />
 
   <script>
-    async function generateImage() {
+    async function generate() {
       const prompt = document.getElementById("prompt").value;
-      const image = document.getElementById("resultImage");
       const status = document.getElementById("status");
-      const downloadBtn = document.getElementById("downloadBtn");
+      const img = document.getElementById("result");
 
       status.innerText = "Generating...";
-      image.src = "";
+      img.src = "";
 
       try {
         const response = await fetch("https://backend-ppyz.onrender.com/generate", {
@@ -50,10 +43,7 @@
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
 
-        image.src = url;
-        downloadBtn.href = url;
-        downloadBtn.download = "image.png";
-
+        img.src = url;
         status.innerText = "Done!";
 
       } catch {
