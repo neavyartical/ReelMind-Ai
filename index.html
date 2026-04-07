@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v18 FINAL ADMIN READY -->
+<!-- v19 FULLY STABLE -->
 <html>
 <head>
   <title>ReelMind AI PRO</title>
@@ -40,6 +40,7 @@
       border-radius:8px;
       background:#3b82f6;
       color:white;
+      cursor:pointer;
     }
   </style>
 </head>
@@ -76,26 +77,26 @@
     style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
   </div>
 
-  <script defer>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
 
     let selectedStyle = "cinematic lighting";
 
-    function setStyle(style) {
+    window.setStyle = (style) => {
       selectedStyle = style;
-    }
+    };
 
     /* USER SYSTEM */
     let userEmail = localStorage.getItem("userEmail") || null;
     let isPro = false;
 
-    /* ✅ YOUR ADMIN EMAIL ALREADY SET */
     const ADMIN_EMAIL = "neavyartical@gmail.com";
 
     if (localStorage.getItem("pro") === "true") {
       isPro = true;
     }
 
-    function login() {
+    window.login = function () {
       const email = document.getElementById("email").value;
 
       if (!email || !email.includes("@")) {
@@ -113,11 +114,9 @@
       } else {
         alert("Welcome! You can now use the app");
       }
-    }
+    };
 
-    /* LIMIT SYSTEM */
     function checkLimit() {
-
       if (!userEmail) {
         alert("Please login first");
         return false;
@@ -134,22 +133,26 @@
       return true;
     }
 
-    /* PAYMENT */
-    async function goPro() {
+    window.goPro = async function () {
       const res = await fetch("https://backend-ppyz.onrender.com/create-checkout-session", {
         method: "POST"
       });
 
       const data = await res.json();
       window.location.href = data.url;
-    }
+    };
 
-    document.getElementById("imgBtn").onclick = generateImages;
-    document.getElementById("vidBtn").onclick = generateVideo;
+    const imgBtn = document.getElementById("imgBtn");
+    const vidBtn = document.getElementById("vidBtn");
+    const status = document.getElementById("status");
 
-    /* IMAGE */
+    imgBtn.onclick = generateImages;
+    vidBtn.onclick = generateVideo;
+
     async function generateImages() {
       if (!checkLimit()) return;
+
+      status.innerText = "Generating image...";
 
       const prompt = document.getElementById("prompt").value;
       const gallery = document.getElementById("gallery");
@@ -158,36 +161,44 @@
 
       const finalPrompt = prompt + ", " + selectedStyle;
 
-      const res = await fetch("https://backend-ppyz.onrender.com/generate", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ prompt: finalPrompt })
-      });
+      try {
+        const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ prompt: finalPrompt })
+        });
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
 
-      const card = document.createElement("div");
-      card.className = "card";
+        const card = document.createElement("div");
+        card.className = "card";
 
-      const img = document.createElement("img");
-      img.src = url;
-      img.style.width = "100%";
+        const img = document.createElement("img");
+        img.src = url;
+        img.style.width = "100%";
 
-      if (!isPro) {
-        const mark = document.createElement("div");
-        mark.className = "watermark";
-        mark.innerText = "NeavyArtical";
-        card.appendChild(mark);
+        if (!isPro) {
+          const mark = document.createElement("div");
+          mark.className = "watermark";
+          mark.innerText = "NeavyArtical";
+          card.appendChild(mark);
+        }
+
+        card.appendChild(img);
+        gallery.appendChild(card);
+
+        status.innerText = "Done!";
+      } catch (err) {
+        status.innerText = "Error generating image";
+        console.log(err);
       }
-
-      card.appendChild(img);
-      gallery.appendChild(card);
     }
 
-    /* VIDEO (CINEMATIC) */
     async function generateVideo() {
       if (!checkLimit()) return;
+
+      status.innerText = "Creating video...";
 
       const prompt = document.getElementById("prompt").value;
       const gallery = document.getElementById("gallery");
@@ -196,23 +207,31 @@
 
       const finalPrompt = prompt + ", cinematic scene";
 
-      const res = await fetch("https://backend-ppyz.onrender.com/generate", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ prompt: finalPrompt })
-      });
+      try {
+        const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ prompt: finalPrompt })
+        });
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
 
-      const img = document.createElement("img");
-      img.src = url;
-      img.style.width = "100%";
-      img.style.animation = "panzoom 10s infinite alternate";
+        const img = document.createElement("img");
+        img.src = url;
+        img.style.width = "100%";
+        img.style.animation = "panzoom 10s infinite alternate";
 
-      gallery.appendChild(img);
+        gallery.appendChild(img);
+
+        status.innerText = "Video ready!";
+      } catch (err) {
+        status.innerText = "Video failed";
+        console.log(err);
+      }
     }
 
+  });
   </script>
 
 </body>
