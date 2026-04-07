@@ -1,20 +1,48 @@
 <!DOCTYPE html>
-<!-- v13 FINAL ULTIMATE -->
+<!-- v14 FINAL MONETIZED -->
 <html>
 <head>
   <title>ReelMind AI PRO</title>
 
   <style>
+    body { background:#0b1d2a; color:white; text-align:center; font-family:sans-serif; }
+
     @keyframes zoom {
       from { transform: scale(1); }
       to { transform: scale(1.1); }
     }
+
+    .card {
+      background:#12283a;
+      padding:10px;
+      border-radius:10px;
+      position:relative;
+    }
+
+    .watermark {
+      position:absolute;
+      bottom:8px;
+      right:10px;
+      font-size:12px;
+      opacity:0.7;
+    }
+
+    .ad-box {
+      background:#1f2937;
+      padding:10px;
+      margin:10px;
+      border-radius:10px;
+      font-size:14px;
+    }
   </style>
 </head>
 
-<body style="background:#0b1d2a;color:white;text-align:center;font-family:sans-serif;">
+<body>
 
   <h1>🎬 ReelMind AI PRO</h1>
+
+  <!-- AD -->
+  <div class="ad-box">🚀 Your Ad Here (Replace with AdSense later)</div>
 
   <input id="prompt" placeholder="Describe your scene..." 
     style="width:80%;padding:14px;border-radius:10px;border:none;" />
@@ -30,19 +58,15 @@
 
   <br>
 
-  <button id="imgBtn" style="padding:12px 25px;background:#3b82f6;color:white;border:none;border-radius:8px;">
-    Generate Images
-  </button>
-
-  <button id="vidBtn" style="padding:12px 25px;background:#10b981;color:white;border:none;border-radius:8px;">
-    Generate Video 🎬
-  </button>
+  <button id="imgBtn">Generate Images</button>
+  <button id="vidBtn">Generate Video 🎬</button>
 
   <p id="status"></p>
 
-  <div id="gallery" 
-    style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
-  </div>
+  <div id="gallery" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;"></div>
+
+  <!-- AD -->
+  <div class="ad-box">🔥 More Ads = More Money 💰</div>
 
   <script defer>
     let selectedStyle = "cinematic lighting, ultra realistic, 8k";
@@ -70,76 +94,73 @@
       if (!checkLimit()) return;
 
       const prompt = document.getElementById("prompt").value;
-      const status = document.getElementById("status");
       const gallery = document.getElementById("gallery");
+      const status = document.getElementById("status");
 
-      const finalPrompt = prompt + ", " + selectedStyle + ", ultra detailed, sharp focus, 8k";
-
-      status.innerText = "Generating (fast)...";
       gallery.innerHTML = "";
+      status.innerText = "Generating...";
 
-      try {
-        const requests = Array.from({ length: 3 }, () =>
-          fetch("https://backend-ppyz.onrender.com/generate?v=13", {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({ prompt: finalPrompt })
-          })
-        );
+      const finalPrompt = prompt + ", " + selectedStyle;
 
-        const responses = await Promise.all(requests);
+      const requests = Array.from({ length: 3 }, () =>
+        fetch("https://backend-ppyz.onrender.com/generate?v=14", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ prompt: finalPrompt })
+        })
+      );
 
-        for (let res of responses) {
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
+      const responses = await Promise.all(requests);
 
-          const card = document.createElement("div");
-          card.style.background = "#12283a";
-          card.style.padding = "10px";
-          card.style.borderRadius = "10px";
+      for (let res of responses) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
 
-          const img = document.createElement("img");
-          img.src = url;
-          img.style.width = "100%";
-          img.style.borderRadius = "10px";
+        const card = document.createElement("div");
+        card.className = "card";
 
-          const btn = document.createElement("button");
-          btn.innerText = "Download";
-          btn.style.marginTop = "10px";
-          btn.onclick = () => {
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "image.png";
-            a.click();
-          };
+        const img = document.createElement("img");
+        img.src = url;
+        img.style.width = "100%";
 
-          card.appendChild(img);
-          card.appendChild(btn);
-          gallery.appendChild(card);
-        }
+        const mark = document.createElement("div");
+        mark.className = "watermark";
+        mark.innerText = "NeavyArtical";
 
-        status.innerText = "Done!";
-      } catch {
-        status.innerText = "Error generating images";
+        const btn = document.createElement("button");
+        btn.innerText = "Download";
+        btn.onclick = () => {
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "image.png";
+          a.click();
+        };
+
+        card.appendChild(img);
+        card.appendChild(mark);
+        card.appendChild(btn);
+        gallery.appendChild(card);
       }
+
+      status.innerText = "Done!";
     }
 
     async function generateVideo() {
       if (!checkLimit()) return;
 
       const prompt = document.getElementById("prompt").value;
-      const status = document.getElementById("status");
       const gallery = document.getElementById("gallery");
-
-      const finalPrompt = prompt + ", cinematic scene, ultra realistic";
+      const status = document.getElementById("status");
 
       gallery.innerHTML = "";
       status.innerText = "Generating video...";
 
+      const finalPrompt = prompt + ", cinematic scene";
+
       try {
-        const res = await fetch("https://backend-ppyz.onrender.com/video?v=13", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
+        const res = await fetch("https://backend-ppyz.onrender.com/video?v=14", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
           body: JSON.stringify({ prompt: finalPrompt })
         });
 
@@ -156,31 +177,39 @@
           video.style.width = "100%";
 
           gallery.appendChild(video);
-          status.innerText = "Real video ready!";
+          status.innerText = "Video ready!";
           return;
         }
 
-        throw new Error("Bad video");
+        throw new Error();
 
       } catch {
-        status.innerText = "Generating fallback animation...";
+        status.innerText = "Fallback animation...";
 
-        const res = await fetch("https://backend-ppyz.onrender.com/generate?v=13", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
+        const res = await fetch("https://backend-ppyz.onrender.com/generate?v=14", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
           body: JSON.stringify({ prompt: finalPrompt })
         });
 
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
 
+        const card = document.createElement("div");
+        card.className = "card";
+
         const img = document.createElement("img");
         img.src = url;
         img.style.width = "100%";
-        img.style.borderRadius = "10px";
         img.style.animation = "zoom 6s infinite alternate";
 
-        gallery.appendChild(img);
+        const mark = document.createElement("div");
+        mark.className = "watermark";
+        mark.innerText = "NeavyArtical";
+
+        card.appendChild(img);
+        card.appendChild(mark);
+        gallery.appendChild(card);
 
         status.innerText = "Fallback animation ready!";
       }
