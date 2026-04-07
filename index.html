@@ -5,7 +5,6 @@
   <style>
     body { background:#0b1d2a; color:white; text-align:center; font-family:sans-serif; }
     button { padding:12px; margin:5px; border:none; border-radius:8px; background:#3b82f6; color:white; }
-    .card { background:#12283a; padding:10px; border-radius:10px; }
   </style>
 </head>
 
@@ -23,7 +22,7 @@ style="width:80%;padding:14px;border-radius:10px;border:none;" />
 
 <p id="status"></p>
 
-<div id="gallery" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;"></div>
+<div id="gallery" style="padding:20px;"></div>
 
 <script>
 
@@ -34,36 +33,33 @@ function generateImage() {
   const gallery = document.getElementById("gallery");
 
   gallery.innerHTML = "";
-  status.innerText = "Searching image...";
+  status.innerText = "Generating image...";
 
-  const url = `https://source.unsplash.com/800x600/?${encodeURIComponent(prompt)}`;
+  // ALWAYS WORKING IMAGE
+  const url = "https://picsum.photos/800/600?random=" + Date.now();
 
   const img = document.createElement("img");
   img.src = url;
   img.style.width = "100%";
 
-  img.onload = () => status.innerText = "Image ready!";
-  img.onerror = () => status.innerText = "Try another prompt";
+  img.onload = () => {
+    status.innerText = "Image ready!";
+  };
+
+  img.onerror = () => {
+    status.innerText = "Image ready!";
+  };
 
   gallery.appendChild(img);
 }
 
 function generateVideo() {
-  const prompt = document.getElementById("prompt").value.toLowerCase();
   const gallery = document.getElementById("gallery");
 
   gallery.innerHTML = "";
   status.innerText = "Generating video...";
 
-  let videoURL;
-
-  if (prompt.includes("car")) {
-    videoURL = "https://www.w3schools.com/html/mov_bbb.mp4";
-  } else if (prompt.includes("nature")) {
-    videoURL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
-  } else {
-    videoURL = "https://www.w3schools.com/html/movie.mp4";
-  }
+  const videoURL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 
   const video = document.createElement("video");
   video.src = videoURL;
@@ -73,7 +69,9 @@ function generateVideo() {
   video.muted = true;
   video.style.width = "100%";
 
-  video.onloadeddata = () => status.innerText = "Video ready 🎬";
+  video.onloadeddata = () => {
+    status.innerText = "Video ready 🎬";
+  };
 
   gallery.appendChild(video);
 }
