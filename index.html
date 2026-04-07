@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v16 FINAL PRO SYSTEM -->
+<!-- v18 FINAL ADMIN READY -->
 <html>
 <head>
   <title>ReelMind AI PRO</title>
@@ -27,13 +27,6 @@
       opacity:0.7;
     }
 
-    .ad-box {
-      background:#1f2937;
-      padding:10px;
-      margin:10px;
-      border-radius:10px;
-    }
-
     @keyframes panzoom {
       0% { transform: scale(1) translate(0px,0px); }
       50% { transform: scale(1.2) translate(-15px,10px); }
@@ -55,7 +48,12 @@
 
   <h1>🎬 ReelMind AI PRO</h1>
 
-  <div class="ad-box">🚀 Your Ad Here</div>
+  <!-- LOGIN -->
+  <div style="margin:15px;">
+    <input id="email" placeholder="Enter your email"
+      style="padding:10px;border-radius:8px;border:none;width:70%;" />
+    <button onclick="login()">Login / Register</button>
+  </div>
 
   <input id="prompt" placeholder="Describe your scene..."
     style="width:80%;padding:14px;border-radius:10px;border:none;" />
@@ -74,7 +72,9 @@
 
   <p id="status"></p>
 
-  <div id="gallery" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;"></div>
+  <div id="gallery"
+    style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
+  </div>
 
   <script defer>
 
@@ -84,20 +84,45 @@
       selectedStyle = style;
     }
 
-    /* PRO SYSTEM */
+    /* USER SYSTEM */
+    let userEmail = localStorage.getItem("userEmail") || null;
     let isPro = false;
 
-    if (window.location.href.includes("success=true")) {
-      isPro = true;
-      localStorage.setItem("pro", "true");
-    }
+    /* ✅ YOUR ADMIN EMAIL ALREADY SET */
+    const ADMIN_EMAIL = "neavyartical@gmail.com";
 
     if (localStorage.getItem("pro") === "true") {
       isPro = true;
     }
 
-    /* LIMIT */
+    function login() {
+      const email = document.getElementById("email").value;
+
+      if (!email || !email.includes("@")) {
+        alert("Enter valid email");
+        return;
+      }
+
+      userEmail = email;
+      localStorage.setItem("userEmail", email);
+
+      if (email === ADMIN_EMAIL) {
+        isPro = true;
+        localStorage.setItem("pro", "true");
+        alert("Welcome Admin 👑 Unlimited access");
+      } else {
+        alert("Welcome! You can now use the app");
+      }
+    }
+
+    /* LIMIT SYSTEM */
     function checkLimit() {
+
+      if (!userEmail) {
+        alert("Please login first");
+        return false;
+      }
+
       let count = localStorage.getItem("usage") || 0;
 
       if (!isPro && count >= 5) {
@@ -122,6 +147,7 @@
     document.getElementById("imgBtn").onclick = generateImages;
     document.getElementById("vidBtn").onclick = generateVideo;
 
+    /* IMAGE */
     async function generateImages() {
       if (!checkLimit()) return;
 
@@ -159,6 +185,7 @@
       gallery.appendChild(card);
     }
 
+    /* VIDEO (CINEMATIC) */
     async function generateVideo() {
       if (!checkLimit()) return;
 
