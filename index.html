@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- v20 FINAL CLEAN BUILD -->
 <html>
 <head>
   <title>ReelMind AI PRO</title>
@@ -16,15 +15,6 @@
       background:#12283a;
       padding:10px;
       border-radius:10px;
-      position:relative;
-    }
-
-    .watermark {
-      position:absolute;
-      bottom:8px;
-      right:10px;
-      font-size:12px;
-      opacity:0.7;
     }
 
     button {
@@ -36,239 +26,128 @@
       color:white;
       cursor:pointer;
     }
-
-    /* 🔥 STRONG VIDEO MOTION */
-    @keyframes cinematicMove {
-      0% { transform: scale(1) translate(0,0); }
-      25% { transform: scale(1.1) translate(-20px,10px); }
-      50% { transform: scale(1.2) translate(20px,-10px); }
-      75% { transform: scale(1.15) translate(-10px,5px); }
-      100% { transform: scale(1.25) translate(10px,-15px); }
-    }
   </style>
 </head>
 
 <body>
 
-  <h1>🎬 ReelMind AI PRO</h1>
+<h1>🎬 ReelMind AI PRO</h1>
 
-  <!-- LOGIN -->
-  <div style="margin:15px;">
-    <input id="email" placeholder="Enter your email"
-      style="padding:10px;border-radius:8px;border:none;width:70%;" />
-    <button onclick="login()">Login / Register</button>
-  </div>
+<input id="prompt" placeholder="Describe your scene..."
+  style="width:80%;padding:14px;border-radius:10px;border:none;" />
 
-  <input id="prompt" placeholder="Describe your scene..."
-    style="width:80%;padding:14px;border-radius:10px;border:none;" />
+<br><br>
 
-  <br><br>
+<button onclick="generateImages()">Generate Image</button>
+<button onclick="generateVideo()">Generate Video 🎬</button>
 
-  <button onclick="setStyle('cinematic lighting')">🎬 Cinematic</button>
-  <button onclick="setStyle('anime style')">🎌 Anime</button>
-  <button onclick="setStyle('realistic')">📸 Realistic</button>
+<p id="status"></p>
 
-  <br><br>
+<div id="gallery"
+  style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
+</div>
 
-  <button id="imgBtn">Generate Images</button>
-  <button id="vidBtn">Generate Video 🎬</button>
-  <button onclick="goPro()">💰 Upgrade PRO</button>
+<script>
+const status = document.getElementById("status");
 
-  <p id="status"></p>
+/* 🖼 IMAGE (REPLICATE) */
+async function generateImages() {
+  status.innerText = "Generating image...";
 
-  <div id="gallery"
-    style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
-  </div>
+  const prompt = document.getElementById("prompt").value;
+  const gallery = document.getElementById("gallery");
+  gallery.innerHTML = "";
 
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
+  try {
+    const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ prompt })
+    });
 
-    let selectedStyle = "cinematic lighting";
+    const data = await res.json();
 
-    window.setStyle = (style) => {
-      selectedStyle = style;
+    if (!data.image) {
+      status.innerText = "Image failed";
+      return;
+    }
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const img = document.createElement("img");
+    img.src = data.image;
+    img.style.width = "100%";
+
+    const btn = document.createElement("button");
+    btn.innerText = "⬇ Download";
+    btn.onclick = () => {
+      const a = document.createElement("a");
+      a.href = data.image;
+      a.download = "image.png";
+      a.click();
     };
 
-    /* USER SYSTEM */
-    let userEmail = localStorage.getItem("userEmail") || null;
-    let isPro = false;
+    card.appendChild(img);
+    card.appendChild(btn);
+    gallery.appendChild(card);
 
-    const ADMIN_EMAIL = "neavyartical@gmail.com";
+    status.innerText = "Done!";
+  } catch (err) {
+    status.innerText = "Error generating image";
+    console.log(err);
+  }
+}
 
-    if (localStorage.getItem("pro") === "true") {
-      isPro = true;
+/* 🎬 VIDEO */
+async function generateVideo() {
+  status.innerText = "Generating video... (wait 30–60s)";
+
+  const prompt = document.getElementById("prompt").value;
+  const gallery = document.getElementById("gallery");
+  gallery.innerHTML = "";
+
+  try {
+    const res = await fetch("https://backend-ppyz.onrender.com/video", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+
+    if (!data.video) {
+      status.innerText = "Video failed";
+      return;
     }
 
-    window.login = function () {
-      const email = document.getElementById("email").value;
+    const video = document.createElement("video");
+    video.src = data.video;
+    video.controls = true;
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.style.width = "100%";
 
-      if (!email || !email.includes("@")) {
-        alert("Enter valid email");
-        return;
-      }
-
-      userEmail = email;
-      localStorage.setItem("userEmail", email);
-
-      if (email === ADMIN_EMAIL) {
-        isPro = true;
-        localStorage.setItem("pro", "true");
-        alert("Welcome Admin 👑 Unlimited access");
-      } else {
-        alert("Welcome! You can now use the app");
-      }
+    const btn = document.createElement("button");
+    btn.innerText = "⬇ Download Video";
+    btn.onclick = () => {
+      const a = document.createElement("a");
+      a.href = data.video;
+      a.download = "video.mp4";
+      a.click();
     };
 
-    function checkLimit() {
-      if (!userEmail) {
-        alert("Please login first");
-        return false;
-      }
+    gallery.appendChild(video);
+    gallery.appendChild(btn);
 
-      let count = localStorage.getItem("usage") || 0;
-
-      if (!isPro && count >= 5) {
-        alert("Free limit reached. Upgrade to PRO 💰");
-        return false;
-      }
-
-      localStorage.setItem("usage", parseInt(count) + 1);
-      return true;
-    }
-
-    window.goPro = async function () {
-      const res = await fetch("https://backend-ppyz.onrender.com/create-checkout-session", {
-        method: "POST"
-      });
-
-      const data = await res.json();
-      window.location.href = data.url;
-    };
-
-    const imgBtn = document.getElementById("imgBtn");
-    const vidBtn = document.getElementById("vidBtn");
-    const status = document.getElementById("status");
-
-    imgBtn.onclick = generateImages;
-    vidBtn.onclick = generateVideo;
-
-    /* IMAGE GENERATION */
-    async function generateImages() {
-      if (!checkLimit()) return;
-
-      status.innerText = "Generating image...";
-
-      const prompt = document.getElementById("prompt").value;
-      const gallery = document.getElementById("gallery");
-
-      gallery.innerHTML = "";
-
-      const finalPrompt = prompt + ", ultra high quality, 4k, detailed";
-
-      try {
-        const res = await fetch("https://backend-ppyz.onrender.com/generate", {
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ prompt: finalPrompt })
-        });
-
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-
-        const card = document.createElement("div");
-        card.className = "card";
-
-        const img = document.createElement("img");
-        img.src = url;
-        img.style.width = "100%";
-
-        const btn = document.createElement("button");
-        btn.innerText = "⬇ Download";
-        btn.onclick = () => {
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "reelmind.png";
-          a.click();
-        };
-
-        if (!isPro) {
-          const mark = document.createElement("div");
-          mark.className = "watermark";
-          mark.innerText = "NeavyArtical";
-          card.appendChild(mark);
-        }
-
-        card.appendChild(img);
-        card.appendChild(btn);
-        gallery.appendChild(card);
-
-        status.innerText = "Done!";
-      } catch (err) {
-        status.innerText = "Error generating image";
-        console.log(err);
-      }
-    }
-
-    /* VIDEO GENERATION (CINEMATIC) */
-    async function generateVideo() {
-      if (!checkLimit()) return;
-
-      status.innerText = "Creating cinematic video...";
-
-      const prompt = document.getElementById("prompt").value;
-      const gallery = document.getElementById("gallery");
-
-      gallery.innerHTML = "";
-
-      const finalPrompt = prompt + ", ultra cinematic, 4k, dramatic lighting";
-
-      try {
-        const res = await fetch("https://backend-ppyz.onrender.com/generate", {
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ prompt: finalPrompt })
-        });
-
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-
-        const card = document.createElement("div");
-        card.className = "card";
-
-        const img = document.createElement("img");
-        img.src = url;
-        img.style.width = "100%";
-        img.style.animation = "cinematicMove 12s ease-in-out infinite";
-
-        const btn = document.createElement("button");
-        btn.innerText = "⬇ Download Scene";
-        btn.onclick = () => {
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "scene.png";
-          a.click();
-        };
-
-        if (!isPro) {
-          const mark = document.createElement("div");
-          mark.className = "watermark";
-          mark.innerText = "NeavyArtical";
-          card.appendChild(mark);
-        }
-
-        card.appendChild(img);
-        card.appendChild(btn);
-        gallery.appendChild(card);
-
-        status.innerText = "Cinematic video ready!";
-      } catch (err) {
-        status.innerText = "Video failed";
-        console.log(err);
-      }
-    }
-
-  });
-  </script>
+    status.innerText = "Video ready 🎬";
+  } catch (err) {
+    status.innerText = "Video failed";
+    console.log(err);
+  }
+}
+</script>
 
 </body>
 </html>
