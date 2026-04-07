@@ -2,30 +2,10 @@
 <html>
 <head>
   <title>ReelMind AI</title>
-
   <style>
-    body {
-      background:#0b1d2a;
-      color:white;
-      text-align:center;
-      font-family:sans-serif;
-    }
-
-    button {
-      padding:12px 20px;
-      margin:5px;
-      border:none;
-      border-radius:8px;
-      background:#3b82f6;
-      color:white;
-      cursor:pointer;
-    }
-
-    .card {
-      background:#12283a;
-      padding:10px;
-      border-radius:10px;
-    }
+    body { background:#0b1d2a; color:white; text-align:center; font-family:sans-serif; }
+    button { padding:12px; margin:5px; border:none; border-radius:8px; background:#3b82f6; color:white; }
+    .card { background:#12283a; padding:10px; border-radius:10px; }
   </style>
 </head>
 
@@ -43,72 +23,47 @@ style="width:80%;padding:14px;border-radius:10px;border:none;" />
 
 <p id="status"></p>
 
-<div id="gallery"
-style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
-</div>
+<div id="gallery" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;"></div>
 
 <script>
 
 const status = document.getElementById("status");
 
-/* 🖼 CONTROLLED IMAGE OUTPUT */
 function generateImage() {
-  status.innerText = "Generating image...";
-
-  const prompt = document.getElementById("prompt").value.toLowerCase();
+  const prompt = document.getElementById("prompt").value;
   const gallery = document.getElementById("gallery");
+
   gallery.innerHTML = "";
+  status.innerText = "Searching image...";
 
-  let url = "";
-
-  if (prompt.includes("car")) {
-    url = "https://images.unsplash.com/photo-1502877338535-766e1452684a";
-  } else if (prompt.includes("lion")) {
-    url = "https://images.unsplash.com/photo-1546182990-dffeafbe841d";
-  } else if (prompt.includes("dog")) {
-    url = "https://images.unsplash.com/photo-1517849845537-4d257902454a";
-  } else if (prompt.includes("city")) {
-    url = "https://images.unsplash.com/photo-1494526585095-c41746248156";
-  } else if (prompt.includes("money")) {
-    url = "https://images.unsplash.com/photo-1565514020179-026b92b2d1c1";
-  } else if (prompt.includes("baby")) {
-    url = "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9";
-  } else {
-    url = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"; // fallback
-  }
-
-  const card = document.createElement("div");
-  card.className = "card";
+  const url = `https://source.unsplash.com/800x600/?${encodeURIComponent(prompt)}`;
 
   const img = document.createElement("img");
   img.src = url;
   img.style.width = "100%";
 
   img.onload = () => status.innerText = "Image ready!";
-  img.onerror = () => status.innerText = "Image ready!";
+  img.onerror = () => status.innerText = "Try another prompt";
 
-  const btn = document.createElement("button");
-  btn.innerText = "⬇ Download";
-  btn.onclick = () => {
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "image.jpg";
-    a.click();
-  };
-
-  card.appendChild(img);
-  card.appendChild(btn);
-  gallery.appendChild(card);
+  gallery.appendChild(img);
 }
 
-/* 🎬 VIDEO */
 function generateVideo() {
+  const prompt = document.getElementById("prompt").value.toLowerCase();
+  const gallery = document.getElementById("gallery");
+
+  gallery.innerHTML = "";
   status.innerText = "Generating video...";
 
-  const gallery = document.getElementById("gallery");
-  gallery.innerHTML = "";
+  let videoURL;
 
-  const videoURL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+  if (prompt.includes("car")) {
+    videoURL = "https://www.w3schools.com/html/mov_bbb.mp4";
+  } else if (prompt.includes("nature")) {
+    videoURL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+  } else {
+    videoURL = "https://www.w3schools.com/html/movie.mp4";
+  }
 
   const video = document.createElement("video");
   video.src = videoURL;
@@ -119,19 +74,8 @@ function generateVideo() {
   video.style.width = "100%";
 
   video.onloadeddata = () => status.innerText = "Video ready 🎬";
-  video.onerror = () => status.innerText = "Video ready 🎬";
-
-  const btn = document.createElement("button");
-  btn.innerText = "⬇ Download Video";
-  btn.onclick = () => {
-    const a = document.createElement("a");
-    a.href = videoURL;
-    a.download = "video.mp4";
-    a.click();
-  };
 
   gallery.appendChild(video);
-  gallery.appendChild(btn);
 }
 
 </script>
