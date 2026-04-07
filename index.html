@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v9 ALL-IN-ONE -->
+<!-- v10 FINAL FIX -->
 <html>
 <head>
   <title>ReelMind AI PRO</title>
@@ -23,11 +23,11 @@
 
   <br>
 
-  <button onclick="generateImages()" style="padding:12px 25px;background:#3b82f6;color:white;border:none;border-radius:8px;">
+  <button id="imgBtn" style="padding:12px 25px;background:#3b82f6;color:white;border:none;border-radius:8px;">
     Generate Images
   </button>
 
-  <button onclick="generateVideo()" style="padding:12px 25px;background:#10b981;color:white;border:none;border-radius:8px;">
+  <button id="vidBtn" style="padding:12px 25px;background:#10b981;color:white;border:none;border-radius:8px;">
     Generate Video 🎬
   </button>
 
@@ -44,7 +44,7 @@
       selectedStyle = style;
     }
 
-    /* MONETIZATION SYSTEM */
+    /* LIMIT SYSTEM */
     function checkLimit() {
       let count = localStorage.getItem("usage") || 0;
 
@@ -56,6 +56,10 @@
       localStorage.setItem("usage", parseInt(count) + 1);
       return true;
     }
+
+    /* BUTTON BINDING (FIXED) */
+    document.getElementById("imgBtn").onclick = generateImages;
+    document.getElementById("vidBtn").onclick = generateVideo;
 
     async function generateImages() {
       if (!checkLimit()) return;
@@ -69,50 +73,88 @@
       status.innerText = "Generating (fast)...";
       gallery.innerHTML = "";
 
-      const requests = Array.from({ length: 3 }, () =>
-        fetch("https://backend-ppyz.onrender.com/generate?v=9", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ prompt: finalPrompt })
-        })
-      );
+      try {
+        const requests = Array.from({ length: 3 }, () =>
+          fetch("https://backend-ppyz.onrender.com/generate?v=10", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ prompt: finalPrompt })
+          })
+        );
 
-      const responses = await Promise.all(requests);
+        const responses = await Promise.all(requests);
 
-      for (let res of responses) {
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
+        for (let res of responses) {
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
 
-        const card = document.createElement("div");
-        card.style.background = "#12283a";
-        card.style.padding = "10px";
-        card.style.borderRadius = "10px";
+          const card = document.createElement("div");
+          card.style.background = "#12283a";
+          card.style.padding = "10px";
+          card.style.borderRadius = "10px";
 
-        const img = document.createElement("img");
-        img.src = url;
-        img.style.width = "100%";
-        img.style.borderRadius = "10px";
+          const img = document.createElement("img");
+          img.src = url;
+          img.style.width = "100%";
+          img.style.borderRadius = "10px";
 
-        const btn = document.createElement("button");
-        btn.innerText = "Download";
-        btn.style.marginTop = "10px";
-        btn.onclick = () => {
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "image.png";
-          a.click();
-        };
+          const btn = document.createElement("button");
+          btn.innerText = "Download";
+          btn.style.marginTop = "10px";
+          btn.onclick = () => {
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "image.png";
+            a.click();
+          };
 
-        card.appendChild(img);
-        card.appendChild(btn);
-        gallery.appendChild(card);
+          card.appendChild(img);
+          card.appendChild(btn);
+          gallery.appendChild(card);
+        }
+
+        status.innerText = "Done!";
+      } catch {
+        status.innerText = "Error generating images";
       }
-
-      status.innerText = "Done!";
     }
 
     async function generateVideo() {
       if (!checkLimit()) return;
 
       const prompt = document.getElementById("prompt").value;
-      const status = document.getElementBy
+      const status = document.getElementById("status");
+      const gallery = document.getElementById("gallery");
+
+      const finalPrompt = prompt + ", cinematic motion, smooth camera";
+
+      gallery.innerHTML = "";
+      status.innerText = "Generating video...";
+
+      try {
+        const res = await fetch("https://backend-ppyz.onrender.com/video?v=10", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ prompt: finalPrompt })
+        });
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+
+        const video = document.createElement("video");
+        video.src = url;
+        video.controls = true;
+        video.autoplay = true;
+        video.style.width = "100%";
+
+        gallery.appendChild(video);
+
+        status.innerText = "Video ready!";
+      } catch {
+        status.innerText = "Video failed, try again";
+      }
+    }
+  </script>
+
+</body>
+</html>
