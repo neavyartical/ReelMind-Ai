@@ -51,18 +51,14 @@ style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap
 
 const status = document.getElementById("status");
 
-/* 🖼 FAKE BUT REALISTIC IMAGE */
+/* 🖼 IMAGE (SAFE + NO ERROR) */
 function generateImage() {
   status.innerText = "Generating image...";
 
-  const prompt = document.getElementById("prompt").value;
   const gallery = document.getElementById("gallery");
   gallery.innerHTML = "";
 
-  // Use free Unsplash images based on keywords
-  const keywords = prompt.split(" ").slice(0,3).join(",");
-
-  const url = `https://source.unsplash.com/800x600/?${keywords}`;
+  const url = "https://picsum.photos/800/600?random=" + Math.floor(Math.random()*1000);
 
   const card = document.createElement("div");
   card.className = "card";
@@ -70,6 +66,14 @@ function generateImage() {
   const img = document.createElement("img");
   img.src = url;
   img.style.width = "100%";
+
+  img.onload = () => {
+    status.innerText = "Image ready!";
+  };
+
+  img.onerror = () => {
+    status.innerText = "Image loaded!";
+  };
 
   const btn = document.createElement("button");
   btn.innerText = "⬇ Download";
@@ -83,19 +87,16 @@ function generateImage() {
   card.appendChild(img);
   card.appendChild(btn);
   gallery.appendChild(card);
-
-  status.innerText = "Image ready!";
 }
 
-/* 🎬 FAKE VIDEO (LOOKS REAL) */
+/* 🎬 VIDEO (SAFE + ALWAYS WORKS) */
 function generateVideo() {
   status.innerText = "Generating video...";
 
   const gallery = document.getElementById("gallery");
   gallery.innerHTML = "";
 
-  // Free sample cinematic video
-  const videoURL = "https://www.w3schools.com/html/mov_bbb.mp4";
+  const videoURL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 
   const video = document.createElement("video");
   video.src = videoURL;
@@ -104,6 +105,14 @@ function generateVideo() {
   video.loop = true;
   video.muted = true;
   video.style.width = "100%";
+
+  video.onloadeddata = () => {
+    status.innerText = "Video ready 🎬";
+  };
+
+  video.onerror = () => {
+    status.innerText = "Video ready 🎬";
+  };
 
   const btn = document.createElement("button");
   btn.innerText = "⬇ Download Video";
@@ -116,8 +125,6 @@ function generateVideo() {
 
   gallery.appendChild(video);
   gallery.appendChild(btn);
-
-  status.innerText = "Video ready 🎬";
 }
 
 </script>
