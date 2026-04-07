@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<!-- v14 FINAL MONETIZED -->
+<!-- v15 ULTIMATE ALL-IN-ONE -->
 <html>
 <head>
   <title>ReelMind AI PRO</title>
 
   <style>
-    body { background:#0b1d2a; color:white; text-align:center; font-family:sans-serif; }
-
-    @keyframes zoom {
-      from { transform: scale(1); }
-      to { transform: scale(1.1); }
+    body {
+      background:#0b1d2a;
+      color:white;
+      text-align:center;
+      font-family:sans-serif;
     }
 
     .card {
@@ -32,7 +32,25 @@
       padding:10px;
       margin:10px;
       border-radius:10px;
-      font-size:14px;
+    }
+
+    @keyframes zoom {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
+    }
+
+    @keyframes panzoom {
+      0% { transform: scale(1) translateX(0); }
+      100% { transform: scale(1.2) translateX(-20px); }
+    }
+
+    button {
+      padding:12px 20px;
+      margin:5px;
+      border:none;
+      border-radius:8px;
+      background:#3b82f6;
+      color:white;
     }
   </style>
 </head>
@@ -41,16 +59,16 @@
 
   <h1>🎬 ReelMind AI PRO</h1>
 
-  <!-- AD -->
-  <div class="ad-box">🚀 Your Ad Here (Replace with AdSense later)</div>
+  <!-- TOP AD -->
+  <div class="ad-box">🚀 Your Ad Here</div>
 
-  <input id="prompt" placeholder="Describe your scene..." 
+  <input id="prompt" placeholder="Describe your scene..."
     style="width:80%;padding:14px;border-radius:10px;border:none;" />
 
   <br><br>
 
-  <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-    <button onclick="setStyle('cinematic lighting, ultra realistic, 8k')">🎬 Cinematic</button>
+  <div>
+    <button onclick="setStyle('cinematic lighting, ultra realistic')">🎬 Cinematic</button>
     <button onclick="setStyle('anime style, vibrant colors')">🎌 Anime</button>
     <button onclick="setStyle('pixar style, 3d render')">🧸 Pixar</button>
     <button onclick="setStyle('photorealistic, ultra detailed')">📸 Realistic</button>
@@ -60,19 +78,29 @@
 
   <button id="imgBtn">Generate Images</button>
   <button id="vidBtn">Generate Video 🎬</button>
+  <button onclick="playSound()">🔊 Sound</button>
 
   <p id="status"></p>
 
-  <div id="gallery" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;"></div>
+  <div id="gallery"
+    style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
+  </div>
 
-  <!-- AD -->
-  <div class="ad-box">🔥 More Ads = More Money 💰</div>
+  <!-- BOTTOM AD -->
+  <div class="ad-box">🔥 Ads = Money 💰</div>
+
+  <!-- SOUND -->
+  <audio id="bgMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
 
   <script defer>
-    let selectedStyle = "cinematic lighting, ultra realistic, 8k";
+    let selectedStyle = "cinematic lighting, ultra realistic";
 
     function setStyle(style) {
       selectedStyle = style;
+    }
+
+    function playSound() {
+      document.getElementById("bgMusic").play();
     }
 
     function checkLimit() {
@@ -98,12 +126,12 @@
       const status = document.getElementById("status");
 
       gallery.innerHTML = "";
-      status.innerText = "Generating...";
+      status.innerText = "Generating images...";
 
       const finalPrompt = prompt + ", " + selectedStyle;
 
       const requests = Array.from({ length: 3 }, () =>
-        fetch("https://backend-ppyz.onrender.com/generate?v=14", {
+        fetch("https://backend-ppyz.onrender.com/generate?v=15", {
           method:"POST",
           headers:{"Content-Type":"application/json"},
           body: JSON.stringify({ prompt: finalPrompt })
@@ -142,7 +170,7 @@
         gallery.appendChild(card);
       }
 
-      status.innerText = "Done!";
+      status.innerText = "Images ready!";
     }
 
     async function generateVideo() {
@@ -153,12 +181,12 @@
       const status = document.getElementById("status");
 
       gallery.innerHTML = "";
-      status.innerText = "Generating video...";
+      status.innerText = "Creating cinematic video...";
 
       const finalPrompt = prompt + ", cinematic scene";
 
       try {
-        const res = await fetch("https://backend-ppyz.onrender.com/video?v=14", {
+        const res = await fetch("https://backend-ppyz.onrender.com/video?v=15", {
           method:"POST",
           headers:{"Content-Type":"application/json"},
           body: JSON.stringify({ prompt: finalPrompt })
@@ -177,16 +205,16 @@
           video.style.width = "100%";
 
           gallery.appendChild(video);
-          status.innerText = "Video ready!";
+          status.innerText = "Real video ready!";
           return;
         }
 
         throw new Error();
 
       } catch {
-        status.innerText = "Fallback animation...";
+        status.innerText = "Generating cinematic animation...";
 
-        const res = await fetch("https://backend-ppyz.onrender.com/generate?v=14", {
+        const res = await fetch("https://backend-ppyz.onrender.com/generate?v=15", {
           method:"POST",
           headers:{"Content-Type":"application/json"},
           body: JSON.stringify({ prompt: finalPrompt })
@@ -201,7 +229,7 @@
         const img = document.createElement("img");
         img.src = url;
         img.style.width = "100%";
-        img.style.animation = "zoom 6s infinite alternate";
+        img.style.animation = "panzoom 8s infinite alternate";
 
         const mark = document.createElement("div");
         mark.className = "watermark";
@@ -211,7 +239,7 @@
         card.appendChild(mark);
         gallery.appendChild(card);
 
-        status.innerText = "Fallback animation ready!";
+        status.innerText = "Cinematic animation ready!";
       }
     }
   </script>
