@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v10 FINAL FIX -->
+<!-- v11 FINAL STABLE -->
 <html>
 <head>
   <title>ReelMind AI PRO</title>
@@ -37,7 +37,7 @@
     style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
   </div>
 
-  <script>
+  <script defer>
     let selectedStyle = "cinematic lighting, ultra realistic, 8k";
 
     function setStyle(style) {
@@ -57,10 +57,11 @@
       return true;
     }
 
-    /* BUTTON BINDING (FIXED) */
+    /* BUTTON BINDING */
     document.getElementById("imgBtn").onclick = generateImages;
     document.getElementById("vidBtn").onclick = generateVideo;
 
+    /* IMAGE GENERATION */
     async function generateImages() {
       if (!checkLimit()) return;
 
@@ -75,7 +76,7 @@
 
       try {
         const requests = Array.from({ length: 3 }, () =>
-          fetch("https://backend-ppyz.onrender.com/generate?v=10", {
+          fetch("https://backend-ppyz.onrender.com/generate?v=11", {
             method: "POST",
             headers: {"Content-Type":"application/json"},
             body: JSON.stringify({ prompt: finalPrompt })
@@ -119,6 +120,7 @@
       }
     }
 
+    /* VIDEO GENERATION (FIXED) */
     async function generateVideo() {
       if (!checkLimit()) return;
 
@@ -132,20 +134,38 @@
       status.innerText = "Generating video...";
 
       try {
-        const res = await fetch("https://backend-ppyz.onrender.com/video?v=10", {
+        const res = await fetch("https://backend-ppyz.onrender.com/video?v=11", {
           method: "POST",
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify({ prompt: finalPrompt })
         });
 
+        const contentType = res.headers.get("content-type");
+
+        if (!res.ok || !contentType || !contentType.includes("video")) {
+          status.innerText = "Video failed (model busy or unavailable)";
+          return;
+        }
+
         const blob = await res.blob();
+
+        if (blob.size < 1000) {
+          status.innerText = "Video failed (empty response)";
+          return;
+        }
+
         const url = URL.createObjectURL(blob);
 
         const video = document.createElement("video");
         video.src = url;
         video.controls = true;
         video.autoplay = true;
+        video.muted = true;
         video.style.width = "100%";
+
+        video.onerror = () => {
+          status.innerText = "Video cannot play (format issue)";
+        };
 
         gallery.appendChild(video);
 
