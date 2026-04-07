@@ -11,29 +11,18 @@
       padding: 40px;
     }
 
-    h1 {
-      margin-bottom: 20px;
-    }
-
-    input {
+    input, button {
       width: 80%;
       padding: 12px;
-      border-radius: 6px;
+      margin-top: 10px;
+      border-radius: 8px;
       border: none;
-      margin-bottom: 10px;
       font-size: 16px;
     }
 
     button {
-      width: 80%;
-      padding: 12px;
       background: #22c55e;
-      border: none;
-      border-radius: 8px;
       color: white;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
       font-weight: bold;
     }
 
@@ -43,13 +32,9 @@
     }
 
     img {
-      margin-top: 20px;
       width: 90%;
+      margin-top: 20px;
       border-radius: 10px;
-    }
-
-    #status {
-      margin-top: 10px;
     }
   </style>
 </head>
@@ -70,19 +55,17 @@
 
 <script>
 async function generate() {
-  const promptInput = document.getElementById("prompt");
+  const prompt = document.getElementById("prompt").value;
   const status = document.getElementById("status");
   const img = document.getElementById("result");
   const downloadBtn = document.getElementById("downloadBtn");
 
-  const prompt = promptInput.value;
-
   if (!prompt) {
-    status.innerText = "Please enter a prompt";
+    status.innerText = "Enter prompt";
     return;
   }
 
-  status.innerText = "⏳ Generating...";
+  status.innerText = "Generating...";
   img.src = "";
   downloadBtn.style.display = "none";
 
@@ -92,32 +75,27 @@ async function generate() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ prompt: prompt })
+      body: JSON.stringify({ prompt })
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text);
-    }
+    if (!response.ok) throw new Error("Server error");
 
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
 
     img.src = url;
-    status.innerText = "✅ Image generated!";
-
+    status.innerText = "Done!";
     downloadBtn.style.display = "block";
 
-    downloadBtn.onclick = function () {
+    downloadBtn.onclick = () => {
       const a = document.createElement("a");
       a.href = url;
-      a.download = "reelmind-image.png";
+      a.download = "image.png";
       a.click();
     };
 
-  } catch (error) {
-    console.error(error);
-    status.innerText = "❌ Error generating image";
+  } catch (err) {
+    status.innerText = "Error generating image";
   }
 }
 </script>
