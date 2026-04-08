@@ -1,38 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <style>
     body {
-      font-family: Arial;
-      background: #0f172a;
+      background: #0b1a2f;
       color: white;
       text-align: center;
-      padding: 20px;
+      font-family: Arial;
     }
-
     input {
-      width: 90%;
-      padding: 12px;
+      width: 80%;
+      padding: 15px;
       border-radius: 10px;
       border: none;
-      margin-bottom: 15px;
+      margin-top: 40px;
     }
-
     button {
-      padding: 12px 25px;
-      border-radius: 10px;
+      margin-top: 20px;
+      padding: 15px 30px;
       border: none;
       background: green;
       color: white;
-    }
-
-    img {
-      margin-top: 20px;
-      max-width: 100%;
+      border-radius: 10px;
+      font-size: 18px;
     }
   </style>
 </head>
@@ -41,26 +32,20 @@
 
 <h1>🎬 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Enter prompt..." />
+<input id="prompt" placeholder="Enter video idea..." />
 
 <br>
 
-<button onclick="generateContent()">Generate</button>
+<button onclick="generate()">Generate</button>
 
 <p id="status"></p>
 
-<img id="result" />
-
 <script>
-async function generateContent() {
+async function generate() {
   const prompt = document.getElementById("prompt").value;
+  const status = document.getElementById("status");
 
-  if (!prompt) {
-    alert("Enter a prompt");
-    return;
-  }
-
-  document.getElementById("status").innerText = "Generating...";
+  status.innerText = "Generating... ⏳";
 
   try {
     const res = await fetch("https://backend-ppyz.onrender.com/generate", {
@@ -75,16 +60,11 @@ async function generateContent() {
 
     console.log(data);
 
-    if (data.output && data.output.length > 0) {
-      document.getElementById("result").src = data.output[0];
-      document.getElementById("status").innerText = "Done ✅";
-    } else {
-      document.getElementById("status").innerText = "Failed ❌";
-    }
-
+    status.innerText = "Success ✅ (Check console)";
+    
   } catch (err) {
-    document.getElementById("status").innerText = "Connection error ❌";
     console.error(err);
+    status.innerText = "Failed ❌";
   }
 }
 </script>
