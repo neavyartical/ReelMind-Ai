@@ -1,23 +1,36 @@
-async function generateImage() {
+async function generateVideo() {
   const prompt = document.getElementById("prompt").value;
+  const status = document.getElementById("status");
+  const video = document.getElementById("video");
 
-  const response = await fetch("https://backend-ppyz.onrender.com/generate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      inputs: prompt
-    })
-  });
-
-  if (!response.ok) {
-    alert("Error generating image");
+  if (!prompt) {
+    alert("Enter a prompt");
     return;
   }
 
-  const blob = await response.blob();
-  const imageUrl = URL.createObjectURL(blob);
+  status.innerText = "Generating... ⏳";
 
-  document.getElementById("output").src = imageUrl;
+  try {
+    const response = await fetch("https://backend-ppyz.onrender.com/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await response.json();
+
+    if (data.video) {
+      video.src = data.video;
+      status.innerText = "Done ✅";
+    } else {
+      status.innerText = "Failed ❌";
+      console.log(data);
+    }
+
+  } catch (error) {
+    console.error(error);
+    status.innerText = "Error ❌";
+  }
 }
