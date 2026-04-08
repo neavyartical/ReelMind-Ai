@@ -1,86 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>ReelMind AI</title>
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      text-align: center;
-      font-family: Arial;
-      padding: 40px;
-    }
-
-    input {
-      width: 80%;
-      padding: 15px;
-      border-radius: 10px;
-      border: none;
-      margin-bottom: 20px;
-    }
-
-    button {
-      padding: 15px 30px;
-      border: none;
-      border-radius: 10px;
-      background: #22c55e;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    video {
-      margin-top: 30px;
-      width: 80%;
-      border-radius: 10px;
-    }
-  </style>
 </head>
-<body>
 
-  <h1>🎬 ReelMind AI</h1>
+<body style="background:#0f172a;color:white;text-align:center;font-family:Arial;">
 
-  <input id="prompt" placeholder="Type your idea..." />
-  <br>
-  <button onclick="generate()">Generate</button>
+<h1>🎬 ReelMind AI</h1>
 
-  <p id="status"></p>
+<input id="prompt" placeholder="Type something..." style="padding:10px;width:70%;" />
+<br><br>
 
-  <video id="video" controls></video>
+<button onclick="generate()" style="padding:10px 20px;">Generate</button>
 
-  <script>
-    async function generate() {
-      const prompt = document.getElementById("prompt").value;
-      const status = document.getElementById("status");
-      const video = document.getElementById("video");
+<p id="status"></p>
 
-      status.innerText = "Generating...";
-      video.src = "";
+<video id="video" controls style="width:80%;display:none;"></video>
 
-      try {
-        const response = await fetch("https://YOUR-RENDER-URL.onrender.com/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            prompt: prompt
-          })
-        });
+<script>
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
+  const status = document.getElementById("status");
+  const video = document.getElementById("video");
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
+  status.innerText = "Generating...";
 
-        video.src = url;
-        status.innerText = "Done ✅";
+  try {
+    const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
 
-      } catch (error) {
-        console.error(error);
-        status.innerText = "Failed ❌";
-      }
-    }
-  </script>
+    const data = await res.json();
+
+    console.log(data);
+
+    video.src = data.video;
+    video.style.display = "block";
+
+    status.innerText = "Done ✅";
+
+  } catch (err) {
+    console.error(err);
+    status.innerText = "Failed ❌";
+  }
+}
+</script>
 
 </body>
 </html>
