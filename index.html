@@ -4,26 +4,32 @@
   <title>ReelMind AI</title>
   <style>
     body {
-      background: #0b1a2f;
+      background: #0b1a2a;
       color: white;
       text-align: center;
       font-family: Arial;
+      padding: 50px;
     }
     input {
       width: 80%;
       padding: 15px;
       border-radius: 10px;
       border: none;
-      margin-top: 40px;
+      font-size: 16px;
     }
     button {
       margin-top: 20px;
       padding: 15px 30px;
       border: none;
+      border-radius: 10px;
       background: green;
       color: white;
-      border-radius: 10px;
       font-size: 18px;
+    }
+    video {
+      margin-top: 20px;
+      width: 90%;
+      border-radius: 10px;
     }
   </style>
 </head>
@@ -32,20 +38,18 @@
 
 <h1>🎬 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Enter video idea..." />
-
+<input id="prompt" placeholder="Describe your video..."/>
 <br>
-
 <button onclick="generate()">Generate</button>
 
 <p id="status"></p>
 
+<video id="video" controls></video>
+
 <script>
 async function generate() {
   const prompt = document.getElementById("prompt").value;
-  const status = document.getElementById("status");
-
-  status.innerText = "Generating... ⏳";
+  document.getElementById("status").innerText = "Generating... ⏳";
 
   try {
     const res = await fetch("https://backend-ppyz.onrender.com/generate", {
@@ -57,14 +61,20 @@ async function generate() {
     });
 
     const data = await res.json();
-
     console.log(data);
 
-    status.innerText = "Success ✅ (Check console)";
-    
+    // 🔥 TRY TO SHOW VIDEO
+    if (data.output && data.output.output) {
+      const videoUrl = data.output.output[0];
+      document.getElementById("video").src = videoUrl;
+      document.getElementById("status").innerText = "Done ✅";
+    } else {
+      document.getElementById("status").innerText = "Processing... (wait a bit)";
+    }
+
   } catch (err) {
     console.error(err);
-    status.innerText = "Failed ❌";
+    document.getElementById("status").innerText = "Failed ❌";
   }
 }
 </script>
