@@ -5,6 +5,7 @@ async function generate() {
 
   const prompt = document.getElementById("prompt").value;
   const status = document.getElementById("status");
+  const img = document.getElementById("video");
 
   status.innerText = "Generating...";
 
@@ -19,7 +20,7 @@ async function generate() {
       body: JSON.stringify({ prompt })
     });
 
-    console.log("📡 Response status:", res.status);
+    console.log("📡 Status:", res.status);
 
     const data = await res.json();
     console.log("📦 Data:", data);
@@ -27,10 +28,8 @@ async function generate() {
     if (data.video) {
       status.innerText = "Done ✅";
 
-      const video = document.getElementById("video");
-
-      video.src = data.video;
-      video.style.display = "block";
+      img.src = data.video;
+      img.style.display = "block";
     } else {
       status.innerText = "Failed ❌";
     }
