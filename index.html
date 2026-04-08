@@ -7,16 +7,11 @@
 
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: #0f172a;
       color: white;
       text-align: center;
       padding: 20px;
-    }
-
-    h1 {
-      font-size: 28px;
-      margin-bottom: 20px;
     }
 
     input {
@@ -25,90 +20,74 @@
       border-radius: 10px;
       border: none;
       margin-bottom: 15px;
-      font-size: 16px;
     }
 
     button {
       padding: 12px 25px;
-      border: none;
       border-radius: 10px;
-      background: #22c55e;
+      border: none;
+      background: green;
       color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #16a34a;
-    }
-
-    #loading {
-      margin-top: 20px;
-      display: none;
-      font-size: 14px;
     }
 
     img {
       margin-top: 20px;
       max-width: 100%;
-      border-radius: 15px;
     }
   </style>
 </head>
 
 <body>
 
-  <h1>🎬 ReelMind AI Generator</h1>
+<h1>🎬 ReelMind AI</h1>
 
-  <input id="prompt" placeholder="Enter your idea... (e.g. cinematic poor boy story)" />
+<input id="prompt" placeholder="Enter prompt..." />
 
-  <br>
+<br>
 
-  <button onclick="generateContent()">Generate</button>
+<button onclick="generateContent()">Generate</button>
 
-  <div id="loading">⏳ Generating... please wait</div>
+<p id="status"></p>
 
-  <img id="result" />
+<img id="result" />
 
-  <script>
-    async function generateContent() {
-      const prompt = document.getElementById("prompt").value;
+<script>
+async function generateContent() {
+  const prompt = document.getElementById("prompt").value;
 
-      if (!prompt) {
-        alert("Please enter a prompt");
-        return;
-      }
+  if (!prompt) {
+    alert("Enter a prompt");
+    return;
+  }
 
-      document.getElementById("loading").style.display = "block";
-      document.getElementById("result").src = "";
+  document.getElementById("status").innerText = "Generating...";
 
-      try {
-        const response = await fetch("https://backend-ppyz.onrender.com/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ prompt })
-        });
+  try {
+    const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
 
-        const data = await response.json();
+    const data = await res.json();
 
-        console.log(data); // for debugging
+    console.log(data);
 
-        if (data.output && data.output.length > 0) {
-          document.getElementById("result").src = data.output[0];
-        } else {
-          alert("Generation failed. Check console.");
-        }
-
-      } catch (error) {
-        alert("Error connecting to server");
-        console.error(error);
-      }
-
-      document.getElementById("loading").style.display = "none";
+    if (data.output && data.output.length > 0) {
+      document.getElementById("result").src = data.output[0];
+      document.getElementById("status").innerText = "Done ✅";
+    } else {
+      document.getElementById("status").innerText = "Failed ❌";
     }
-  </script>
+
+  } catch (err) {
+    document.getElementById("status").innerText = "Connection error ❌";
+    console.error(err);
+  }
+}
+</script>
 
 </body>
 </html>
