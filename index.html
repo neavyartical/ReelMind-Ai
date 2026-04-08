@@ -8,36 +8,26 @@
 
   <h1>🎬 ReelMind AI</h1>
 
-  <input 
-    id="prompt" 
-    placeholder="Enter prompt..." 
-    style="width:80%;padding:10px;border-radius:10px;"
-  />
+  <input id="prompt" placeholder="Enter prompt..." style="width:80%;padding:10px;" />
 
   <br><br>
 
-  <button onclick="generate()" style="padding:10px 20px;background:green;color:white;border:none;">
-    Generate
-  </button>
+  <button id="btn">Generate</button>
 
   <p id="status"></p>
 
-  <img 
-    id="video" 
-    style="display:none;width:80%;margin-top:20px;border-radius:10px;"
-  />
+  <img id="video" style="display:none;width:80%;" />
 
-  <!-- 🔥 FINAL SCRIPT -->
   <script>
-    // ✅ IMPORTANT: full endpoint
+    console.log("🔥 SCRIPT LOADED");
+
     const BACKEND_URL = "https://backend-ppyz.onrender.com/generate";
 
-    async function generate() {
+    document.getElementById("btn").addEventListener("click", async () => {
+      alert("Button works ✅");
+
       const prompt = document.getElementById("prompt").value;
-
       document.getElementById("status").innerText = "Generating...";
-
-      alert("1️⃣ Button clicked");
 
       try {
         const res = await fetch(BACKEND_URL, {
@@ -48,13 +38,13 @@
           body: JSON.stringify({ prompt })
         });
 
-        alert("2️⃣ Request sent");
+        alert("Request sent ✅");
 
         const data = await res.json();
 
-        alert("3️⃣ Response received");
+        alert("Response received ✅");
 
-        console.log("📦 DATA:", data);
+        console.log(data);
 
         if (data.video) {
           document.getElementById("status").innerText = "Done ✅";
@@ -67,11 +57,10 @@
         }
 
       } catch (err) {
-        alert("❌ ERROR (check console)");
+        alert("Error ❌");
         console.error(err);
-        document.getElementById("status").innerText = "Error ❌";
       }
-    }
+    });
   </script>
 
 </body>
