@@ -11,7 +11,9 @@
 <input id="prompt" placeholder="Type something..." style="padding:10px;width:70%;" />
 <br><br>
 
-<button onclick="generate()" style="padding:10px 20px;">Generate</button>
+<button onclick="generate()" style="padding:10px 20px;background:green;color:white;">
+  Generate
+</button>
 
 <p id="status"></p>
 
@@ -38,14 +40,17 @@ async function generate() {
 
     console.log(data);
 
-    video.src = data.video;
-    video.style.display = "block";
-
-    status.innerText = "Done ✅";
+    if (data.video) {
+      video.src = data.video;
+      video.style.display = "block";
+      status.innerText = "Done ✅";
+    } else {
+      status.innerText = "Failed ❌";
+    }
 
   } catch (err) {
     console.error(err);
-    status.innerText = "Failed ❌";
+    status.innerText = "Error ❌";
   }
 }
 </script>
