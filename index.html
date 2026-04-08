@@ -22,8 +22,12 @@
 
   <p id="status"></p>
 
-  <img id="video" style="display:none;width:80%;margin-top:20px;" />
+  <img 
+    id="video" 
+    style="display:none;width:80%;margin-top:20px;border-radius:10px;"
+  />
 
+  <!-- 🔥 SCRIPT MUST BE AT BOTTOM -->
   <script>
     const BACKEND_URL = "https://backend-ppyz.onrender.com";
 
@@ -31,6 +35,8 @@
       const prompt = document.getElementById("prompt").value;
 
       document.getElementById("status").innerText = "Generating...";
+
+      console.log("🚀 Sending request...");
 
       try {
         const res = await fetch(`${BACKEND_URL}/generate`, {
@@ -41,9 +47,10 @@
           body: JSON.stringify({ prompt })
         });
 
-        const data = await res.json();
+        console.log("✅ Response received");
 
-        console.log(data);
+        const data = await res.json();
+        console.log("📦 Data:", data);
 
         if (data.video) {
           document.getElementById("status").innerText = "Done ✅";
@@ -56,7 +63,7 @@
         }
 
       } catch (err) {
-        console.error(err);
+        console.error("❌ ERROR:", err);
         document.getElementById("status").innerText = "Error ❌";
       }
     }
