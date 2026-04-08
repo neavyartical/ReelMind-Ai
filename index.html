@@ -27,19 +27,20 @@
     style="display:none;width:80%;margin-top:20px;border-radius:10px;"
   />
 
-  <!-- 🔥 SCRIPT MUST BE AT BOTTOM -->
+  <!-- 🔥 FINAL SCRIPT -->
   <script>
-    const BACKEND_URL = "https://backend-ppyz.onrender.com";
+    // ✅ IMPORTANT: full endpoint
+    const BACKEND_URL = "https://backend-ppyz.onrender.com/generate";
 
     async function generate() {
       const prompt = document.getElementById("prompt").value;
 
       document.getElementById("status").innerText = "Generating...";
 
-      console.log("🚀 Sending request...");
+      alert("1️⃣ Button clicked");
 
       try {
-        const res = await fetch(`${BACKEND_URL}/generate`, {
+        const res = await fetch(BACKEND_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -47,10 +48,13 @@
           body: JSON.stringify({ prompt })
         });
 
-        console.log("✅ Response received");
+        alert("2️⃣ Request sent");
 
         const data = await res.json();
-        console.log("📦 Data:", data);
+
+        alert("3️⃣ Response received");
+
+        console.log("📦 DATA:", data);
 
         if (data.video) {
           document.getElementById("status").innerText = "Done ✅";
@@ -63,7 +67,8 @@
         }
 
       } catch (err) {
-        console.error("❌ ERROR:", err);
+        alert("❌ ERROR (check console)");
+        console.error(err);
         document.getElementById("status").innerText = "Error ❌";
       }
     }
