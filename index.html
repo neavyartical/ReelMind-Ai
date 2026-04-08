@@ -10,6 +10,7 @@
       font-family: Arial;
       padding: 50px;
     }
+
     input {
       width: 80%;
       padding: 15px;
@@ -17,6 +18,7 @@
       border: none;
       font-size: 16px;
     }
+
     button {
       margin-top: 20px;
       padding: 15px 30px;
@@ -26,6 +28,7 @@
       color: white;
       font-size: 18px;
     }
+
     video {
       margin-top: 20px;
       width: 90%;
@@ -40,6 +43,7 @@
 
 <input id="prompt" placeholder="Describe your video..."/>
 <br>
+
 <button onclick="generate()">Generate</button>
 
 <p id="status"></p>
@@ -49,7 +53,10 @@
 <script>
 async function generate() {
   const prompt = document.getElementById("prompt").value;
-  document.getElementById("status").innerText = "Generating... ⏳";
+  const status = document.getElementById("status");
+  const video = document.getElementById("video");
+
+  status.innerText = "Generating video... ⏳";
 
   try {
     const res = await fetch("https://backend-ppyz.onrender.com/generate", {
@@ -63,18 +70,16 @@ async function generate() {
     const data = await res.json();
     console.log(data);
 
-    // 🔥 TRY TO SHOW VIDEO
-    if (data.output && data.output.output) {
-      const videoUrl = data.output.output[0];
-      document.getElementById("video").src = videoUrl;
-      document.getElementById("status").innerText = "Done ✅";
+    if (data.video) {
+      video.src = data.video;
+      status.innerText = "Done ✅";
     } else {
-      document.getElementById("status").innerText = "Processing... (wait a bit)";
+      status.innerText = "Failed ❌";
     }
 
   } catch (err) {
     console.error(err);
-    document.getElementById("status").innerText = "Failed ❌";
+    status.innerText = "Error ❌";
   }
 }
 </script>
