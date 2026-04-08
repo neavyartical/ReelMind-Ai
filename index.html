@@ -1,78 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ReelMind AI</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f0f0f;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 80%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: none;
-      outline: none;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 12px 25px;
-      font-size: 16px;
-      background: #00c853;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #00a844;
-    }
-
-    #status {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-
-    img {
-      margin-top: 20px;
-      width: 90%;
-      max-width: 500px;
-      border-radius: 10px;
-      display: none;
-    }
-  </style>
 </head>
 
-<body>
+<body style="background:black;color:white;text-align:center;">
 
   <h1>🎬 ReelMind AI</h1>
 
-  <input id="prompt" placeholder="Type something like: lion dancing in savanna..." />
+  <input id="prompt" placeholder="Type something..." style="width:80%;padding:10px;" />
+  <br><br>
 
-  <br/>
-
-  <button onclick="generate()">Generate</button>
+  <button onclick="generate()" style="padding:10px 20px;background:green;color:white;">
+    Generate
+  </button>
 
   <p id="status"></p>
 
-  <!-- RESULT (IMAGE) -->
-  <img id="video" />
+  <img id="video" style="display:none;width:90%;max-width:500px;" />
 
-  <!-- CONNECT JS -->
   <script src="script.js"></script>
 
 </body>
