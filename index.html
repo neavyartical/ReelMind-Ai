@@ -2,66 +2,46 @@
 <html>
 <head>
   <title>ReelMind AI</title>
+  <style>
+    body {
+      background: #111;
+      color: white;
+      text-align: center;
+      font-family: Arial;
+    }
+    input {
+      width: 60%;
+      padding: 10px;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      background: limegreen;
+      border: none;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    video {
+      margin-top: 20px;
+      width: 80%;
+      display: none;
+    }
+  </style>
 </head>
 
-<body style="background:black;color:white;text-align:center;font-family:sans-serif;">
+<body>
 
-  <h1>🎬 ReelMind AI</h1>
+<h1>🎬 ReelMind AI</h1>
 
-  <input id="prompt" placeholder="Enter prompt..." style="width:80%;padding:10px;" />
+<input id="prompt" placeholder="Enter prompt..." />
+<br>
+<button onclick="generate()">Generate</button>
 
-  <br><br>
+<p id="status"></p>
 
-  <button id="btn">Generate</button>
+<video id="video" controls></video>
 
-  <p id="status"></p>
-
-  <img id="video" style="display:none;width:80%;" />
-
-  <script>
-    console.log("🔥 SCRIPT LOADED");
-
-    const BACKEND_URL = "https://backend-ppyz.onrender.com/generate";
-
-    document.getElementById("btn").addEventListener("click", async () => {
-      alert("Button works ✅");
-
-      const prompt = document.getElementById("prompt").value;
-      document.getElementById("status").innerText = "Generating...";
-
-      try {
-        const res = await fetch(BACKEND_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ prompt })
-        });
-
-        alert("Request sent ✅");
-
-        const data = await res.json();
-
-        alert("Response received ✅");
-
-        console.log(data);
-
-        if (data.video) {
-          document.getElementById("status").innerText = "Done ✅";
-
-          const img = document.getElementById("video");
-          img.src = data.video;
-          img.style.display = "block";
-        } else {
-          document.getElementById("status").innerText = "Failed ❌";
-        }
-
-      } catch (err) {
-        alert("Error ❌");
-        console.error(err);
-      }
-    });
-  </script>
+<script src="script.js"></script>
 
 </body>
 </html>
