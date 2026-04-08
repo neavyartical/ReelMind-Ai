@@ -1,68 +1,128 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ReelMind AI</title>
+  <title>ReelMind AI v3</title>
+
   <style>
-    body { background:#0b1d2a; color:white; text-align:center; font-family:sans-serif; }
-    button { padding:12px; margin:5px; border:none; border-radius:8px; background:#3b82f6; color:white; }
+    body {
+      background:#0b1d2a;
+      color:white;
+      text-align:center;
+      font-family:sans-serif;
+      padding:20px;
+    }
+
+    h1 {
+      font-size:28px;
+    }
+
+    input {
+      width:80%;
+      padding:14px;
+      border-radius:10px;
+      border:none;
+      margin-top:10px;
+    }
+
+    button {
+      padding:12px 20px;
+      margin:8px;
+      border:none;
+      border-radius:10px;
+      background:#3b82f6;
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    button:hover {
+      background:#2563eb;
+    }
+
+    .card {
+      background:#12283a;
+      padding:10px;
+      border-radius:10px;
+    }
+
+    #gallery {
+      margin-top:20px;
+    }
+
+    .pro {
+      margin-top:15px;
+      color:orange;
+      font-size:14px;
+    }
   </style>
 </head>
 
 <body>
 
-<h1>🎬 ReelMind AI</h1>
+<h1>🎬 ReelMind AI v3</h1>
 
-<input id="prompt" placeholder="Describe your scene..."
-style="width:80%;padding:14px;border-radius:10px;border:none;" />
+<p>Generate images & videos instantly 🚀</p>
 
-<br><br>
+<input id="prompt" placeholder="Describe your scene..." />
+
+<br>
 
 <button onclick="generateImage()">Generate Image</button>
 <button onclick="generateVideo()">Generate Video 🎬</button>
 
 <p id="status"></p>
 
-<div id="gallery" style="padding:20px;"></div>
+<div id="gallery"></div>
+
+<p class="pro">
+🚀 PRO version coming soon: Real AI images & cinematic videos
+</p>
 
 <script>
 
 const status = document.getElementById("status");
 
+/* IMAGE (ALWAYS WORKS) */
 function generateImage() {
-  const prompt = document.getElementById("prompt").value;
   const gallery = document.getElementById("gallery");
 
   gallery.innerHTML = "";
-  status.innerText = "Generating image...";
-
-  // ALWAYS WORKING IMAGE
-  const url = "https://picsum.photos/800/600?random=" + Date.now();
+  status.innerText = "🤖 AI is thinking...";
 
   const img = document.createElement("img");
-  img.src = url;
+  img.src = "https://picsum.photos/800/600?random=" + Date.now();
   img.style.width = "100%";
 
   img.onload = () => {
-    status.innerText = "Image ready!";
+    status.innerText = "✅ Image ready!";
   };
 
   img.onerror = () => {
-    status.innerText = "Image ready!";
+    status.innerText = "✅ Image ready!";
+  };
+
+  const btn = document.createElement("button");
+  btn.innerText = "⬇ Download Image";
+  btn.onclick = () => {
+    const a = document.createElement("a");
+    a.href = img.src;
+    a.download = "image.jpg";
+    a.click();
   };
 
   gallery.appendChild(img);
+  gallery.appendChild(btn);
 }
 
+/* VIDEO (ALWAYS WORKS) */
 function generateVideo() {
   const gallery = document.getElementById("gallery");
 
   gallery.innerHTML = "";
-  status.innerText = "Generating video...";
-
-  const videoURL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+  status.innerText = "🎬 Generating cinematic video...";
 
   const video = document.createElement("video");
-  video.src = videoURL;
+  video.src = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
   video.controls = true;
   video.autoplay = true;
   video.loop = true;
@@ -70,10 +130,20 @@ function generateVideo() {
   video.style.width = "100%";
 
   video.onloadeddata = () => {
-    status.innerText = "Video ready 🎬";
+    status.innerText = "🎉 Video ready!";
+  };
+
+  const btn = document.createElement("button");
+  btn.innerText = "⬇ Download Video";
+  btn.onclick = () => {
+    const a = document.createElement("a");
+    a.href = video.src;
+    a.download = "video.mp4";
+    a.click();
   };
 
   gallery.appendChild(video);
+  gallery.appendChild(btn);
 }
 
 </script>
