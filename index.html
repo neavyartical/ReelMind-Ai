@@ -1,54 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>ReelMind AI</title>
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      text-align: center;
-      font-family: Arial;
-      padding: 40px;
-    }
-
-    input {
-      width: 80%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      margin-bottom: 10px;
-    }
-
-    button {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 10px;
-      background: limegreen;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    video {
-      margin-top: 20px;
-      width: 90%;
-      display: none;
-      border-radius: 10px;
-    }
-  </style>
 </head>
-<body>
+
+<body style="background:black;color:white;text-align:center;font-family:sans-serif;">
 
   <h1>🎬 ReelMind AI</h1>
 
-  <input id="prompt" placeholder="Describe your video..." />
-  <br>
-  <button onclick="generate()">Generate</button>
+  <input 
+    id="prompt" 
+    placeholder="Enter prompt..." 
+    style="width:80%;padding:10px;border-radius:10px;"
+  />
+
+  <br><br>
+
+  <button onclick="generate()" style="padding:10px 20px;background:green;color:white;border:none;">
+    Generate
+  </button>
 
   <p id="status"></p>
 
-  <video id="video" controls></video>
+  <img id="video" style="display:none;width:80%;margin-top:20px;" />
 
   <script>
     const BACKEND_URL = "https://backend-ppyz.onrender.com";
@@ -62,26 +36,28 @@
         const res = await fetch(`${BACKEND_URL}/generate`, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
           },
-          body: JSON.stringify({ prompt }),
+          body: JSON.stringify({ prompt })
         });
 
         const data = await res.json();
 
+        console.log(data);
+
         if (data.video) {
           document.getElementById("status").innerText = "Done ✅";
 
-          const video = document.getElementById("video");
-          video.src = data.video;
-          video.style.display = "block";
+          const img = document.getElementById("video");
+          img.src = data.video;
+          img.style.display = "block";
         } else {
           document.getElementById("status").innerText = "Failed ❌";
-          console.log(data);
         }
+
       } catch (err) {
-        document.getElementById("status").innerText = "Error ❌";
         console.error(err);
+        document.getElementById("status").innerText = "Error ❌";
       }
     }
   </script>
