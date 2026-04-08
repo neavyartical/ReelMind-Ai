@@ -7,6 +7,8 @@ async function generate() {
   document.getElementById("status").innerText = "Generating...";
 
   try {
+    console.log("📡 Sending request...");
+
     const res = await fetch(`${BACKEND_URL}/generate`, {
       method: "POST",
       headers: {
@@ -15,9 +17,21 @@ async function generate() {
       body: JSON.stringify({ prompt }),
     });
 
-    const data = await res.json();
+    console.log("📡 Response status:", res.status);
 
-    console.log("📦 Response:", data);
+    const text = await res.text();
+    console.log("📦 Raw response:", text);
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error("❌ Not JSON:", text);
+      document.getElementById("status").innerText = "Server Error ❌";
+      return;
+    }
+
+    console.log("✅ Parsed:", data);
 
     if (data.video) {
       document.getElementById("status").innerText = "Done ✅";
@@ -30,7 +44,7 @@ async function generate() {
     }
 
   } catch (err) {
-    console.error("❌ ERROR:", err);
-    document.getElementById("status").innerText = "Error ❌";
+    console.error("❌ FETCH ERROR:", err);
+    document.getElementById("status").innerText = "Connection Error ❌";
   }
 }
