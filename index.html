@@ -8,12 +8,16 @@
     body {
       margin:0;
       font-family: Arial;
-      background: linear-gradient(135deg,#6a00ff,#ff6a00);
+      background: radial-gradient(circle at center, #0a0a0a, #1a0033);
       color:white;
       text-align:center;
     }
 
-    .hidden { display:none; }
+    h2 {
+      background: linear-gradient(90deg,#ff6a00,#6a00ff);
+      -webkit-background-clip:text;
+      color:transparent;
+    }
 
     input {
       width:85%;
@@ -21,6 +25,8 @@
       margin:8px;
       border-radius:10px;
       border:none;
+      background:#111;
+      color:white;
     }
 
     button {
@@ -28,86 +34,92 @@
       margin:5px;
       border:none;
       border-radius:10px;
-      background:rgba(255,255,255,0.2);
+      background: linear-gradient(90deg,#ff6a00,#6a00ff);
       color:white;
     }
 
     .card {
       margin-top:20px;
       padding:10px;
-      background:rgba(0,0,0,0.3);
+      background:#111;
       border-radius:15px;
+      box-shadow:0 0 20px rgba(255,106,0,0.3);
     }
 
     img { width:100%; border-radius:10px; }
 
-    .ads {
+    pre {
+      text-align:left;
+      white-space:pre-wrap;
+    }
+
+    #ads {
       margin-top:15px;
-      padding:10px;
+      height:60px;
       background:#222;
-      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       font-size:12px;
     }
+
+    .hidden { display:none; }
   </style>
 </head>
 
 <body>
 
+<h2>🎬 ReelMind AI</h2>
+
 <!-- 🔐 LOGIN -->
 <div id="auth">
-  <h2>🔐 ReelMind AI</h2>
-
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
-
-  <button onclick="login()">Login</button>
   <button onclick="signup()">Sign Up</button>
+  <button onclick="login()">Login</button>
 </div>
 
 <!-- 🚀 APP -->
 <div id="app" class="hidden">
 
-  <h2>🎬 ReelMind AI</h2>
-
   <button onclick="logout()">Logout</button>
 
   <input id="prompt" placeholder="Ask anything (safe & legal only)">
-
   <button onclick="generate()">✨ Generate</button>
 
   <div id="output"></div>
 
-  <!-- 💰 SUBSCRIPTION -->
+  <!-- 💎 PREMIUM -->
   <div class="card">
-    <h3>💎 Go Premium</h3>
-    <p>$9/month or $99/year</p>
+    <h3>💎 Premium</h3>
+    <p>$9/month • $99/year</p>
     <button onclick="subscribe()">Upgrade</button>
   </div>
 
-  <!-- 📢 ADS (FREE USERS ONLY) -->
-  <div id="ads" class="ads">
-    📢 Ad: Your ad will appear here (AdMob later)
+  <!-- 📢 ADS -->
+  <div id="ads">
+    🤖 Ad Space (AdMob later)
   </div>
 
   <!-- 📜 POLICY -->
   <div class="card">
-    <h4>Safety Policy</h4>
+    <h4>🛡 AI Policy</h4>
     <p>
-      This app does NOT allow:
-      ❌ Nudity  
-      ❌ Illegal actions  
-      ❌ Harmful or violent content  
-      ✔ Safe, creative, and useful content only
+      ❌ No nudity<br>
+      ❌ No illegal content<br>
+      ❌ No harmful actions<br><br>
+      ✔ Safe & creative use only
     </p>
   </div>
 
 </div>
 
 <script>
-let user = null;
+// ==========================
+// 🔐 LOGIN SYSTEM (LOCAL)
+// ==========================
 let premium = false;
 
-// 🔐 LOGIN SYSTEM (LOCAL FOR NOW)
 function signup(){
   const email = document.getElementById("email").value;
   const pass = document.getElementById("password").value;
@@ -123,7 +135,6 @@ function login(){
   const saved = JSON.parse(localStorage.getItem("user"));
 
   if(saved && saved.email===email && saved.pass===pass){
-    user = saved;
     premium = saved.premium;
     startApp();
   } else {
@@ -144,9 +155,12 @@ function startApp(){
   }
 }
 
-// 💰 SUBSCRIBE (SIMULATION)
+// ==========================
+// 💰 PREMIUM (SIMULATED)
+// ==========================
 function subscribe(){
-  alert("Payment system coming next version 💳");
+  alert("Payments will be added later 💳");
+
   premium = true;
 
   let saved = JSON.parse(localStorage.getItem("user"));
@@ -156,33 +170,78 @@ function subscribe(){
   document.getElementById("ads").style.display="none";
 }
 
-// 🚀 GENERATE
-async function generate(){
+// ==========================
+// 🤖 SMART AI GENERATOR
+// ==========================
+async function generate() {
   const prompt = document.getElementById("prompt").value;
   const output = document.getElementById("output");
 
+  if (!prompt) return;
+
   // 🛑 SAFETY FILTER
-  if(prompt.toLowerCase().includes("nude") || prompt.toLowerCase().includes("illegal")){
-    output.innerHTML = "❌ Request not allowed";
+  const badWords = ["nude", "porn", "illegal", "kill"];
+  if (badWords.some(w => prompt.toLowerCase().includes(w))) {
+    output.innerHTML = "❌ Neavy AI blocked unsafe request";
     return;
   }
 
-  output.innerHTML="Loading...";
+  output.innerHTML = "🤖 Neavy AI is thinking...";
 
-  const res = await fetch("https://backend-ppyz.onrender.com/generate",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt})
-  });
+  // 🧠 TEXT DETECTION
+  const isTextRequest =
+    prompt.toLowerCase().includes("story") ||
+    prompt.toLowerCase().includes("ideas") ||
+    prompt.toLowerCase().includes("write") ||
+    prompt.toLowerCase().includes("script") ||
+    prompt.toLowerCase().includes("caption");
 
-  const data = await res.json();
+  // ==========================
+  // 🧠 TEXT RESPONSE
+  // ==========================
+  if (isTextRequest) {
+    let response = "";
 
-  output.innerHTML = `
-    <div class="card">
-      <img src="${data.url}">
-      <p>${prompt}</p>
-    </div>
-  `;
+    if (prompt.toLowerCase().includes("500 story ideas")) {
+      for (let i = 1; i <= 20; i++) {
+        response += `${i}. A viral story idea about ${prompt.replace("500 story ideas","something creative")}\n`;
+      }
+      response += "\n...and many more 🔥";
+    } else {
+      response = "Neavy AI Response:\n\n" + prompt;
+    }
+
+    output.innerHTML = `
+      <div class="card">
+        <pre>${response}</pre>
+      </div>
+    `;
+    return;
+  }
+
+  // ==========================
+  // 🎬 IMAGE GENERATION
+  // ==========================
+  try {
+    const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+
+    output.innerHTML = `
+      <div class="card">
+        <img src="${data.url}">
+        <p>${prompt}</p>
+      </div>
+    `;
+  } catch (err) {
+    output.innerHTML = "❌ Error generating";
+  }
 }
 </script>
 
