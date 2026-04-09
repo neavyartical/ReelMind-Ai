@@ -7,10 +7,22 @@
 body{
   margin:0;
   font-family:sans-serif;
-  text-align:center;
   color:white;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  text-align:center;
   overflow:hidden;
+
+  background:
+    radial-gradient(circle at 30% 30%, rgba(0,255,255,0.2), transparent),
+    radial-gradient(circle at 70% 70%, rgba(0,150,255,0.2), transparent),
+    linear-gradient(135deg,#0f2027,#1c92d2,#000428);
+}
+
+/* CANVAS BACKGROUND */
+#brain{
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:-1;
 }
 
 /* TITLE */
@@ -31,12 +43,7 @@ h2{
   height:100%;
   position:relative;
   transform-style:preserve-3d;
-  animation:spin 12s infinite linear;
-}
-
-@keyframes spin{
-  from{transform:rotateX(0) rotateY(0)}
-  to{transform:rotateX(360deg) rotateY(360deg)}
+  transform:rotateX(20deg) rotateY(20deg);
 }
 
 .face{
@@ -59,7 +66,6 @@ h2{
 .top{transform:rotateX(90deg) translateZ(110px)}
 .bottom{transform:rotateX(-90deg) translateZ(110px)}
 
-/* INPUT */
 input{
   width:80%;
   padding:12px;
@@ -68,7 +74,6 @@ input{
   margin-top:10px;
 }
 
-/* BUTTONS */
 button{
   margin:10px;
   padding:12px 20px;
@@ -79,17 +84,17 @@ button{
   font-weight:bold;
 }
 
-/* OUTPUT */
 #output{
   margin:15px;
 }
 
-/* LOGIN FIX */
 #app{display:none;}
 </style>
 </head>
 
 <body>
+
+<canvas id="brain"></canvas>
 
 <h2>ReelMind AI</h2>
 
@@ -102,7 +107,7 @@ button{
 <div id="app">
 
 <div class="scene">
-<div class="cube">
+<div class="cube" id="cube">
 <div class="face front" onclick="setMode('chat')">Chat</div>
 <div class="face back" onclick="setMode('story')">Story</div>
 <div class="face right" onclick="setMode('image')">Image</div>
@@ -129,7 +134,7 @@ button{
 let mode="chat";
 let user="";
 
-// FIX LOGIN STABILITY 🔥
+/* AUTO LOGIN FIX */
 window.onload=()=>{
   let saved=localStorage.getItem("user");
   if(saved){
@@ -138,15 +143,18 @@ window.onload=()=>{
   }
 };
 
+/* MODE SELECT */
 function setMode(m){
   mode=m;
   alert("Mode: "+m);
 }
 
-// LOGIN
+/* LOGIN */
 function login(){
   user=document.getElementById("user").value;
   let pass=document.getElementById("pass").value;
+
+  if(!user||!pass){alert("Enter details");return;}
 
   fetch("https://reelmindbackend-1.onrender.com/login",{
     method:"POST",
@@ -158,7 +166,7 @@ function login(){
     if(d.success){
       localStorage.setItem("user",user);
       showApp();
-    } else alert("Login failed");
+    }else alert("Login failed");
   });
 }
 
@@ -167,13 +175,13 @@ function showApp(){
   document.getElementById("app").style.display="block";
 }
 
-// LOGOUT
+/* LOGOUT */
 function logout(){
   localStorage.removeItem("user");
   location.reload();
 }
 
-// GENERATE FIX 🔥
+/* GENERATE FIX */
 async function generate(){
   let prompt=document.getElementById("prompt").value;
 
@@ -182,28 +190,93 @@ async function generate(){
     return;
   }
 
-  document.getElementById("output").innerHTML="Loading...";
+  let output=document.getElementById("output");
+  output.innerHTML="⏳ Generating...";
 
-  let res = await fetch("https://reelmindbackend-1.onrender.com/generate",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt:prompt,type:mode})
-  });
+  try{
+    let res=await fetch("https://reelmindbackend-1.onrender.com/generate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt:prompt,type:mode})
+    });
 
-  let data = await res.json();
+    let data=await res.json();
 
-  if(mode==="image"){
-    document.getElementById("output").innerHTML=
-      `<img src="${data.result}" width="200">`;
-  } else {
-    document.getElementById("output").innerText=data.result;
+    if(!data || !data.result){
+      output.innerHTML="⚠️ No response";
+      return;
+    }
+
+    if(mode==="image"){
+      output.innerHTML=`<img src="${data.result}" width="220">`;
+    } else {
+      output.innerText=data.result;
+    }
+
+  }catch(e){
+    output.innerHTML="❌ Server error";
   }
 }
 
-// PAYPAL BUTTON
+/* PAYPAL */
 function buy(){
   window.open("https://www.paypal.com/paypalme/YOURNAME/9");
 }
+
+/* SWIPE CONTROL */
+let startX=0;
+let rotateY=20;
+
+const cube=document.getElementById("cube");
+
+document.querySelector(".scene").addEventListener("touchstart",e=>{
+  startX=e.touches[0].clientX;
+});
+
+document.querySelector(".scene").addEventListener("touchmove",e=>{
+  let moveX=e.touches[0].clientX;
+  let diff=moveX-startX;
+
+  rotateY += diff*0.4;
+
+  cube.style.transform=`rotateX(20deg) rotateY(${rotateY}deg)`;
+
+  startX=moveX;
+});
+
+/* BRAIN BACKGROUND */
+const canvas=document.getElementById("brain");
+const ctx=canvas.getContext("2d");
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+let particles=[];
+
+for(let i=0;i<100;i++){
+  particles.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    vx:Math.random()*2-1,
+    vy:Math.random()*2-1
+  });
+}
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  particles.forEach(p=>{
+    p.x+=p.vx;
+    p.y+=p.vy;
+
+    ctx.fillStyle="cyan";
+    ctx.fillRect(p.x,p.y,2,2);
+  });
+
+  requestAnimationFrame(animate);
+}
+
+animate();
 </script>
 
 </body>
