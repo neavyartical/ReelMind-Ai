@@ -26,6 +26,7 @@ body{
   justify-content:center;
 }
 
+/* INPUT */
 input{
   padding:12px;
   margin:6px;
@@ -43,22 +44,28 @@ button{
   color:white;
 }
 
-/* GRID */
+/* GRID (3D CUBES) */
 #grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:8px;
+  gap:10px;
   padding:10px;
 }
 
 .grid-btn{
   text-align:center;
-  padding:10px;
-  border-radius:12px;
-  background:rgba(255,255,255,0.1);
+  padding:14px;
+  border-radius:14px;
+  background:linear-gradient(145deg,#1a1a1a,#2a2a2a);
+  box-shadow:5px 5px 15px #000,-5px -5px 15px #333;
+  transform:perspective(200px) translateZ(5px);
 }
 
-.grid-btn span{font-size:12px;display:block;}
+.grid-btn span{
+  display:block;
+  font-size:12px;
+  margin-top:5px;
+}
 
 /* CHAT */
 #chat{
@@ -77,26 +84,27 @@ button{
 .user{background:#ff6a00;margin-left:auto;}
 .ai{background:#222;}
 
-/* INPUT */
+img,video{
+  width:100%;
+  border-radius:10px;
+  margin-top:5px;
+}
+
+/* INPUT BAR */
 #bottom{
   display:flex;
   padding:10px;
 }
-
-#bottom input{
-  flex:1;
-}
-
 </style>
 </head>
 
 <body>
 
-<!-- AUTH SCREEN -->
+<!-- AUTH -->
 <div id="auth">
   <h2>Welcome</h2>
   <input id="email" placeholder="Email">
-  <input id="pass" placeholder="Password" type="password">
+  <input id="pass" type="password" placeholder="Password">
 
   <button onclick="register()">Register</button>
   <button onclick="login()">Login</button>
@@ -110,6 +118,7 @@ button{
   <div class="grid-btn" onclick="setMode('story')">📖<span>Story</span></div>
   <div class="grid-btn" onclick="setMode('image')">🖼<span>Image</span></div>
   <div class="grid-btn" onclick="setMode('video')">🎬<span>Video</span></div>
+  <div class="grid-btn" onclick="viewProjects()">📂<span>Projects</span></div>
   <div class="grid-btn" onclick="logout()">🚪<span>Logout</span></div>
 </div>
 
@@ -124,65 +133,82 @@ button{
 
 <script>
 
-// USER SYSTEM
-let currentUser = null;
+// USER
+let currentUser=null;
 
+// REGISTER
 function register(){
-  let email = document.getElementById("email").value;
-  let pass = document.getElementById("pass").value;
+  let email=emailEl.value;
+  let pass=passEl.value;
 
-  if(!email || !pass){
-    alert("Fill all fields");
-    return;
-  }
+  if(!email || !pass){alert("Fill all");return;}
 
-  let users = JSON.parse(localStorage.getItem("users")||"{}");
+  let users=JSON.parse(localStorage.getItem("users")||"{}");
 
-  if(users[email]){
-    alert("User already exists");
-    return;
-  }
+  if(users[email]){alert("User exists");return;}
 
-  users[email] = {pass:pass, premium:false};
+  users[email]={pass:pass,projects:[]};
   localStorage.setItem("users",JSON.stringify(users));
 
-  alert("Registered! Now login.");
+  alert("Registered!");
 }
 
+// LOGIN
 function login(){
-  let email = document.getElementById("email").value;
-  let pass = document.getElementById("pass").value;
+  let email=emailEl.value;
+  let pass=passEl.value;
 
-  let users = JSON.parse(localStorage.getItem("users")||"{}");
+  let users=JSON.parse(localStorage.getItem("users")||"{}");
 
-  if(!users[email] || users[email].pass !== pass){
-    alert("Wrong details");
+  if(!users[email] || users[email].pass!==pass){
+    alert("Wrong login");
     return;
   }
 
-  currentUser = email;
+  currentUser=email;
   localStorage.setItem("currentUser",email);
 
-  document.getElementById("auth").style.display="none";
-  document.getElementById("app").style.display="block";
+  auth.style.display="none";
+  app.style.display="block";
 }
 
+// LOGOUT
 function logout(){
   localStorage.removeItem("currentUser");
   location.reload();
 }
 
 // AUTO LOGIN
-window.onload = function(){
-  let saved = localStorage.getItem("currentUser");
+window.onload=function(){
+  let saved=localStorage.getItem("currentUser");
   if(saved){
-    currentUser = saved;
-    document.getElementById("auth").style.display="none";
-    document.getElementById("app").style.display="block";
+    currentUser=saved;
+    auth.style.display="none";
+    app.style.display="block";
   }
-};
+}
 
-// APP LOGIC
+// SAVE PROJECT (PER USER)
+function saveProject(data){
+  let users=JSON.parse(localStorage.getItem("users"));
+  users[currentUser].projects.unshift(data);
+  localStorage.setItem("users",JSON.stringify(users));
+}
+
+// VIEW PROJECTS
+function viewProjects(){
+  let users=JSON.parse(localStorage.getItem("users"));
+  let list=users[currentUser].projects;
+
+  if(!list.length){
+    add("No projects yet","ai");
+    return;
+  }
+
+  add("📂 Your Projects:<br><br>"+list.join("<br><br>"),"ai");
+}
+
+// UI
 let mode="chat";
 
 function setMode(m){
@@ -198,21 +224,12 @@ function add(t,type){
   chat.scrollTop=chat.scrollHeight;
 }
 
-function typeText(text){
-  return new Promise(resolve=>{
-    let i=0;
-    let div=document.createElement("div");
-    div.className="msg ai";
-    chat.appendChild(div);
-
-    function typing(){
-      if(i<text.length){
-        div.innerHTML+=text[i++];
-        setTimeout(typing,5);
-      }else resolve();
-    }
-    typing();
-  });
+// DOWNLOAD
+function downloadFile(url,type){
+  let a=document.createElement("a");
+  a.href=url;
+  a.download= type==="video"?"video.mp4":"image.jpg";
+  a.click();
 }
 
 // SEND
@@ -222,38 +239,53 @@ async function send(){
 
   add(txt,"user");
 
-  // STORY
-  if(mode==="story"){
-    let story = `
-📖 Story:
-
-${txt}
-
-A powerful journey of growth, struggle and victory.
-
-✨ The beginning of greatness...
-`;
-    await typeText(story);
-    return;
-  }
-
   // IMAGE
   if(mode==="image"){
     let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(txt);
-    add(`<img src="${url}">`,"ai");
+
+    add(`
+      <img src="${url}">
+      <button onclick="downloadFile('${url}','image')">⬇ Download</button>
+    `,"ai");
+
+    saveProject("Image: "+txt);
     return;
   }
 
   // VIDEO
   if(mode==="video"){
-    add(`<video controls>
-    <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4">
-    </video>`,"ai");
+    let vid="https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
+
+    add(`
+      <video controls>
+        <source src="${vid}">
+      </video>
+      <button onclick="downloadFile('${vid}','video')">⬇ Download</button>
+    `,"ai");
+
+    saveProject("Video: "+txt);
+    return;
+  }
+
+  // STORY
+  if(mode==="story"){
+    let story=`
+📖 Story:
+
+${txt}
+
+A deep cinematic journey filled with emotion, power and transformation.
+
+✨ A story that feels real and unforgettable.
+`;
+
+    add(story,"ai");
+    saveProject(story);
     return;
   }
 
   // CHAT
-  await typeText("🤖 AI: I understand " + txt);
+  add("🤖 AI: " + txt,"ai");
 }
 
 </script>
