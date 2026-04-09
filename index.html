@@ -6,7 +6,7 @@
 
   <style>
     body {
-      background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+      background: #000;
       color: white;
       font-family: Arial;
       text-align: center;
@@ -14,8 +14,7 @@
     }
 
     h2 {
-      font-size: 28px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     input {
@@ -24,35 +23,36 @@
       border-radius: 10px;
       border: none;
       margin-bottom: 15px;
-      font-size: 16px;
     }
 
     button {
       padding: 14px 25px;
-      background: linear-gradient(45deg, #00c853, #00e676);
-      color: white;
+      background: #00c853;
       border: none;
       border-radius: 10px;
+      color: white;
       font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
     }
 
-    #status {
-      margin-top: 15px;
-      font-size: 14px;
-    }
-
-    img {
-      width: 100%;
-      border-radius: 10px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    #videoContainer {
       margin-top: 20px;
+      width: 100%;
+      height: 400px;
+      overflow: hidden;
+      border-radius: 15px;
+      position: relative;
+    }
+
+    #videoContainer img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      animation: zoom 8s infinite alternate;
+    }
+
+    @keyframes zoom {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.2); }
     }
 
     .loader {
@@ -73,33 +73,33 @@
 
 <body>
 
-  <h2>🎬 ReelMind AI</h2>
+  <h2>🎬 ReelMind AI (Video Mode)</h2>
 
   <input id="prompt" placeholder="Describe your scene..." />
   <br>
 
-  <button onclick="generate()">✨ Generate</button>
+  <button onclick="generate()">🎥 Generate Video</button>
 
   <p id="status"></p>
-  <div id="result"></div>
+  <div id="videoContainer"></div>
 
   <script>
-    let firstImage = "";
+    let videoImage = "";
 
     async function generate() {
       const prompt = document.getElementById("prompt").value;
       const status = document.getElementById("status");
-      const result = document.getElementById("result");
+      const container = document.getElementById("videoContainer");
 
       if (!prompt) {
         status.innerText = "Enter something ⚠️";
         return;
       }
 
-      const enhancedPrompt = prompt + ", ultra realistic, 4k, cinematic lighting, highly detailed, photorealistic";
+      const enhancedPrompt = prompt + ", ultra realistic, cinematic lighting, 4k, dramatic scene";
 
-      status.innerText = "Creating magic... ✨";
-      result.innerHTML = '<div class="loader"></div>';
+      status.innerText = "Generating video... 🎥";
+      container.innerHTML = '<div class="loader"></div>';
 
       try {
         const res = await fetch("https://backend-ppyz.onrender.com/generate", {
@@ -113,36 +113,23 @@
         const data = await res.json();
 
         if (data.url) {
-          status.innerText = "Done ✅";
+          videoImage = data.url;
 
-          firstImage = data.url;
+          status.innerText = "Playing ▶️";
 
-          result.innerHTML = `
-            <div class="grid">
-              <img src="${data.url}" />
-              <img src="${data.url}&seed=2" />
-              <img src="${data.url}&seed=3" />
-              <img src="${data.url}&seed=4" />
-            </div>
-            <button id="downloadBtn">⬇ Download</button>
+          container.innerHTML = `
+            <img src="${data.url}" />
           `;
         } else {
           status.innerText = "Error ❌";
-          result.innerText = JSON.stringify(data);
+          container.innerText = JSON.stringify(data);
         }
 
       } catch (err) {
         status.innerText = "Server error ❌";
-        result.innerText = err.message;
+        container.innerText = err.message;
       }
     }
-
-    // 🔥 MOBILE-FRIENDLY DOWNLOAD (opens image)
-    document.addEventListener("click", function(e) {
-      if (e.target && e.target.id === "downloadBtn") {
-        window.open(firstImage, "_blank");
-      }
-    });
   </script>
 
 </body>
