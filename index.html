@@ -1,61 +1,142 @@
-<script>
-async function generate() {
-  const prompt = document.getElementById("prompt").value;
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ReelMind AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  const status = document.getElementById("status");
-  const result = document.getElementById("result");
-
-  if (!prompt) {
-    status.innerText = "Enter something ⚠️";
-    return;
-  }
-
-  // 🔥 ADD REALISM AUTOMATICALLY
-  const enhancedPrompt = prompt + ", ultra realistic, 4k, cinematic lighting, highly detailed, sharp focus, real life, professional photography, photorealistic";
-
-  // 🔄 LOADING
-  status.innerText = "Creating magic... ✨";
-  result.innerHTML = '<div class="loader"></div>';
-
-  try {
-    const res = await fetch("https://backend-ppyz.onrender.com/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt: enhancedPrompt })
-    });
-
-    const data = await res.json();
-    console.log("DATA:", data);
-
-    if (data.url) {
-      status.innerText = "Done ✅";
-
-      result.innerHTML = `
-        <img src="${data.url}" />
-        <br><br>
-        <button onclick="downloadImage('${data.url}')">⬇ Download</button>
-      `;
-    } else {
-      status.innerText = "Error ❌";
-      result.innerText = JSON.stringify(data);
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+      color: white;
+      font-family: Arial;
+      text-align: center;
+      padding: 20px;
     }
 
-  } catch (err) {
-    status.innerText = "Server error ❌";
-    result.innerText = err.message;
-    console.error(err);
-  }
-}
+    h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
 
-// 📥 DOWNLOAD FUNCTION
-function downloadImage(url) {
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "reelmind-image.jpg";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-</script>
+    input {
+      width: 90%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 14px 25px;
+      background: linear-gradient(45deg, #00c853, #00e676);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 20px;
+      border-radius: 15px;
+    }
+
+    .loader {
+      margin: 20px auto;
+      border: 5px solid #333;
+      border-top: 5px solid #00e676;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>🎬 ReelMind AI</h2>
+
+  <input id="prompt" placeholder="Describe your scene..." />
+  <br>
+
+  <button onclick="generate()">✨ Generate</button>
+
+  <p id="status"></p>
+  <div id="result"></div>
+
+  <script>
+    async function generate() {
+      const prompt = document.getElementById("prompt").value;
+      const status = document.getElementById("status");
+      const result = document.getElementById("result");
+
+      if (!prompt) {
+        status.innerText = "Enter something ⚠️";
+        return;
+      }
+
+      const enhancedPrompt = prompt + ", ultra realistic, 4k, cinematic lighting, highly detailed, photorealistic";
+
+      status.innerText = "Creating magic... ✨";
+      result.innerHTML = '<div class="loader"></div>';
+
+      try {
+        const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ prompt: enhancedPrompt })
+        });
+
+        const data = await res.json();
+
+        if (data.url) {
+          status.innerText = "Done ✅";
+
+          result.innerHTML = `
+            <img id="generatedImage" src="${data.url}" />
+            <br>
+            <button id="downloadBtn">⬇ Download</button>
+          `;
+        } else {
+          status.innerText = "Error ❌";
+          result.innerText = JSON.stringify(data);
+        }
+
+      } catch (err) {
+        status.innerText = "Server error ❌";
+        result.innerText = err.message;
+      }
+    }
+
+    // 🔥 DOWNLOAD HANDLER (WORKS ON MOBILE)
+    document.addEventListener("click", function(e) {
+      if (e.target && e.target.id === "downloadBtn") {
+        const img = document.getElementById("generatedImage");
+
+        const a = document.createElement("a");
+        a.href = img.src;
+        a.download = "reelmind.jpg";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    });
+  </script>
+
+</body>
+</html>
