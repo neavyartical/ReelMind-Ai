@@ -2,8 +2,11 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>ReelMind AI</title>
+
+<!-- ADSENSE -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXX"
+crossorigin="anonymous"></script>
 
 <style>
 body{
@@ -19,15 +22,6 @@ body{
     linear-gradient(135deg,#0f2027,#1c92d2,#000428);
 }
 
-/* CANVAS BACKGROUND */
-#brain{
-  position:fixed;
-  top:0;
-  left:0;
-  z-index:-1;
-}
-
-/* CUBE */
 .scene{
   width:220px;
   height:220px;
@@ -40,8 +34,6 @@ body{
   height:100%;
   position:relative;
   transform-style:preserve-3d;
-  transform:rotateX(20deg) rotateY(20deg);
-  transition:0.3s;
 }
 
 .face{
@@ -51,10 +43,17 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:18px;
   border-radius:20px;
   background:rgba(255,255,255,0.1);
   backdrop-filter:blur(10px);
+}
+
+.face button{
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#00c6ff;
+  color:white;
 }
 
 .front{transform:translateZ(110px)}
@@ -79,11 +78,6 @@ button{
   border-radius:12px;
   background:#00c6ff;
   color:white;
-  font-weight:bold;
-}
-
-#output{
-  margin:15px;
 }
 
 #app{display:none;}
@@ -92,11 +86,9 @@ button{
 
 <body>
 
-<canvas id="brain"></canvas>
-
 <h2>ReelMind AI</h2>
 
-<!-- LOGIN / REGISTER -->
+<!-- LOGIN -->
 <div id="login">
 <h3>Login / Register</h3>
 
@@ -112,12 +104,12 @@ button{
 
 <div class="scene">
 <div class="cube" id="cube">
-<div class="face front" onclick="setMode('chat')">Chat</div>
-<div class="face back" onclick="setMode('story')">Story</div>
-<div class="face right" onclick="setMode('image')">Image</div>
-<div class="face left" onclick="setMode('video')">Video</div>
-<div class="face top" onclick="setMode('music')">Music</div>
-<div class="face bottom" onclick="setMode('money')">Money</div>
+<div class="face front"><button onclick="setMode('chat')">Chat</button></div>
+<div class="face back"><button onclick="setMode('story')">Story</button></div>
+<div class="face right"><button onclick="setMode('image')">Image</button></div>
+<div class="face left"><button onclick="setMode('video')">Video</button></div>
+<div class="face top"><button onclick="setMode('music')">Music</button></div>
+<div class="face bottom"><button onclick="setMode('money')">Money</button></div>
 </div>
 </div>
 
@@ -130,10 +122,21 @@ button{
 
 <div id="output"></div>
 
+<!-- ADS -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-XXXX"
+     data-ad-slot="1234567890"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
 <button onclick="buy()">Unlock Premium ($9)</button>
 
 <h3>Powered by Artical Neavy</h3>
-
 <p>$9/month | $99/year</p>
 
 </div>
@@ -141,6 +144,7 @@ button{
 <script>
 let mode="chat";
 let user="";
+let rotateY=0;
 
 /* AUTO LOGIN */
 window.onload=()=>{
@@ -150,6 +154,13 @@ window.onload=()=>{
     showApp();
   }
 };
+
+/* ROTATE CUBE AUTO */
+setInterval(()=>{
+  rotateY += 1;
+  document.getElementById("cube").style.transform =
+    `rotateX(20deg) rotateY(${rotateY}deg)`;
+},50);
 
 /* MODE */
 function setMode(m){
@@ -204,13 +215,13 @@ function showApp(){
   document.getElementById("app").style.display="block";
 }
 
-/* LOGOUT FIX */
+/* LOGOUT */
 function logout(){
   localStorage.removeItem("user");
   location.reload();
 }
 
-/* GENERATE (FIXED) */
+/* GENERATE */
 async function generate(){
   let prompt=document.getElementById("prompt").value;
 
@@ -233,8 +244,7 @@ async function generate(){
 
     if(mode==="image"){
       output.innerHTML=`<img src="${data.result}" width="250">`;
-    }
-    else{
+    }else{
       output.innerText=data.result;
     }
 
@@ -257,59 +267,6 @@ function buy(){
     }
   });
 }
-
-/* SWIPE CUBE */
-let startX=0;
-let rotateY=20;
-let cube=document.getElementById("cube");
-
-document.querySelector(".scene").addEventListener("touchstart",e=>{
-  startX=e.touches[0].clientX;
-});
-
-document.querySelector(".scene").addEventListener("touchmove",e=>{
-  let moveX=e.touches[0].clientX;
-  let diff=moveX-startX;
-
-  rotateY+=diff*0.4;
-  cube.style.transform=`rotateX(20deg) rotateY(${rotateY}deg)`;
-
-  startX=moveX;
-});
-
-/* BRAIN BACKGROUND */
-const canvas=document.getElementById("brain");
-const ctx=canvas.getContext("2d");
-
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
-
-let particles=[];
-
-for(let i=0;i<100;i++){
-  particles.push({
-    x:Math.random()*canvas.width,
-    y:Math.random()*canvas.height,
-    vx:Math.random()*2-1,
-    vy:Math.random()*2-1
-  });
-}
-
-function animate(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  particles.forEach(p=>{
-    p.x+=p.vx;
-    p.y+=p.vy;
-
-    ctx.fillStyle="cyan";
-    ctx.fillRect(p.x,p.y,2,2);
-  });
-
-  requestAnimationFrame(animate);
-}
-
-animate();
 </script>
 
 </body>
