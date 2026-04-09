@@ -31,17 +31,13 @@
 
     button {
       padding:12px;
-      margin:5px;
+      margin:8px;
       border:none;
       border-radius:10px;
       background: linear-gradient(90deg,#ff6a00,#6a00ff);
       color:white;
       cursor:pointer;
       width:85%;
-    }
-
-    .social-btn {
-      background:#222;
     }
 
     .card {
@@ -52,7 +48,10 @@
       box-shadow:0 0 20px rgba(255,106,0,0.3);
     }
 
-    img, video { width:100%; border-radius:10px; }
+    img, video {
+      width:100%;
+      border-radius:10px;
+    }
 
     pre {
       text-align:left;
@@ -81,19 +80,12 @@
 <div id="auth">
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
-
   <button onclick="signup()">Sign Up</button>
   <button onclick="login()">Login</button>
-
-  <!-- FUTURE SOCIAL LOGIN -->
-  <button class="social-btn" onclick="fakeSocial('Google')">Continue with Google</button>
-  <button class="social-btn" onclick="fakeSocial('Apple')">Continue with Apple</button>
 </div>
 
 <!-- APP -->
 <div id="app" class="hidden">
-
-  <button onclick="logout()">Logout</button>
 
   <input id="prompt" placeholder="Create anything (safe only)">
   <button onclick="generate()">✨ Generate</button>
@@ -106,12 +98,17 @@
     <button onclick="subscribe()">Upgrade</button>
   </div>
 
-  <div id="ads">🤖 Ad Space (AdMob)</div>
+  <div id="ads">🤖 Ad Space</div>
 
   <div class="card">
-    <h4>🛡 AI Policy</h4>
-    <p>No harmful, illegal, or explicit content allowed</p>
+    <h4>🛡 Policy</h4>
+    <p>No harmful or illegal content allowed</p>
   </div>
+
+  <!-- LOGOUT AT BOTTOM -->
+  <button onclick="logout()" style="background:#ff4444;margin-top:30px;">
+    Logout
+  </button>
 
 </div>
 
@@ -216,10 +213,15 @@ function subscribe(){
 }
 
 // ==========================
-// 🔘 FAKE SOCIAL LOGIN (READY)
+// ⬇ DOWNLOAD FUNCTION
 // ==========================
-function fakeSocial(type){
-  alert(type + " login will be activated with Firebase later 🔥");
+function downloadFile(url){
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "ReelMind_AI";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // ==========================
@@ -248,15 +250,42 @@ async function generate(){
   const isVideo = /video|cinematic|movie/i.test(prompt);
   const isAnime = /anime|naruto|dragon/i.test(prompt);
 
-  // TEXT
+  // TEXT MODE
   if(isText){
-    let result = "";
+    let ideas = "";
 
-    for(let i=1;i<=20;i++){
-      result += `${i}. Idea about ${prompt}\n`;
-    }
+    const topics = [
+      "a hidden secret",
+      "a viral moment",
+      "a shocking twist",
+      "a mysterious stranger",
+      "a life-changing decision",
+      "a forbidden love",
+      "a dangerous mission",
+      "a futuristic world",
+      "a survival story",
+      "a revenge plot",
+      "a funny misunderstanding",
+      "a powerful transformation",
+      "a childhood memory",
+      "a lost treasure",
+      "a social media scandal",
+      "a dream turning real",
+      "a risky gamble",
+      "a secret identity",
+      "a betrayal",
+      "an unexpected hero"
+    ];
 
-    output.innerHTML = `<div class="card"><pre>${result}</pre></div>`;
+    topics.forEach((t, i) => {
+      ideas += `${i+1}. A story about ${t}\n`;
+    });
+
+    output.innerHTML = `
+      <div class="card">
+        <pre>${ideas}\n...and many more 🔥</pre>
+      </div>
+    `;
     return;
   }
 
@@ -281,13 +310,17 @@ async function generate(){
     if(isVideo){
       output.innerHTML = `
         <div class="card">
-          <video src="${data.url}" autoplay loop controls muted></video>
+          <video src="${data.url}" controls autoplay loop muted></video>
+          <br><br>
+          <button onclick="downloadFile('${data.url}')">⬇ Download Video</button>
         </div>
       `;
     } else {
       output.innerHTML = `
         <div class="card">
           <img src="${data.url}">
+          <br><br>
+          <button onclick="downloadFile('${data.url}')">⬇ Download Image</button>
         </div>
       `;
     }
