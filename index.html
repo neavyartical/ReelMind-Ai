@@ -29,11 +29,6 @@ h2 {
   padding: 20px;
   border-radius: 20px;
   cursor: pointer;
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: scale(1.05);
 }
 
 #result {
@@ -62,7 +57,8 @@ h2 {
 <div id="result">Tap any feature 👆</div>
 
 <script>
-const API_URL = "https://YOUR-RENDER-URL.onrender.com/generate"; // 🔥 PUT YOUR BACKEND URL
+// 🔥 PUT YOUR REAL BACKEND LINK HERE
+const API_URL = "https://backend-1.onrender.com/generate"; 
 
 async function generate(type){
   let promptText = prompt("Enter your idea:");
