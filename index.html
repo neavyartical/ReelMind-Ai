@@ -1,34 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ReelMind AI PRO</title>
+  <title>ReelMind AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
-      background: #000;
+      background: linear-gradient(135deg, #6a00ff, #ff6a00);
       color: white;
       font-family: Arial;
       text-align: center;
       padding: 15px;
     }
 
+    h2 {
+      font-size: 26px;
+      margin-bottom: 15px;
+    }
+
     input, select {
       width: 90%;
       padding: 12px;
-      border-radius: 10px;
+      border-radius: 12px;
       border: none;
       margin-bottom: 10px;
+      font-size: 16px;
     }
 
     button {
       padding: 12px 20px;
       margin: 5px;
-      background: #00c853;
+      background: rgba(255,255,255,0.2);
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       color: white;
       font-size: 16px;
+      backdrop-filter: blur(10px);
     }
 
     #feed {
@@ -39,8 +46,9 @@
       margin-bottom: 20px;
       border-radius: 15px;
       overflow: hidden;
-      background: #111;
+      background: rgba(0,0,0,0.3);
       padding: 10px;
+      backdrop-filter: blur(10px);
     }
 
     .card img {
@@ -55,16 +63,16 @@
       100% { transform: scale(1.2); }
     }
 
-    .caption {
+    .story {
       margin-top: 10px;
       font-size: 14px;
-      opacity: 0.9;
+      text-align: left;
     }
 
     .loader {
       margin: 20px auto;
-      border: 5px solid #333;
-      border-top: 5px solid #00e676;
+      border: 5px solid rgba(255,255,255,0.3);
+      border-top: 5px solid white;
       border-radius: 50%;
       width: 40px;
       height: 40px;
@@ -79,23 +87,19 @@
 
 <body>
 
-  <h2>🎬 ReelMind AI PRO</h2>
+  <h2>🎬 ReelMind AI</h2>
 
-  <input id="prompt" placeholder="Describe your scene..." />
+  <input id="prompt" placeholder="Tell me your story idea..." />
 
-  <!-- 🎧 MUSIC SELECT -->
   <select id="musicSelect">
-    <option value="">🎵 No Music</option>
+    <option value="">No Music</option>
     <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Chill</option>
     <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">Hype</option>
   </select>
 
-  <!-- 🎤 UPLOAD MUSIC -->
   <input type="file" id="uploadMusic" accept="audio/*" />
 
-  <br>
-
-  <button onclick="generate()">✨ Generate</button>
+  <button onclick="generate()">✨ Create Story</button>
 
   <p id="status"></p>
 
@@ -104,16 +108,30 @@
   <audio id="bgMusic" loop></audio>
 
   <script>
-    const captions = [
-      "This is insane 🔥",
-      "Wait for it... 😳",
-      "You won’t believe this 🤯",
-      "AI is crazy now 🚀",
-      "This goes hard 💯",
-      "POV: Future vibes 🌌"
-    ];
-
     let recorder, chunks = [];
+
+    function generateStory(prompt) {
+      const styles = [
+        "In a world where",
+        "One day, suddenly",
+        "Nobody expected that",
+        "Everything changed when",
+        "Deep in the future"
+      ];
+
+      const endings = [
+        "and nothing was ever the same again.",
+        "but the ending shocked everyone.",
+        "and it became legendary.",
+        "but something went terribly wrong.",
+        "and the truth was revealed."
+      ];
+
+      const start = styles[Math.floor(Math.random()*styles.length)];
+      const end = endings[Math.floor(Math.random()*endings.length)];
+
+      return `${start} ${prompt}, ${end}`;
+    }
 
     async function generate() {
       const prompt = document.getElementById("prompt").value;
@@ -126,9 +144,9 @@
         return;
       }
 
-      const enhancedPrompt = prompt + ", ultra realistic, cinematic lighting, 4k";
+      const enhancedPrompt = prompt + ", cinematic, ultra realistic";
 
-      status.innerText = "Generating... ⏳";
+      status.innerText = "Creating story... ✨";
 
       const loader = document.createElement("div");
       loader.className = "loader";
@@ -145,7 +163,8 @@
         loader.remove();
 
         if (data.url) {
-          // 🎧 MUSIC HANDLING
+
+          // 🎧 MUSIC
           const uploaded = document.getElementById("uploadMusic").files[0];
           const selected = document.getElementById("musicSelect").value;
 
@@ -156,62 +175,29 @@
           }
 
           if (music.src) {
-            music.currentTime = 0;
             music.play();
           }
 
-          // 🧠 RANDOM CAPTION
-          const caption = captions[Math.floor(Math.random() * captions.length)];
+          // 🧠 STORY
+          const story = generateStory(prompt);
 
-          // 📱 CREATE FEED CARD
           const card = document.createElement("div");
           card.className = "card";
 
           card.innerHTML = `
             <img src="${data.url}" />
-            <div class="caption">${caption}</div>
-            <button onclick="downloadImage('${data.url}')">📥 Image</button>
-            <button onclick="recordVideo(this)">🎥 Video</button>
+            <div class="story">${story}</div>
+            <button onclick="window.open('${data.url}')">📥 Image</button>
           `;
 
           feed.prepend(card);
+
           status.innerText = "Done ✅";
         }
 
       } catch (err) {
         status.innerText = "Error ❌";
       }
-    }
-
-    function downloadImage(url) {
-      window.open(url, "_blank");
-    }
-
-    function recordVideo(btn) {
-      const img = btn.parentElement.querySelector("img");
-
-      const stream = img.captureStream(30);
-      recorder = new MediaRecorder(stream);
-
-      chunks = [];
-
-      recorder.ondataavailable = e => chunks.push(e.data);
-
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "video/mp4" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "reelmind-video.mp4";
-        a.click();
-      };
-
-      recorder.start();
-
-      setTimeout(() => {
-        recorder.stop();
-      }, 5000);
     }
   </script>
 
