@@ -13,6 +13,10 @@ body {
   text-align: center;
 }
 
+h2 {
+  margin-top: 20px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3,1fr);
@@ -58,11 +62,11 @@ body {
 <div id="result">Tap any feature 👆</div>
 
 <script>
-const API_URL = "https://YOUR-RENDER-URL.onrender.com/generate"; // 🔥 PUT YOUR URL HERE
+const API_URL = "https://YOUR-RENDER-URL.onrender.com/generate"; // 🔥 PUT YOUR BACKEND URL
 
 async function generate(type){
-  let prompt = prompt("Enter your idea:");
-  if(!prompt) return;
+  let promptText = prompt("Enter your idea:");
+  if(!promptText) return;
 
   document.getElementById("result").innerText = "⏳ Loading...";
 
@@ -70,14 +74,14 @@ async function generate(type){
     let res = await fetch(API_URL,{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ type, prompt })
+      body: JSON.stringify({ type: type, prompt: promptText })
     });
 
     let data = await res.json();
 
     document.getElementById("result").innerText = data.result;
   }catch(e){
-    document.getElementById("result").innerText = "❌ Error connecting";
+    document.getElementById("result").innerText = "❌ Error connecting to server";
   }
 }
 </script>
