@@ -1,128 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ReelMind AI</title>
 
 <style>
 
-/* GLOBAL */
-body{
-  margin:0;
-  font-family:-apple-system, BlinkMacSystemFont;
-  background:linear-gradient(135deg,#0f0018,#ff6a00);
-  color:white;
-  display:flex;
-  flex-direction:column;
-  height:100vh;
-  overflow:hidden;
+/* 🌌 BACKGROUND */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
-/* GRID */
-#grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:14px;
-  padding:14px;
+/* 🔝 HEADER */
+.header {
+  padding: 15px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
 }
 
-/* FLOAT */
-@keyframes float{
-  0%{transform:translateY(0);}
-  50%{transform:translateY(-8px);}
-  100%{transform:translateY(0);}
+/* 📦 MAIN */
+.container {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
 }
 
-/* GLOW */
-@keyframes glow{
-  0%{box-shadow:0 0 10px rgba(255,106,0,0.4);}
-  50%{box-shadow:0 0 20px rgba(255,106,0,0.9);}
-  100%{box-shadow:0 0 10px rgba(255,106,0,0.4);}
+/* 💬 OUTPUT */
+#output {
+  margin-bottom: 15px;
+  white-space: pre-wrap;
 }
 
-/* ICON */
-.grid-btn{
-  height:72px;
-  border-radius:50%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  background:rgba(255,255,255,0.08);
-  backdrop-filter:blur(12px);
-  box-shadow:inset 0 0 12px rgba(255,255,255,0.2),
-             0 6px 20px rgba(0,0,0,0.6);
-  font-size:20px;
-  animation:float 3s ease-in-out infinite, glow 2.5s infinite;
-  transition:0.2s;
+/* ⌨ INPUT */
+.input-box {
+  display: flex;
+  padding: 10px;
+  background: rgba(255,255,255,0.05);
 }
 
-.grid-btn:active{
-  transform:scale(0.9);
+input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
 }
 
-.grid-btn span{
-  font-size:10px;
-  margin-top:3px;
+/* 🔘 BUTTON */
+button {
+  margin-left: 10px;
+  background: linear-gradient(135deg, #ff4ecd, #7a5cff);
+  border: none;
+  padding: 12px 16px;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+  transition: 0.3s;
 }
 
-/* CHAT */
-#chat{
-  flex:1;
-  overflow:auto;
-  padding:12px;
+button:hover {
+  transform: scale(1.05);
 }
 
-.msg{
-  margin:10px;
-  padding:14px;
-  border-radius:16px;
-  max-width:85%;
-  animation:fadeIn 0.3s ease;
+/* 🎯 ICON MENU */
+.menu {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px;
+  gap: 10px;
 }
 
-@keyframes fadeIn{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1; transform:translateY(0);}
+.menu div {
+  padding: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 15px;
+  white-space: nowrap;
+  animation: float 3s ease-in-out infinite;
 }
 
-.user{
-  background:linear-gradient(135deg,#ff6a00,#ff00cc);
-  margin-left:auto;
-}
-
-.ai{
-  background:rgba(0,0,0,0.6);
-}
-
-img,video{
-  width:100%;
-  border-radius:12px;
-  margin-top:6px;
-}
-
-/* INPUT */
-#bottom{
-  display:flex;
-  padding:10px;
-  background:rgba(0,0,0,0.4);
-}
-
-#bottom input{
-  flex:1;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  background:rgba(255,255,255,0.1);
-  color:white;
-}
-
-#bottom button{
-  margin-left:6px;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  background:linear-gradient(90deg,#ff6a00,#ff00cc);
-  color:white;
+/* ✨ FLOAT ANIMATION */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
 }
 
 </style>
@@ -130,218 +101,104 @@ img,video{
 
 <body>
 
-<!-- ICON GRID -->
-<div id="grid">
-  <div class="grid-btn" onclick="setMode('chat')">💬<span>Chat</span></div>
-  <div class="grid-btn" onclick="setMode('story')">📖<span>Story</span></div>
-  <div class="grid-btn" onclick="setMode('image')">🖼<span>Image</span></div>
-  <div class="grid-btn" onclick="setMode('video')">🎬<span>Video</span></div>
+<div class="header">🚀 ReelMind AI</div>
 
-  <div class="grid-btn" onclick="template('funny')">😂<span>Funny</span></div>
-  <div class="grid-btn" onclick="template('sad')">💔<span>Sad</span></div>
-  <div class="grid-btn" onclick="template('anime')">🔥<span>Anime</span></div>
-  <div class="grid-btn" onclick="template('money')">💰<span>Money</span></div>
-
-  <div class="grid-btn" onclick="toggleTikTok()">🚀<span>TikTok</span></div>
+<!-- MENU -->
+<div class="menu">
+  <div>💬 Chat</div>
+  <div>📖 Story</div>
+  <div>🖼 Image</div>
+  <div onclick="generateVideo()">🎬 Video</div>
+  <div>😂 Funny</div>
+  <div>💔 Sad</div>
+  <div>🔥 Anime</div>
+  <div>💰 Money</div>
+  <div>🚀 TikTok</div>
 </div>
 
-<div id="chat"></div>
+<!-- CONTENT -->
+<div class="container">
+  <div id="output">⚡ Welcome to ReelMind AI</div>
+</div>
 
-<div id="bottom">
-  <input id="input" placeholder="Ask anything...">
-  <button onclick="send()">➤</button>
-  <button onclick="startVoice()">🎤</button>
+<!-- INPUT -->
+<div class="input-box">
+  <input id="input" placeholder="Type something..." />
+  <button onclick="sendMessage()">➤</button>
+</div>
+
+<!-- PREMIUM -->
+<div style="text-align:center; padding:10px;">
+  <button onclick="buyPremium()">💎 Upgrade</button>
 </div>
 
 <script>
 
-// STATE
-let mode="chat";
-let tiktok=false;
+/* 🔗 CHANGE THIS TO YOUR RENDER URL */
+const API_URL = "https://YOUR-RENDER-URL.onrender.com/chat";
 
-// ADD MESSAGE
-function add(text,type){
-  let chat=document.getElementById("chat");
-  let div=document.createElement("div");
-  div.className="msg "+type;
-  div.innerHTML=text;
-  chat.appendChild(div);
-  chat.scrollTop=chat.scrollHeight;
-}
+/* 💬 CHAT FUNCTION */
+async function sendMessage() {
+  const input = document.getElementById("input").value;
 
-// MODE
-function setMode(m){
-  mode=m;
-  add("Mode: "+m,"ai");
-}
+  if (!input) return;
 
-// TEMPLATE AUTO RUN
-function template(type){
-  if(type==="funny"){
-    input.value="Funny story about a guy whose cat says she's pregnant";
-    mode="story";
+  document.getElementById("output").innerText = "💭 Thinking...";
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: input
+      })
+    });
+
+    const data = await res.json();
+
+    document.getElementById("output").innerText = data.reply;
+
+  } catch (err) {
+    document.getElementById("output").innerText =
+      "❌ Error connecting to AI";
   }
-  if(type==="sad"){
-    input.value="Sad emotional story about betrayal and heartbreak";
-    mode="story";
-  }
-  if(type==="anime"){
-    input.value="Epic anime battle with transformation and powers";
-    mode="story";
-  }
-  if(type==="money"){
-    input.value="How to make money online step by step";
-    mode="chat";
-  }
-
-  add("🔥 Generating "+type+"...","ai");
-  setTimeout(send,300);
 }
 
-// TIKTOK
-function toggleTikTok(){
-  tiktok=!tiktok;
-  add("TikTok Mode: "+(tiktok?"ON 🔥":"OFF"),"ai");
-}
+/* 🎬 VIDEO GENERATOR (SMART) */
+async function generateVideo() {
+  const input = document.getElementById("input").value;
 
-// VOICE INPUT
-function startVoice(){
-  let rec=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
-  rec.lang="en-US";
+  document.getElementById("output").innerText =
+    "🎬 Generating cinematic scene...";
 
-  rec.onstart=()=>add("🎤 Listening...","ai");
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: "Create a cinematic video scene: " + input
+      })
+    });
 
-  rec.onresult=e=>{
-    let text=e.results[0][0].transcript;
-    input.value=text;
-    add("🎤 "+text,"user");
-    setTimeout(send,300);
-  };
+    const data = await res.json();
 
-  rec.start();
-}
+    document.getElementById("output").innerText =
+      "🎥 Scene Idea:\n\n" + data.reply +
+      "\n\n⚡ Upgrade to Premium for real video";
 
-// SPEAK
-function speak(text){
-  let s=new SpeechSynthesisUtterance(text);
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(s);
-}
-
-// DOWNLOAD
-function download(url,name){
-  let a=document.createElement("a");
-  a.href=url;
-  a.download=name;
-  a.click();
-}
-
-// LONG STORY
-function longStory(topic){
-  return `
-🎬 CINEMATIC STORY
-
-━━━━━━━━━━━━━━━
-
-In a world where ${topic}, everything began to change.
-
-At first, everything felt normal. But slowly, something unusual appeared.
-
-People noticed patterns. Strange events. Unexplainable moments.
-
-Fear spread. Confusion grew.
-
-But one person refused to break.
-
-Through pain, struggle, and sacrifice, they kept moving forward.
-
-🔥 Then came the turning point.
-
-A decision that changed everything forever.
-
-They chose courage.
-
-And in that moment, transformation began.
-
-Power awakened. Limits shattered.
-
-Destiny was rewritten.
-
-━━━━━━━━━━━━━━━
-
-✨ This was not the end… it was the beginning.
-`;
-}
-
-// SEND
-function send(){
-  let txt=input.value.trim();
-  if(!txt) return;
-
-  add(txt,"user");
-
-  // IMAGE
-  if(mode==="image"){
-    let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(txt);
-
-    add(`<img src="${url}">
-    <button onclick="download('${url}','image.jpg')">⬇ Download</button>`,"ai");
-
-    speak("Image ready");
-    return;
+  } catch (err) {
+    document.getElementById("output").innerText =
+      "❌ Video generation failed";
   }
+}
 
-  // VIDEO (SMART FIX)
-  if(mode==="video"){
-    let vid="https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
-
-    let scene = `
-🎬 Scene:
-
-A cinematic visual of ${txt}, designed for viral engagement with smooth motion and strong visual storytelling.
-`;
-
-    let caption = `
-🔥 Caption:
-"${txt} 😳🔥"
-
-#viral #fyp #trend #reels
-`;
-
-    let music = `
-🎵 Sound:
-Trending TikTok audio
-`;
-
-    add(`
-      <video controls src="${vid}"></video>
-      ${scene}
-      ${caption}
-      ${music}
-      <button onclick="download('${vid}','video.mp4')">⬇ Download</button>
-    `,"ai");
-
-    speak("Video concept generated");
-    return;
-  }
-
-  // STORY
-  if(mode==="story"){
-    let story=longStory(txt);
-
-    if(tiktok){
-      story += "\n🔥 Caption: This will go viral 😳 #fyp #story";
-    }
-
-    add(story,"ai");
-    speak("Story generated");
-    return;
-  }
-
-  // CHAT
-  let reply="🤖 "+txt+" — Think bigger, move smarter, build powerfully.";
-  add(reply,"ai");
-  speak(reply);
+/* 💰 PREMIUM BUTTON */
+function buyPremium() {
+  alert("🚀 Premium coming soon (Real video + no limits)");
 }
 
 </script>
