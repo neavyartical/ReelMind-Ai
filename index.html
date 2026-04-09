@@ -36,6 +36,12 @@
       border-radius:10px;
       background: linear-gradient(90deg,#ff6a00,#6a00ff);
       color:white;
+      cursor:pointer;
+      width:85%;
+    }
+
+    .social-btn {
+      background:#222;
     }
 
     .card {
@@ -46,7 +52,7 @@
       box-shadow:0 0 20px rgba(255,106,0,0.3);
     }
 
-    img { width:100%; border-radius:10px; }
+    img, video { width:100%; border-radius:10px; }
 
     pre {
       text-align:left;
@@ -71,71 +77,87 @@
 
 <h2>🎬 ReelMind AI</h2>
 
-<!-- 🔐 LOGIN -->
+<!-- AUTH -->
 <div id="auth">
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
+
   <button onclick="signup()">Sign Up</button>
   <button onclick="login()">Login</button>
+
+  <!-- FUTURE SOCIAL LOGIN -->
+  <button class="social-btn" onclick="fakeSocial('Google')">Continue with Google</button>
+  <button class="social-btn" onclick="fakeSocial('Apple')">Continue with Apple</button>
 </div>
 
-<!-- 🚀 APP -->
+<!-- APP -->
 <div id="app" class="hidden">
 
   <button onclick="logout()">Logout</button>
 
-  <input id="prompt" placeholder="Ask anything (safe & legal only)">
+  <input id="prompt" placeholder="Create anything (safe only)">
   <button onclick="generate()">✨ Generate</button>
 
   <div id="output"></div>
 
-  <!-- 💎 PREMIUM -->
   <div class="card">
     <h3>💎 Premium</h3>
     <p>$9/month • $99/year</p>
     <button onclick="subscribe()">Upgrade</button>
   </div>
 
-  <!-- 📢 ADS -->
-  <div id="ads">
-    🤖 Ad Space (AdMob later)
-  </div>
+  <div id="ads">🤖 Ad Space (AdMob)</div>
 
-  <!-- 📜 POLICY -->
   <div class="card">
     <h4>🛡 AI Policy</h4>
-    <p>
-      ❌ No nudity<br>
-      ❌ No illegal content<br>
-      ❌ No harmful actions<br><br>
-      ✔ Safe & creative use only
-    </p>
+    <p>No harmful, illegal, or explicit content allowed</p>
   </div>
 
 </div>
 
 <script>
+
 // ==========================
-// 🔐 LOGIN SYSTEM (LOCAL)
+// 🔐 LOGIN + ADMIN
 // ==========================
+const ADMIN_EMAILS = [
+  "neavyartical@gmail.com",
+  "arsesay89@gmail.com"
+];
+
 let premium = false;
 
 function signup(){
-  const email = document.getElementById("email").value;
-  const pass = document.getElementById("password").value;
+  const email = emailInput();
+  const pass = passInput();
 
-  localStorage.setItem("user", JSON.stringify({email, pass, premium:false}));
-  alert("Account created!");
+  if(!email || !pass){
+    alert("Enter email & password");
+    return;
+  }
+
+  const isAdmin = ADMIN_EMAILS.includes(email);
+
+  const user = {
+    email,
+    pass,
+    premium: isAdmin
+  };
+
+  localStorage.setItem("user", JSON.stringify(user));
+  premium = user.premium;
+
+  startApp();
 }
 
 function login(){
-  const email = document.getElementById("email").value;
-  const pass = document.getElementById("password").value;
+  const email = emailInput();
+  const pass = passInput();
 
   const saved = JSON.parse(localStorage.getItem("user"));
 
-  if(saved && saved.email===email && saved.pass===pass){
-    premium = saved.premium;
+  if(saved && saved.email === email && saved.pass === pass){
+    premium = saved.premium || ADMIN_EMAILS.includes(saved.email);
     startApp();
   } else {
     alert("Invalid login");
@@ -143,7 +165,23 @@ function login(){
 }
 
 function logout(){
+  const saved = JSON.parse(localStorage.getItem("user"));
+
+  if(saved && ADMIN_EMAILS.includes(saved.email)){
+    alert("Admin cannot logout 🔒");
+    return;
+  }
+
+  localStorage.removeItem("user");
   location.reload();
+}
+
+function emailInput(){
+  return document.getElementById("email").value.trim();
+}
+
+function passInput(){
+  return document.getElementById("password").value.trim();
 }
 
 function startApp(){
@@ -155,12 +193,19 @@ function startApp(){
   }
 }
 
+// AUTO LOGIN
+window.onload = function(){
+  const saved = JSON.parse(localStorage.getItem("user"));
+  if(saved){
+    premium = saved.premium || ADMIN_EMAILS.includes(saved.email);
+    startApp();
+  }
+}
+
 // ==========================
-// 💰 PREMIUM (SIMULATED)
+// 💰 PREMIUM
 // ==========================
 function subscribe(){
-  alert("Payments will be added later 💳");
-
   premium = true;
 
   let saved = JSON.parse(localStorage.getItem("user"));
@@ -171,78 +216,87 @@ function subscribe(){
 }
 
 // ==========================
-// 🤖 SMART AI GENERATOR
+// 🔘 FAKE SOCIAL LOGIN (READY)
 // ==========================
-async function generate() {
-  const prompt = document.getElementById("prompt").value;
+function fakeSocial(type){
+  alert(type + " login will be activated with Firebase later 🔥");
+}
+
+// ==========================
+// 🤖 AI ENGINE
+// ==========================
+async function generate(){
+  const promptInput = document.getElementById("prompt");
   const output = document.getElementById("output");
 
-  if (!prompt) return;
+  let prompt = promptInput.value.trim();
 
-  // 🛑 SAFETY FILTER
-  const badWords = ["nude", "porn", "illegal", "kill"];
-  if (badWords.some(w => prompt.toLowerCase().includes(w))) {
-    output.innerHTML = "❌ Neavy AI blocked unsafe request";
+  if(!prompt){
+    alert("Enter something");
     return;
   }
 
-  output.innerHTML = "🤖 Neavy AI is thinking...";
+  const blocked = ["nude","porn","illegal"];
+  if(blocked.some(w => prompt.toLowerCase().includes(w))){
+    output.innerHTML = "❌ Blocked";
+    return;
+  }
 
-  // 🧠 TEXT DETECTION
-  const isTextRequest =
-    prompt.toLowerCase().includes("story") ||
-    prompt.toLowerCase().includes("ideas") ||
-    prompt.toLowerCase().includes("write") ||
-    prompt.toLowerCase().includes("script") ||
-    prompt.toLowerCase().includes("caption");
+  output.innerHTML = "🤖 Creating...";
 
-  // ==========================
-  // 🧠 TEXT RESPONSE
-  // ==========================
-  if (isTextRequest) {
-    let response = "";
+  const isText = /story|ideas|write|script|caption|explain/i.test(prompt);
+  const isVideo = /video|cinematic|movie/i.test(prompt);
+  const isAnime = /anime|naruto|dragon/i.test(prompt);
 
-    if (prompt.toLowerCase().includes("500 story ideas")) {
-      for (let i = 1; i <= 20; i++) {
-        response += `${i}. A viral story idea about ${prompt.replace("500 story ideas","something creative")}\n`;
-      }
-      response += "\n...and many more 🔥";
-    } else {
-      response = "Neavy AI Response:\n\n" + prompt;
+  // TEXT
+  if(isText){
+    let result = "";
+
+    for(let i=1;i<=20;i++){
+      result += `${i}. Idea about ${prompt}\n`;
     }
 
-    output.innerHTML = `
-      <div class="card">
-        <pre>${response}</pre>
-      </div>
-    `;
+    output.innerHTML = `<div class="card"><pre>${result}</pre></div>`;
     return;
   }
 
-  // ==========================
-  // 🎬 IMAGE GENERATION
-  // ==========================
-  try {
-    const res = await fetch("https://backend-ppyz.onrender.com/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
+  // ENHANCE PROMPT
+  if(isVideo){
+    prompt += ", cinematic lighting, ultra realistic, 4k";
+  }
+
+  if(isAnime){
+    prompt += ", anime style, vibrant colors";
+  }
+
+  try{
+    const res = await fetch("https://backend-ppyz.onrender.com/generate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt})
     });
 
     const data = await res.json();
 
-    output.innerHTML = `
-      <div class="card">
-        <img src="${data.url}">
-        <p>${prompt}</p>
-      </div>
-    `;
-  } catch (err) {
-    output.innerHTML = "❌ Error generating";
+    if(isVideo){
+      output.innerHTML = `
+        <div class="card">
+          <video src="${data.url}" autoplay loop controls muted></video>
+        </div>
+      `;
+    } else {
+      output.innerHTML = `
+        <div class="card">
+          <img src="${data.url}">
+        </div>
+      `;
+    }
+
+  } catch {
+    output.innerHTML = "❌ Error";
   }
 }
+
 </script>
 
 </body>
