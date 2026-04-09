@@ -1,20 +1,14 @@
-const BACKEND_URL = "https://backend-ppyz.onrender.com";
-
 async function generate() {
   const prompt = document.getElementById("prompt").value;
+
   const status = document.getElementById("status");
-  const img = document.getElementById("video");
+  const result = document.getElementById("result");
 
-  if (!prompt) {
-    alert("Enter a prompt!");
-    return;
-  }
-
-  status.innerText = "Generating... ⏳";
-  img.style.display = "none";
+  status.innerText = "Generating...";
+  result.innerHTML = "";
 
   try {
-    const res = await fetch(`${BACKEND_URL}/generate`, {
+    const res = await fetch("https://backend-ppyz.onrender.com/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -23,19 +17,21 @@ async function generate() {
     });
 
     const data = await res.json();
+    console.log(data);
 
-    console.log("DATA:", data);
-
-    if (data.video) {
+    if (data.url) {
       status.innerText = "Done ✅";
-      img.src = data.video;
-      img.style.display = "block";
+
+      result.innerHTML = `
+        <img src="${data.url}" style="max-width:100%; border-radius:10px;" />
+      `;
     } else {
-      status.innerText = "No video returned ❌";
+      status.innerText = "Error ❌";
+      result.innerText = JSON.stringify(data);
     }
 
   } catch (err) {
+    status.innerText = "Failed ❌";
     console.error(err);
-    status.innerText = "Server waking up... try again 🔁";
   }
 }
