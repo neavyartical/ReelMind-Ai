@@ -1,89 +1,43 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-  margin:0;
-  font-family:-apple-system;
-  background:linear-gradient(135deg,#0f0018,#ff6a00);
-  color:white;
-  display:flex;
-  flex-direction:column;
-  height:100vh;
-}
-
-/* GRID */
-#grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  padding:10px;
-}
-
-.grid-btn{
-  text-align:center;
-  padding:14px;
-  border-radius:14px;
-  background:linear-gradient(145deg,#1a1a1a,#2a2a2a);
-  box-shadow:5px 5px 15px #000,-5px -5px 15px #333;
-}
-
-/* CHAT */
-#chat{flex:1;overflow:auto;padding:10px;}
-.msg{margin:8px;padding:12px;border-radius:12px;max-width:85%;}
-.user{background:#ff6a00;margin-left:auto;}
-.ai{background:#222;}
-
-img,video{width:100%;border-radius:10px;margin-top:5px;}
-
-#bottom{display:flex;padding:10px;}
-#bottom input{flex:1;padding:12px;border:none;border-radius:10px;}
-#bottom button{margin-left:5px;padding:12px;border:none;border-radius:10px;background:#ff6a00;color:white;}
-</style>
-</head>
-
-<body>
-
-<div id="grid">
-  <div class="grid-btn" onclick="setMode('chat')">💬 Chat</div>
-  <div class="grid-btn" onclick="setMode('story')">📖 Story</div>
-  <div class="grid-btn" onclick="setMode('image')">🖼 Image</div>
-  <div class="grid-btn" onclick="setMode('video')">🎬 Video</div>
-  <div class="grid-btn" onclick="toggleTikTok()">🚀 TikTok</div>
-</div>
-
-<div id="chat"></div>
-
-<div id="bottom">
-  <input id="input" placeholder="Ask anything...">
-  <button onclick="send()">➤</button>
-  <button onclick="startVoice()">🎤</button>
-</div>
-
 <script>
 
-// OWNER MODE (NEVER LOG OUT)
-const OWNER_EMAIL = "your@email.com"; 
-let currentUser = localStorage.getItem("currentUser") || OWNER_EMAIL;
-
-// USAGE LIMIT SYSTEM
-let usage = parseInt(localStorage.getItem("usage") || "0");
-let premium = localStorage.getItem("premium")==="true";
-
-// MODE
+// STATE
 let mode="chat";
 let tiktok=false;
 
+// MODE
 function setMode(m){
   mode=m;
   add("Mode: "+m,"ai");
 }
 
+// TEMPLATE (AUTO RUN FIXED)
+function template(type){
+  if(type==="funny"){
+    input.value="A funny story about a guy whose cat says she's pregnant";
+    mode="story";
+  }
+  if(type==="sad"){
+    input.value="A heartbreaking emotional story about betrayal and loss";
+    mode="story";
+  }
+  if(type==="anime"){
+    input.value="An intense anime battle with transformation and powers";
+    mode="story";
+  }
+  if(type==="money"){
+    input.value="How to make money online step by step as a beginner";
+    mode="chat";
+  }
+
+  add("🔥 Generating " + type + "...","ai");
+
+  setTimeout(send,300); // AUTO RUN
+}
+
+// TIKTOK
 function toggleTikTok(){
   tiktok=!tiktok;
-  add("TikTok: "+(tiktok?"ON 🔥":"OFF"),"ai");
+  add("TikTok Mode: "+(tiktok?"ON 🔥":"OFF"),"ai");
 }
 
 // UI
@@ -95,19 +49,25 @@ function add(t,type){
   chat.scrollTop=chat.scrollHeight;
 }
 
-// VOICE INPUT
+// VOICE INPUT (AUTO SEND)
 function startVoice(){
   let rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   rec.lang="en-US";
 
+  rec.onstart = ()=> add("🎤 Listening...","ai");
+
   rec.onresult = e=>{
-    input.value = e.results[0][0].transcript;
+    let text = e.results[0][0].transcript;
+    input.value = text;
+    add("🎤 You said: " + text,"user");
+
+    setTimeout(send,300); // AUTO SEND
   };
 
   rec.start();
 }
 
-// AI VOICE OUTPUT
+// VOICE OUTPUT
 function speak(text){
   let speech = new SpeechSynthesisUtterance(text);
   speech.rate=1;
@@ -123,22 +83,50 @@ function download(url,type){
   a.click();
 }
 
-// PREMIUM CHECK
-function checkLimit(){
-  if(currentUser===OWNER_EMAIL) return true;
+// LONG STORY ENGINE 🔥
+function generateStory(topic){
+  return `
+🎬 CINEMATIC STORY
 
-  if(premium) return true;
+━━━━━━━━━━━━━━━
 
-  usage++;
-  localStorage.setItem("usage",usage);
+In a world where ${topic}, everything changed overnight.
 
-  if(usage > 5){
-    add("💎 Upgrade to Premium ($9/month) to continue","ai");
-    return false;
-  }
+At first, it seemed like nothing unusual was happening. People went about their daily lives, unaware of the storm that was quietly building beneath the surface.
 
-  add("Free uses left: "+(5-usage),"ai");
-  return true;
+Then came the first sign.
+
+A moment so small, yet so powerful, that it triggered a chain reaction no one could stop.
+
+Fear spread.
+
+Confusion grew.
+
+But in the middle of it all, one person stood different… stronger… ready.
+
+They faced betrayal, loss, and overwhelming odds. Every step forward came with pain, but also growth.
+
+🔥 Then came the turning point.
+
+A decision that would either destroy everything… or create something legendary.
+
+And they chose courage.
+
+What followed was nothing short of transformation.
+
+Power awakened.
+
+Limits shattered.
+
+Destiny rewritten.
+
+━━━━━━━━━━━━━━━
+
+✨ In the end, it wasn’t just a story…
+
+…it was the beginning of something unforgettable.
+
+`;
 }
 
 // SEND
@@ -148,63 +136,70 @@ function send(){
 
   add(txt,"user");
 
-  if(!checkLimit()) return;
-
   // IMAGE
   if(mode==="image"){
     let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(txt);
-    add(`<img src="${url}">
-    <button onclick="download('${url}','image')">⬇</button>`,"ai");
-    speak("Image ready");
+
+    add(`
+      🖼 AI Image:
+      <img src="${url}">
+      <button onclick="download('${url}','image')">⬇ Download</button>
+    `,"ai");
+
+    speak("Image generated");
     return;
   }
 
-  // VIDEO
+  // VIDEO (UPGRADED FEEL)
   if(mode==="video"){
     let vid="https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
 
-    let music = "🔥 Suggested sound: Trending TikTok Beat";
-
     add(`
-      <video controls src="${vid}"></video>
-      <button onclick="download('${vid}','video')">⬇</button>
-      <br>${music}
+      🎬 AI Video Generated:
+      <video controls>
+        <source src="${vid}">
+      </video>
+
+      🔥 Viral Pack:
+      Caption: This will break the internet 😳  
+      #fyp #viral #trend  
+
+      🎵 Suggested Sound: Trending TikTok Beat  
+
+      <button onclick="download('${vid}','video')">⬇ Download</button>
     `,"ai");
 
     speak("Video ready");
     return;
   }
 
-  // STORY
+  // STORY (LONG FIX)
   if(mode==="story"){
-    let story = `
-🎬 Story:
-
-${txt}
-
-A powerful emotional journey with twists and transformation.
-
-🔥 Turning point changes everything.
-
-✨ Beginning of greatness.
-`;
+    let story = generateStory(txt);
 
     if(tiktok){
-      story += "\n🔥 Caption: This will go viral #fyp #viral";
+      story += `
+🔥 Caption: This story hits different 😳  
+#viral #fyp #storytime  
+`;
     }
 
     add(story,"ai");
-    speak(story);
+    speak("Story generated");
     return;
   }
 
   // CHAT
-  let reply = "🤖 " + txt + " — think bigger and execute smart.";
+  let reply = `
+🤖 AI RESPONSE:
+
+${txt}
+
+Think bigger. Move smarter. Build something powerful.
+`;
+
   add(reply,"ai");
   speak(reply);
 }
 
 </script>
-
-</body>
-</html>
