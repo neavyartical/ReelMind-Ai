@@ -4,66 +4,134 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+
+/* GLOBAL */
 body{
   margin:0;
-  font-family:-apple-system;
+  font-family:-apple-system, BlinkMacSystemFont;
   background:linear-gradient(135deg,#0f0018,#ff6a00);
   color:white;
   display:flex;
   flex-direction:column;
   height:100vh;
+  overflow:hidden;
 }
 
-/* GLOBE GRID */
+/* GRID */
 #grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:12px;
-  padding:12px;
+  gap:14px;
+  padding:14px;
 }
 
+/* FLOAT */
+@keyframes float{
+  0%{transform:translateY(0);}
+  50%{transform:translateY(-8px);}
+  100%{transform:translateY(0);}
+}
+
+/* GLOW */
+@keyframes glow{
+  0%{box-shadow:0 0 10px rgba(255,106,0,0.4);}
+  50%{box-shadow:0 0 20px rgba(255,106,0,0.9);}
+  100%{box-shadow:0 0 10px rgba(255,106,0,0.4);}
+}
+
+/* ICON */
 .grid-btn{
-  height:70px;
+  height:72px;
   border-radius:50%;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  background:radial-gradient(circle at 30% 30%, #ff6a00, #1a001f);
-  box-shadow:0 0 15px rgba(255,106,0,0.6),
-             inset 0 0 10px rgba(255,255,255,0.2);
-  font-size:18px;
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(12px);
+  box-shadow:inset 0 0 12px rgba(255,255,255,0.2),
+             0 6px 20px rgba(0,0,0,0.6);
+  font-size:20px;
+  animation:float 3s ease-in-out infinite, glow 2.5s infinite;
+  transition:0.2s;
+}
+
+.grid-btn:active{
+  transform:scale(0.9);
 }
 
 .grid-btn span{
   font-size:10px;
-  margin-top:2px;
+  margin-top:3px;
 }
 
 /* CHAT */
-#chat{flex:1;overflow:auto;padding:10px;}
-.msg{margin:8px;padding:12px;border-radius:12px;max-width:85%;}
-.user{background:#ff6a00;margin-left:auto;}
-.ai{background:#222;}
+#chat{
+  flex:1;
+  overflow:auto;
+  padding:12px;
+}
 
-img,video{width:100%;border-radius:10px;margin-top:5px;}
+/* MESSAGE */
+.msg{
+  margin:10px;
+  padding:14px;
+  border-radius:16px;
+  max-width:85%;
+  animation:fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+.user{
+  background:linear-gradient(135deg,#ff6a00,#ff00cc);
+  margin-left:auto;
+}
+
+.ai{
+  background:rgba(0,0,0,0.6);
+}
+
+img,video{
+  width:100%;
+  border-radius:12px;
+  margin-top:6px;
+}
 
 /* INPUT */
-#bottom{display:flex;padding:10px;}
-#bottom input{flex:1;padding:12px;border:none;border-radius:10px;}
-#bottom button{
-  margin-left:5px;
-  padding:12px;
+#bottom{
+  display:flex;
+  padding:10px;
+  background:rgba(0,0,0,0.4);
+}
+
+#bottom input{
+  flex:1;
+  padding:14px;
   border:none;
-  border-radius:10px;
-  background:#ff6a00;
+  border-radius:14px;
+  background:rgba(255,255,255,0.1);
   color:white;
 }
+
+#bottom button{
+  margin-left:6px;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(90deg,#ff6a00,#ff00cc);
+  color:white;
+}
+
 </style>
 </head>
 
 <body>
 
+<!-- ICON GRID -->
 <div id="grid">
   <div class="grid-btn" onclick="setMode('chat')">💬<span>Chat</span></div>
   <div class="grid-btn" onclick="setMode('story')">📖<span>Story</span></div>
@@ -78,8 +146,10 @@ img,video{width:100%;border-radius:10px;margin-top:5px;}
   <div class="grid-btn" onclick="toggleTikTok()">🚀<span>TikTok</span></div>
 </div>
 
+<!-- CHAT -->
 <div id="chat"></div>
 
+<!-- INPUT -->
 <div id="bottom">
   <input id="input" placeholder="Ask anything...">
   <button onclick="send()">➤</button>
@@ -92,7 +162,7 @@ img,video{width:100%;border-radius:10px;margin-top:5px;}
 let mode="chat";
 let tiktok=false;
 
-// UI
+// ADD MESSAGE
 function add(text,type){
   let chat=document.getElementById("chat");
   let div=document.createElement("div");
@@ -154,7 +224,7 @@ function startVoice(){
   rec.start();
 }
 
-// VOICE OUTPUT
+// SPEAK
 function speak(text){
   let s=new SpeechSynthesisUtterance(text);
   window.speechSynthesis.cancel();
@@ -169,7 +239,7 @@ function download(url,name){
   a.click();
 }
 
-// LONG STORY ENGINE
+// LONG STORY
 function longStory(topic){
   return `
 🎬 CINEMATIC STORY
@@ -178,7 +248,7 @@ function longStory(topic){
 
 In a world where ${topic}, everything began to change.
 
-At first, life felt normal. But slowly, something unusual started happening.
+At first, everything felt normal. But slowly, something unusual appeared.
 
 People noticed patterns. Strange events. Unexplainable moments.
 
@@ -186,13 +256,13 @@ Fear spread. Confusion grew.
 
 But one person refused to break.
 
-Through pain, struggle, and setbacks, they kept going.
+Through pain, struggle, and sacrifice, they kept moving forward.
 
 🔥 Then came the turning point.
 
-A decision that changed everything.
+A decision that changed everything forever.
 
-They chose courage over fear.
+They chose courage.
 
 And in that moment, transformation began.
 
@@ -208,8 +278,7 @@ Destiny was rewritten.
 
 // SEND
 function send(){
-  let inputEl=document.getElementById("input");
-  let txt=inputEl.value.trim();
+  let txt=input.value.trim();
   if(!txt) return;
 
   add(txt,"user");
@@ -218,16 +287,14 @@ function send(){
   if(mode==="image"){
     let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(txt);
 
-    add(`
-      <img src="${url}">
-      <button onclick="download('${url}','image.jpg')">⬇ Download</button>
-    `,"ai");
+    add(`<img src="${url}">
+    <button onclick="download('${url}','image.jpg')">⬇ Download</button>`,"ai");
 
     speak("Image ready");
     return;
   }
 
-  // VIDEO (SMART)
+  // VIDEO
   if(mode==="video"){
     let vid="https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
 
@@ -237,7 +304,7 @@ function send(){
       🎬 AI Video Concept:
       "${txt}"
 
-      A cinematic viral-style scene showing ${txt} with engaging visuals.
+      A cinematic viral-style scene showing ${txt}.
 
       🔥 Caption:
       "${txt} — this is insane 😳"
