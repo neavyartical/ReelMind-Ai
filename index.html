@@ -6,152 +6,213 @@
 
 <style>
 body {
-  margin: 0;
-  font-family: sans-serif;
-  background: radial-gradient(circle,#1a1a2e,#000);
-  color: white;
-  text-align: center;
+  margin:0;
+  font-family:sans-serif;
+  background:#0f0c29;
+  color:white;
+  text-align:center;
 }
 
-/* ROTATING MENU */
-.circle {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  margin: 40px auto;
-  border-radius: 50%;
+/* LOGIN SCREEN */
+#login {
+  margin-top:100px;
 }
 
-.item {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-}
-
-/* POSITION ITEMS IN CIRCLE */
-.item:nth-child(1){top:0;left:110px;}
-.item:nth-child(2){top:60px;right:0;}
-.item:nth-child(3){bottom:60px;right:0;}
-.item:nth-child(4){bottom:0;left:110px;}
-.item:nth-child(5){bottom:60px;left:0;}
-.item:nth-child(6){top:60px;left:0;}
-
-.center {
-  position: absolute;
-  top:110px;
-  left:110px;
-  width:80px;
-  height:80px;
-  background: linear-gradient(135deg,#ff4ecd,#7a5cff);
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:bold;
-}
-
-/* RESULT */
-#result {
-  margin: 20px;
-}
-
-/* INPUT */
 input {
-  width: 70%;
-  padding: 10px;
-  border-radius: 20px;
-  border: none;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin:5px;
 }
 
 button {
-  padding: 10px 15px;
-  border-radius: 20px;
-  border: none;
-  background: #ff4ecd;
-  color: white;
+  padding:10px 15px;
+  border:none;
+  border-radius:10px;
+  background:#ff4ecd;
+  color:white;
+}
+
+/* APP */
+#app { display:none; }
+
+/* 3D CUBE */
+.scene {
+  width:200px;
+  height:200px;
+  margin:50px auto;
+  perspective:600px;
+}
+
+.cube {
+  width:100%;
+  height:100%;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:1s;
+}
+
+.face {
+  position:absolute;
+  width:200px;
+  height:200px;
+  background:rgba(255,255,255,0.1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  border-radius:20px;
+  cursor:pointer;
+}
+
+/* CUBE SIDES */
+.front  { transform: rotateY(0deg) translateZ(100px); }
+.back   { transform: rotateY(180deg) translateZ(100px); }
+.right  { transform: rotateY(90deg) translateZ(100px); }
+.left   { transform: rotateY(-90deg) translateZ(100px); }
+.top    { transform: rotateX(90deg) translateZ(100px); }
+.bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+/* RESULT */
+#result {
+  margin:20px;
+}
+
+/* FOOTER */
+.footer {
+  margin-top:40px;
+  font-size:12px;
+  opacity:0.7;
 }
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
+<div id="login">
+  <h2>🔐 Login</h2>
+  <input id="user" placeholder="Username"><br>
+  <input id="pass" type="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+  <p>Use: admin / 1234</p>
+</div>
+
+<!-- APP -->
+<div id="app">
+
 <h2>🚀 ReelMind AI</h2>
 
-<div class="circle">
-  <div class="item" onclick="setMode('chat')">💬</div>
-  <div class="item" onclick="setMode('image')">🖼</div>
-  <div class="item" onclick="setMode('video')">🎬</div>
-  <div class="item" onclick="setMode('story')">📖</div>
-  <div class="item" onclick="setMode('money')">💰</div>
-  <div class="item" onclick="setMode('tiktok')">🚀</div>
+<div class="scene">
+  <div class="cube" id="cube">
 
-  <div class="center">GO</div>
+    <div class="face front" onclick="selectMode('chat')">💬 Chat</div>
+    <div class="face back" onclick="selectMode('story')">📖 Story</div>
+    <div class="face right" onclick="selectMode('image')">🖼 Image</div>
+    <div class="face left" onclick="selectMode('video')">🎬 Video</div>
+    <div class="face top" onclick="selectMode('money')">💰 Money</div>
+    <div class="face bottom" onclick="selectMode('tiktok')">🚀 TikTok</div>
+
+  </div>
 </div>
 
-<div>
-  <input id="input" placeholder="Type your idea..." />
-  <button onclick="send()">Send</button>
+<input id="input" placeholder="Type your idea...">
+<button onclick="send()">Generate</button>
+
+<div id="result">Select a feature 👆</div>
+
+<div class="footer">
+  Powered by Artical Neavy |
+  <a href="#" onclick="terms()">Terms</a>
 </div>
 
-<div id="result">Select a mode 👆</div>
+</div>
 
 <script>
-let mode = "chat";
+let mode="chat";
+let premium=false;
 
-// FREE IMAGE API (no key)
+// LOGIN
+function login(){
+  let u=document.getElementById("user").value;
+  let p=document.getElementById("pass").value;
+
+  if(u==="admin" && p==="1234"){
+    document.getElementById("login").style.display="none";
+    document.getElementById("app").style.display="block";
+  }else{
+    alert("Wrong login");
+  }
+}
+
+// ROTATE CUBE
+function rotateCube(x,y){
+  document.getElementById("cube").style.transform =
+    "rotateX("+x+"deg) rotateY("+y+"deg)";
+}
+
+// SELECT MODE
+function selectMode(m){
+  mode=m;
+
+  if(m==="chat") rotateCube(0,0);
+  if(m==="story") rotateCube(0,180);
+  if(m==="image") rotateCube(0,90);
+  if(m==="video") rotateCube(0,-90);
+  if(m==="money") rotateCube(90,0);
+  if(m==="tiktok") rotateCube(-90,0);
+
+  document.getElementById("result").innerText="Mode: "+m;
+}
+
+// IMAGE API (FREE)
 function getImage(prompt){
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 }
 
-function setMode(m){
-  mode = m;
-  document.getElementById("result").innerText = "Mode: " + m;
-}
-
+// SEND
 async function send(){
-  const text = document.getElementById("input").value;
+  let text=document.getElementById("input").value;
   if(!text) return;
 
-  document.getElementById("result").innerText = "⏳ Loading...";
+  document.getElementById("result").innerText="⏳ Loading...";
 
-  // 🖼 IMAGE MODE (REAL IMAGE)
-  if(mode === "image"){
-    const img = getImage(text);
-
-    document.getElementById("result").innerHTML =
-      `<img src="${img}" width="300"/>`;
+  // IMAGE
+  if(mode==="image"){
+    let img=getImage(text);
+    document.getElementById("result").innerHTML=
+      `<img src="${img}" width="250">`;
     return;
   }
 
-  // 🎬 VIDEO (SIMULATED)
-  if(mode === "video"){
-    document.getElementById("result").innerText =
-      "🎬 Video generation requires advanced API (coming soon)";
-    return;
+  // VIDEO (PREMIUM LOCK)
+  if(mode==="video"){
+    if(!premium){
+      document.getElementById("result").innerText=
+        "🔒 Premium feature. Upgrade needed.";
+      return;
+    }
   }
 
-  // 💬 OTHER MODES (USE BACKEND)
+  // BACKEND TEXT
   try{
-    const res = await fetch("https://reelmindbackend-1.onrender.com/generate",{
+    let res=await fetch("https://reelmindbackend-1.onrender.com/generate",{
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ prompt: text })
+      headers:{ "Content-Type":"application/json"},
+      body:JSON.stringify({prompt:text})
     });
 
-    const data = await res.json();
-
-    document.getElementById("result").innerText = data.result;
+    let data=await res.json();
+    document.getElementById("result").innerText=data.result;
 
   }catch(e){
-    document.getElementById("result").innerText = "❌ Error";
+    document.getElementById("result").innerText="❌ Error";
   }
+}
+
+// TERMS
+function terms(){
+  alert("Terms & Conditions:\nUse responsibly. No abuse. AI results may vary.");
 }
 </script>
 
