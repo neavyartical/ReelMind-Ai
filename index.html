@@ -14,20 +14,30 @@ body{
   height:100vh;
 }
 
-/* GRID */
+/* GLOBE GRID */
 #grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  padding:10px;
+  gap:12px;
+  padding:12px;
 }
 
 .grid-btn{
-  text-align:center;
-  padding:14px;
-  border-radius:14px;
-  background:linear-gradient(145deg,#1a1a1a,#2a2a2a);
-  box-shadow:5px 5px 15px #000,-5px -5px 15px #333;
+  height:70px;
+  border-radius:50%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(circle at 30% 30%, #ff6a00, #1a001f);
+  box-shadow:0 0 15px rgba(255,106,0,0.6),
+             inset 0 0 10px rgba(255,255,255,0.2);
+  font-size:18px;
+}
+
+.grid-btn span{
+  font-size:10px;
+  margin-top:2px;
 }
 
 /* CHAT */
@@ -41,24 +51,31 @@ img,video{width:100%;border-radius:10px;margin-top:5px;}
 /* INPUT */
 #bottom{display:flex;padding:10px;}
 #bottom input{flex:1;padding:12px;border:none;border-radius:10px;}
-#bottom button{margin-left:5px;padding:12px;border:none;border-radius:10px;background:#ff6a00;color:white;}
+#bottom button{
+  margin-left:5px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#ff6a00;
+  color:white;
+}
 </style>
 </head>
 
 <body>
 
 <div id="grid">
-  <div class="grid-btn" onclick="setMode('chat')">💬 Chat</div>
-  <div class="grid-btn" onclick="setMode('story')">📖 Story</div>
-  <div class="grid-btn" onclick="setMode('image')">🖼 Image</div>
-  <div class="grid-btn" onclick="setMode('video')">🎬 Video</div>
+  <div class="grid-btn" onclick="setMode('chat')">💬<span>Chat</span></div>
+  <div class="grid-btn" onclick="setMode('story')">📖<span>Story</span></div>
+  <div class="grid-btn" onclick="setMode('image')">🖼<span>Image</span></div>
+  <div class="grid-btn" onclick="setMode('video')">🎬<span>Video</span></div>
 
-  <div class="grid-btn" onclick="template('funny')">😂 Funny</div>
-  <div class="grid-btn" onclick="template('sad')">💔 Sad</div>
-  <div class="grid-btn" onclick="template('anime')">🔥 Anime</div>
-  <div class="grid-btn" onclick="template('money')">💰 Money</div>
+  <div class="grid-btn" onclick="template('funny')">😂<span>Funny</span></div>
+  <div class="grid-btn" onclick="template('sad')">💔<span>Sad</span></div>
+  <div class="grid-btn" onclick="template('anime')">🔥<span>Anime</span></div>
+  <div class="grid-btn" onclick="template('money')">💰<span>Money</span></div>
 
-  <div class="grid-btn" onclick="toggleTikTok()">🚀 TikTok</div>
+  <div class="grid-btn" onclick="toggleTikTok()">🚀<span>TikTok</span></div>
 </div>
 
 <div id="chat"></div>
@@ -75,7 +92,7 @@ img,video{width:100%;border-radius:10px;margin-top:5px;}
 let mode="chat";
 let tiktok=false;
 
-// UI SAFE
+// UI
 function add(text,type){
   let chat=document.getElementById("chat");
   let div=document.createElement("div");
@@ -110,30 +127,34 @@ function template(type){
     mode="chat";
   }
 
-  add("Generating "+type+"...","ai");
+  add("🔥 Generating "+type+"...","ai");
   setTimeout(send,300);
 }
 
 // TIKTOK
 function toggleTikTok(){
   tiktok=!tiktok;
-  add("TikTok: "+(tiktok?"ON 🔥":"OFF"),"ai");
+  add("TikTok Mode: "+(tiktok?"ON 🔥":"OFF"),"ai");
 }
 
-// VOICE
+// VOICE INPUT
 function startVoice(){
   let rec=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
   rec.lang="en-US";
 
+  rec.onstart=()=>add("🎤 Listening...","ai");
+
   rec.onresult=e=>{
-    input.value=e.results[0][0].transcript;
+    let text=e.results[0][0].transcript;
+    input.value=text;
+    add("🎤 "+text,"user");
     setTimeout(send,300);
   };
 
   rec.start();
 }
 
-// SPEAK
+// VOICE OUTPUT
 function speak(text){
   let s=new SpeechSynthesisUtterance(text);
   window.speechSynthesis.cancel();
@@ -148,32 +169,40 @@ function download(url,name){
   a.click();
 }
 
-// LONG STORY
+// LONG STORY ENGINE
 function longStory(topic){
   return `
-🎬 STORY
+🎬 CINEMATIC STORY
+
+━━━━━━━━━━━━━━━
 
 In a world where ${topic}, everything began to change.
 
-At first, things looked normal. But slowly, hidden truths began to appear.
+At first, life felt normal. But slowly, something unusual started happening.
 
-People started noticing something was wrong.
+People noticed patterns. Strange events. Unexplainable moments.
 
 Fear spread. Confusion grew.
 
-But one person chose to stand strong.
+But one person refused to break.
 
-Through pain, struggle, and sacrifice, they kept moving forward.
+Through pain, struggle, and setbacks, they kept going.
 
 🔥 Then came the turning point.
 
-A decision that would change everything forever.
+A decision that changed everything.
 
-They chose courage.
+They chose courage over fear.
 
-And from that moment, everything transformed.
+And in that moment, transformation began.
 
-✨ This was only the beginning of something legendary.
+Power awakened. Limits shattered.
+
+Destiny was rewritten.
+
+━━━━━━━━━━━━━━━
+
+✨ This was not the end… it was the beginning.
 `;
 }
 
@@ -189,23 +218,39 @@ function send(){
   if(mode==="image"){
     let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(txt);
 
-    add(`<img src="${url}">
-    <button onclick="download('${url}','image.jpg')">⬇ Download</button>`,"ai");
+    add(`
+      <img src="${url}">
+      <button onclick="download('${url}','image.jpg')">⬇ Download</button>
+    `,"ai");
 
     speak("Image ready");
     return;
   }
 
-  // VIDEO
+  // VIDEO (SMART)
   if(mode==="video"){
     let vid="https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
 
-    add(`<video controls src="${vid}"></video>
-    <button onclick="download('${vid}','video.mp4')">⬇ Download</button>
-    <br>🔥 Caption: This will go viral
-    <br>#fyp #viral #trend`,"ai");
+    add(`
+      <video controls src="${vid}"></video>
 
-    speak("Video ready");
+      🎬 AI Video Concept:
+      "${txt}"
+
+      A cinematic viral-style scene showing ${txt} with engaging visuals.
+
+      🔥 Caption:
+      "${txt} — this is insane 😳"
+
+      #viral #fyp #trend
+
+      🎵 Suggested Sound:
+      Trending TikTok beat
+
+      <button onclick="download('${vid}','video.mp4')">⬇ Download</button>
+    `,"ai");
+
+    speak("Video concept ready");
     return;
   }
 
@@ -214,7 +259,7 @@ function send(){
     let story=longStory(txt);
 
     if(tiktok){
-      story += "\n🔥 Caption: This is crazy 😳 #viral #fyp";
+      story += "\n🔥 Caption: This will go viral 😳 #fyp #story";
     }
 
     add(story,"ai");
@@ -223,7 +268,7 @@ function send(){
   }
 
   // CHAT
-  let reply="🤖 "+txt+" — Think bigger and act smart.";
+  let reply="🤖 "+txt+" — Think bigger, move smarter, build powerfully.";
   add(reply,"ai");
   speak(reply);
 }
