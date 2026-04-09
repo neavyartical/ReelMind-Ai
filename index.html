@@ -8,18 +8,17 @@
 
   <h1>🎬 ReelMind AI</h1>
 
-  <input id="prompt" placeholder="Type something..." style="width:80%;padding:10px;" />
+  <input id="prompt" placeholder="Type something..." />
   <br><br>
 
-  <button onclick="generate()" style="padding:10px 20px;background:green;color:white;">
-    Generate
-  </button>
+  <button onclick="generate()">Generate</button>
 
   <p id="status"></p>
 
-  <img id="video" style="display:none;width:90%;max-width:500px;" />
+  <img id="video" style="display:none;width:90%;" />
 
-  <script src="script.js"></script>
+  <!-- VERY IMPORTANT LINE -->
+  <script src="./script.js"></script>
 
 </body>
 </html>
