@@ -72,7 +72,6 @@ body{
   padding:12px;
 }
 
-/* MESSAGE */
 .msg{
   margin:10px;
   padding:14px;
@@ -146,10 +145,8 @@ img,video{
   <div class="grid-btn" onclick="toggleTikTok()">🚀<span>TikTok</span></div>
 </div>
 
-<!-- CHAT -->
 <div id="chat"></div>
 
-<!-- INPUT -->
 <div id="bottom">
   <input id="input" placeholder="Ask anything...">
   <button onclick="send()">➤</button>
@@ -294,30 +291,37 @@ function send(){
     return;
   }
 
-  // VIDEO
+  // VIDEO (SMART FIX)
   if(mode==="video"){
     let vid="https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
 
+    let scene = `
+🎬 Scene:
+
+A cinematic visual of ${txt}, designed for viral engagement with smooth motion and strong visual storytelling.
+`;
+
+    let caption = `
+🔥 Caption:
+"${txt} 😳🔥"
+
+#viral #fyp #trend #reels
+`;
+
+    let music = `
+🎵 Sound:
+Trending TikTok audio
+`;
+
     add(`
       <video controls src="${vid}"></video>
-
-      🎬 AI Video Concept:
-      "${txt}"
-
-      A cinematic viral-style scene showing ${txt}.
-
-      🔥 Caption:
-      "${txt} — this is insane 😳"
-
-      #viral #fyp #trend
-
-      🎵 Suggested Sound:
-      Trending TikTok beat
-
+      ${scene}
+      ${caption}
+      ${music}
       <button onclick="download('${vid}','video.mp4')">⬇ Download</button>
     `,"ai");
 
-    speak("Video concept ready");
+    speak("Video concept generated");
     return;
   }
 
