@@ -1,80 +1,114 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin:0;
-      font-family:Arial;
-      background:#0f0f0f;
-      color:white;
-    }
+<style>
+body {
+  margin:0;
+  font-family:Arial;
+  background:#0f0f0f;
+  color:white;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
 
-    #chat {
-      max-height:70vh;
-      overflow:auto;
-      padding:10px;
-    }
+/* TOP BAR */
+#topBar {
+  display:flex;
+  overflow-x:auto;
+  padding:10px;
+  background:#1a1a1a;
+}
 
-    .msg {
-      margin:10px;
-      padding:10px;
-      border-radius:10px;
-      max-width:80%;
-    }
+#topBar button {
+  margin-right:8px;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#ff6a00;
+  color:white;
+  font-weight:bold;
+}
 
-    .user { background:#ff6a00; margin-left:auto; }
-    .ai { background:#1f1f1f; }
+/* CHAT */
+#chat {
+  flex:1;
+  overflow:auto;
+  padding:10px;
+}
 
-    input {
-      width:70%;
-      padding:12px;
-      border:none;
-      border-radius:10px;
-      background:#1a1a1a;
-      color:white;
-    }
+.msg {
+  margin:8px;
+  padding:10px;
+  border-radius:10px;
+  max-width:80%;
+  white-space:pre-wrap;
+}
 
-    button {
-      padding:10px;
-      border:none;
-      border-radius:10px;
-      background:#ff6a00;
-      color:white;
-      font-weight:bold;
-      margin:5px;
-    }
+.user {
+  background:#ff6a00;
+  margin-left:auto;
+}
 
-    img {
-      width:100%;
-      border-radius:10px;
-      margin-top:10px;
-    }
-  </style>
+.ai {
+  background:#1f1f1f;
+}
+
+img {
+  width:100%;
+  border-radius:10px;
+  margin-top:10px;
+}
+
+/* INPUT */
+#bottomBar {
+  display:flex;
+  padding:10px;
+  background:#1a1a1a;
+}
+
+#bottomBar input {
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+}
+
+#bottomBar button {
+  margin-left:5px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#ff6a00;
+  color:white;
+}
+</style>
 </head>
 
 <body>
 
-<h2 style="text-align:center;">🎬 ReelMind AI</h2>
+<!-- TOP FEATURES -->
+<div id="topBar">
+  <button onclick="quick('Funny TikTok story idea')">😂</button>
+  <button onclick="quick('Sad emotional love story')">💔</button>
+  <button onclick="quick('Anime battle story')">🔥</button>
+  <button onclick="quick('Make money online strategy')">💰</button>
+  <button onclick="quick('Create viral video idea')">🎬</button>
+  <button onclick="toggleTikTok()">🎵</button>
+</div>
 
+<!-- CHAT -->
 <div id="chat"></div>
 
-<div style="text-align:center;">
+<!-- INPUT -->
+<div id="bottomBar">
   <input id="input" placeholder="Ask anything...">
   <button onclick="send()">Send</button>
 </div>
-
-<div style="text-align:center;">
-  <button onclick="quick('Funny TikTok idea')">😂</button>
-  <button onclick="quick('Sad love story')">💔</button>
-  <button onclick="quick('Anime fight scene')">🔥</button>
-  <button onclick="quick('Create a viral video idea')">🎬</button>
-</div>
-
-<button onclick="toggleTikTok()">🎵 TikTok Mode</button>
-<p id="tt" style="text-align:center;">OFF</p>
 
 <p style="text-align:center;">✨ Powered by Artical Neavy</p>
 
@@ -82,39 +116,40 @@
 
 let tiktok = false;
 
-// MESSAGE
-function addMessage(text, type){
-  const chat = document.getElementById("chat");
-  const div = document.createElement("div");
+// ADD MESSAGE
+function addMessage(text,type){
+  let chat = document.getElementById("chat");
+  let div = document.createElement("div");
   div.className = "msg " + type;
   div.innerHTML = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-// TYPING EFFECT
+// TYPING (FIXED NO CUT)
 function typeMessage(text){
   let i = 0;
-  const chat = document.getElementById("chat");
-  const div = document.createElement("div");
+  let chat = document.getElementById("chat");
+
+  let div = document.createElement("div");
   div.className = "msg ai";
   chat.appendChild(div);
 
-  let interval = setInterval(()=>{
-    div.innerHTML = text.substring(0,i);
-    i++;
-    chat.scrollTop = chat.scrollHeight;
-
-    if(i > text.length){
-      clearInterval(interval);
+  function typing(){
+    if(i < text.length){
+      div.innerHTML += text.charAt(i);
+      i++;
+      chat.scrollTop = chat.scrollHeight;
+      setTimeout(typing, 15);
     }
-  },20);
+  }
+
+  typing();
 }
 
 // VOICE
 function speak(text){
   let speech = new SpeechSynthesisUtterance(text);
-  speech.lang = "en-US";
   speech.rate = 1;
   speech.pitch = 1;
   window.speechSynthesis.speak(speech);
@@ -128,7 +163,7 @@ function quick(text){
 // TIKTOK
 function toggleTikTok(){
   tiktok = !tiktok;
-  document.getElementById("tt").innerText = tiktok ? "ON 🔥" : "OFF";
+  alert("TikTok Mode: " + (tiktok ? "ON 🔥" : "OFF"));
 }
 
 // DOWNLOAD
@@ -144,16 +179,16 @@ function send(){
   let input = document.getElementById("input").value.trim();
   if(!input) return;
 
-  addMessage(input, "user");
+  addMessage(input,"user");
 
   let lower = input.toLowerCase();
 
-  // IMAGE (REAL API)
+  // IMAGE (REAL)
   if(lower.includes("image") || lower.includes("photo") || lower.includes("picture")){
     let url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(input);
 
     addMessage(`
-      🖼 Generating real image...
+      🖼 Generated Image:
       <img src="${url}">
       <button onclick="downloadImage('${url}')">⬇ Download</button>
     `,"ai");
@@ -161,26 +196,62 @@ function send(){
     return;
   }
 
-  // STORY
+  // STORY (FULL FIXED)
   if(lower.includes("story")){
-    let story = "Once upon a time... " + input + ". It became a powerful cinematic journey.";
+    let story = `
+📖 Story:
 
-    typeMessage("📖 " + story);
+Once upon a time, ${input}, in a world filled with mystery and hidden truths.
+
+At first, everything seemed ordinary. But beneath the surface, something powerful was waiting to be discovered. The journey began with a single moment that changed everything.
+
+Challenges came — fear, doubt, and uncertainty. But with every step forward, strength grew stronger. The path was not easy, yet it was necessary.
+
+Then came the turning point — a moment where everything shifted. A bold decision had to be made, and courage became the only way forward.
+
+In the end, what started as a simple idea became something unforgettable — a story of growth, power, and transformation.
+
+✨ And this was only the beginning...
+`;
+
+    typeMessage(story);
     speak(story);
     return;
   }
 
   // VIDEO
   if(lower.includes("video")){
-    let video = "🎬 Create a cinematic viral video based on: " + input;
+    let vid = `
+🎬 Video Idea:
 
-    typeMessage(video);
-    speak(video);
+Create a cinematic viral video based on "${input}".
+
+Start with a strong hook in the first 3 seconds.
+Add emotional or dramatic storytelling.
+Use trending sounds and fast cuts.
+End with a powerful or surprising moment.
+
+🔥 This can go viral if executed well.
+`;
+
+    typeMessage(vid);
+    speak(vid);
     return;
   }
 
-  // CHAT
-  let reply = "I understand: '" + input + "'. Let me help you with something powerful 🔥";
+  // NORMAL CHAT
+  let reply = `
+🤖 AI:
+
+I understand "${input}".
+
+Here’s something powerful you can do:
+- Think creatively
+- Focus on execution
+- Turn ideas into action
+
+🔥 You're building something big.
+`;
 
   typeMessage(reply);
   speak(reply);
