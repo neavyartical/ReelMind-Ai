@@ -13,10 +13,6 @@
       padding: 20px;
     }
 
-    h2 {
-      margin-bottom: 15px;
-    }
-
     input {
       width: 90%;
       padding: 14px;
@@ -26,7 +22,8 @@
     }
 
     button {
-      padding: 14px 25px;
+      padding: 12px 20px;
+      margin: 5px;
       background: #00c853;
       border: none;
       border-radius: 10px;
@@ -36,18 +33,16 @@
 
     #videoContainer {
       margin-top: 20px;
-      width: 100%;
-      height: 400px;
+      height: 350px;
       overflow: hidden;
       border-radius: 15px;
-      position: relative;
     }
 
     #videoContainer img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      animation: zoom 8s infinite alternate;
+      animation: zoom 6s infinite alternate;
     }
 
     @keyframes zoom {
@@ -73,18 +68,21 @@
 
 <body>
 
-  <h2>🎬 ReelMind AI (Video Mode)</h2>
+  <h2>🎬 ReelMind AI</h2>
 
   <input id="prompt" placeholder="Describe your scene..." />
+
   <br>
 
-  <button onclick="generate()">🎥 Generate Video</button>
+  <!-- ✅ BUTTON BACK -->
+  <button onclick="generate()">✨ Generate</button>
 
   <p id="status"></p>
   <div id="videoContainer"></div>
 
   <script>
-    let videoImage = "";
+    let currentImage = "";
+    let recorder, chunks = [];
 
     async function generate() {
       const prompt = document.getElementById("prompt").value;
@@ -96,9 +94,9 @@
         return;
       }
 
-      const enhancedPrompt = prompt + ", ultra realistic, cinematic lighting, 4k, dramatic scene";
+      const enhancedPrompt = prompt + ", ultra realistic, cinematic lighting, 4k";
 
-      status.innerText = "Generating video... 🎥";
+      status.innerText = "Generating... ⏳";
       container.innerHTML = '<div class="loader"></div>';
 
       try {
@@ -113,12 +111,15 @@
         const data = await res.json();
 
         if (data.url) {
-          videoImage = data.url;
+          currentImage = data.url;
 
-          status.innerText = "Playing ▶️";
+          status.innerText = "Done ✅";
 
           container.innerHTML = `
-            <img src="${data.url}" />
+            <img id="animImage" src="${data.url}" />
+            <br>
+            <button onclick="downloadImage()">📥 Download Image</button>
+            <button onclick="recordVideo()">🎥 Download Video</button>
           `;
         } else {
           status.innerText = "Error ❌";
@@ -129,6 +130,37 @@
         status.innerText = "Server error ❌";
         container.innerText = err.message;
       }
+    }
+
+    function downloadImage() {
+      window.open(currentImage, "_blank");
+    }
+
+    function recordVideo() {
+      const img = document.getElementById("animImage");
+
+      const stream = img.captureStream(30);
+      recorder = new MediaRecorder(stream);
+
+      chunks = [];
+
+      recorder.ondataavailable = e => chunks.push(e.data);
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "video/mp4" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "reelmind-video.mp4";
+        a.click();
+      };
+
+      recorder.start();
+
+      setTimeout(() => {
+        recorder.stop();
+      }, 5000);
     }
   </script>
 
