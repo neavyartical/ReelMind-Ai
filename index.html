@@ -44,9 +44,15 @@
     }
 
     img {
-      max-width: 100%;
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
       margin-top: 20px;
-      border-radius: 15px;
     }
 
     .loader {
@@ -78,6 +84,8 @@
   <div id="result"></div>
 
   <script>
+    let firstImage = "";
+
     async function generate() {
       const prompt = document.getElementById("prompt").value;
       const status = document.getElementById("status");
@@ -107,9 +115,15 @@
         if (data.url) {
           status.innerText = "Done ✅";
 
+          firstImage = data.url;
+
           result.innerHTML = `
-            <img id="generatedImage" src="${data.url}" />
-            <br>
+            <div class="grid">
+              <img src="${data.url}" />
+              <img src="${data.url}&seed=2" />
+              <img src="${data.url}&seed=3" />
+              <img src="${data.url}&seed=4" />
+            </div>
             <button id="downloadBtn">⬇ Download</button>
           `;
         } else {
@@ -123,17 +137,10 @@
       }
     }
 
-    // 🔥 DOWNLOAD HANDLER (WORKS ON MOBILE)
+    // 🔥 MOBILE-FRIENDLY DOWNLOAD (opens image)
     document.addEventListener("click", function(e) {
       if (e.target && e.target.id === "downloadBtn") {
-        const img = document.getElementById("generatedImage");
-
-        const a = document.createElement("a");
-        a.href = img.src;
-        a.download = "reelmind.jpg";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        window.open(firstImage, "_blank");
       }
     });
   </script>
