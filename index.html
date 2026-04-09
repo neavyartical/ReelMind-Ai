@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReelMind AI</title>
 
 <style>
 body {
   margin:0;
-  background:#000;
-  color:white;
-  font-family:sans-serif;
+  font-family: Arial;
+  background: linear-gradient(135deg,#ff7e5f,#feb47b);
   text-align:center;
+  color:white;
 }
 
-/* CUBE CONTAINER */
+h1 {
+  margin-top:20px;
+}
+
 .scene {
   width:250px;
   height:250px;
-  margin:60px auto;
+  margin:50px auto;
   perspective:800px;
 }
 
@@ -25,27 +28,27 @@ body {
   width:100%;
   height:100%;
   position:relative;
-  transform-style:preserve-3d;
-  transition:1s;
+  transform-style: preserve-3d;
+  animation: spin 10s infinite linear;
 }
 
-/* TRANSPARENT FACES */
 .face {
   position:absolute;
-  width:250px;
-  height:250px;
+  width:100%;
+  height:100%;
   border:1px solid rgba(255,255,255,0.2);
-  background:rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:18px;
-  border-radius:20px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
   cursor:pointer;
 }
 
-/* POSITIONS */
+.face:hover {
+  background: rgba(255,255,255,0.2);
+}
+
 .front  { transform: rotateY(0deg) translateZ(125px); }
 .back   { transform: rotateY(180deg) translateZ(125px); }
 .right  { transform: rotateY(90deg) translateZ(125px); }
@@ -53,158 +56,115 @@ body {
 .top    { transform: rotateX(90deg) translateZ(125px); }
 .bottom { transform: rotateX(-90deg) translateZ(125px); }
 
-/* INPUT */
-input {
-  padding:10px;
-  width:70%;
-  border-radius:10px;
-  border:none;
+@keyframes spin {
+  from { transform: rotateX(0) rotateY(0); }
+  to { transform: rotateX(360deg) rotateY(360deg); }
 }
 
 button {
   padding:10px;
   border:none;
   border-radius:10px;
-  background:#ff4ecd;
-  color:white;
+  background:#fff;
+  color:#000;
+  cursor:pointer;
 }
 
-/* RESULT */
-#result {
+#output {
   margin:20px;
-  min-height:100px;
-}
-
-/* FOOTER */
-.footer {
-  margin-top:40px;
-  font-size:12px;
-  opacity:0.6;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🚀 ReelMind AI</h2>
+<h1>🔥 ReelMind AI</h1>
+<p>Powered by Artical Neavy</p>
 
 <div class="scene">
   <div class="cube" id="cube">
 
-    <div class="face front" onclick="selectMode('chat')">💬 Chat</div>
-    <div class="face back" onclick="selectMode('story')">📖 Story</div>
-    <div class="face right" onclick="selectMode('image')">🖼 Image</div>
-    <div class="face left" onclick="selectMode('video')">🎬 Video</div>
-    <div class="face top" onclick="selectMode('money')">💰 Money</div>
-    <div class="face bottom" onclick="selectMode('tiktok')">🚀 TikTok</div>
+    <div class="face front" onclick="selectFeature('chat')">Chat</div>
+    <div class="face back" onclick="selectFeature('story')">Story</div>
+    <div class="face right" onclick="selectFeature('image')">Image</div>
+    <div class="face left" onclick="selectFeature('video')">Video</div>
+    <div class="face top" onclick="selectFeature('funny')">Funny</div>
+    <div class="face bottom" onclick="selectFeature('money')">Money</div>
 
   </div>
 </div>
 
-<input id="input" placeholder="Type your idea...">
-<button onclick="send()">Generate</button>
+<input id="prompt" placeholder="Enter your idea..." style="padding:10px;width:80%;">
+<br><br>
 
-<div id="result">Tap a cube side 👆</div>
+<button onclick="generate()">Generate</button>
 
-<button onclick="unlock()">Unlock Premium</button>
-
-<div class="footer">
-  Powered by Artical Neavy | 
-  <a href="#" onclick="terms()">Terms</a>
-</div>
+<div id="output"></div>
 
 <script>
-let mode="chat";
-let premium=false;
 
-// ROTATION
-function rotate(x,y){
-  document.getElementById("cube").style.transform =
-    "rotateX("+x+"deg) rotateY("+y+"deg)";
+let selected = "chat";
+let startX = 0;
+let cube = document.getElementById("cube");
+
+function selectFeature(f){
+  selected = f;
+  alert("Selected: " + f);
 }
 
-function selectMode(m){
-  mode=m;
+// Swipe control
+document.addEventListener("touchstart", e=>{
+  startX = e.touches[0].clientX;
+});
 
-  if(m==="chat") rotate(0,0);
-  if(m==="story") rotate(0,180);
-  if(m==="image") rotate(0,90);
-  if(m==="video") rotate(0,-90);
-  if(m==="money") rotate(90,0);
-  if(m==="tiktok") rotate(-90,0);
+document.addEventListener("touchend", e=>{
+  let endX = e.changedTouches[0].clientX;
+  let diff = endX - startX;
 
-  document.getElementById("result").innerText="Mode: "+m;
-}
+  if(diff > 50){
+    cube.style.transform = "rotateY(90deg)";
+  } else if(diff < -50){
+    cube.style.transform = "rotateY(-90deg)";
+  }
+});
 
-// FREE IMAGE
-function img(prompt){
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
-}
+// MAIN GENERATE FUNCTION
+async function generate(){
+  let prompt = document.getElementById("prompt").value;
 
-// FREE VIDEO (WORKAROUND)
-async function fakeVideo(prompt){
-  return "🎬 Video generation coming (free APIs limited)";
-}
-
-// SEND
-async function send(){
-  let text=document.getElementById("input").value;
-  if(!text) return;
-
-  document.getElementById("result").innerText="⏳ Loading...";
-
-  // IMAGE
-  if(mode==="image"){
-    document.getElementById("result").innerHTML =
-      `<img src="${img(text)}" width="250">`;
+  if(!prompt){
+    alert("Enter prompt!");
     return;
   }
 
-  // VIDEO
-  if(mode==="video"){
-    if(!premium){
-      document.getElementById("result").innerText =
-        "🔒 Premium only. Unlock first.";
-      return;
-    }
+  document.getElementById("output").innerHTML = "⏳ Generating...";
 
-    let vid = await fakeVideo(text);
-    document.getElementById("result").innerText = vid;
-    return;
-  }
-
-  // TEXT BACKEND
   try{
-    let res = await fetch("https://reelmindbackend-1.onrender.com/generate",{
+    let res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
       method:"POST",
-      headers:{ "Content-Type":"application/json"},
-      body:JSON.stringify({prompt:text})
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        prompt: prompt,
+        type: selected
+      })
     });
 
     let data = await res.json();
-    document.getElementById("result").innerText = data.result;
 
-  }catch(e){
-    document.getElementById("result").innerText="❌ Server error";
+    if(selected === "image"){
+      document.getElementById("output").innerHTML =
+        `<img src="${data.result}" width="300">`;
+    } else {
+      document.getElementById("output").innerHTML =
+        `<p>${data.result}</p>`;
+    }
+
+  }catch(err){
+    document.getElementById("output").innerHTML =
+      "❌ Error connecting to server";
   }
 }
 
-// PREMIUM UNLOCK (TEMP)
-function unlock(){
-  let code = prompt("Enter premium code:");
-
-  if(code==="NEAVY2026"){
-    premium=true;
-    alert("✅ Premium unlocked!");
-  }else{
-    alert("❌ Wrong code");
-  }
-}
-
-// TERMS
-function terms(){
-  alert("Terms:\nUse responsibly. No abuse. AI results may vary.");
-}
 </script>
 
 </body>
