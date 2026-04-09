@@ -13,12 +13,12 @@
       padding: 20px;
     }
 
-    input {
+    input, select {
       width: 90%;
-      padding: 14px;
+      padding: 12px;
       border-radius: 10px;
       border: none;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
 
     button {
@@ -71,17 +71,23 @@
   <h2>🎬 ReelMind AI</h2>
 
   <input id="prompt" placeholder="Describe your scene..." />
+
+  <!-- 🎧 MUSIC SELECT -->
+  <select id="musicSelect">
+    <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">🎵 Chill Beat</option>
+    <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">🔥 Hype Music</option>
+    <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3">🎹 Piano Mood</option>
+  </select>
+
   <br>
 
+  <!-- ✅ GENERATE BUTTON BACK -->
   <button onclick="generate()">✨ Generate</button>
 
   <p id="status"></p>
   <div id="videoContainer"></div>
 
-  <!-- 🎧 BACKGROUND MUSIC -->
-  <audio id="bgMusic" loop>
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-  </audio>
+  <audio id="bgMusic" loop></audio>
 
   <script>
     let currentImage = "";
@@ -92,6 +98,7 @@
       const status = document.getElementById("status");
       const container = document.getElementById("videoContainer");
       const music = document.getElementById("bgMusic");
+      const selectedMusic = document.getElementById("musicSelect").value;
 
       if (!prompt) {
         status.innerText = "Enter something ⚠️";
@@ -119,7 +126,8 @@
 
           status.innerText = "Playing 🎬";
 
-          // 🔥 PLAY MUSIC
+          // 🎧 APPLY SELECTED MUSIC
+          music.src = selectedMusic;
           music.currentTime = 0;
           music.play();
 
