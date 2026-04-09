@@ -21,19 +21,11 @@ body{
   100%{background-position:0% 50%;}
 }
 
-/* LOGIN */
-#loginBox{
-  margin-top:100px;
-}
-
-/* APP */
-#app{display:none}
-
 /* CUBE */
 .scene{
-  width:260px;
-  height:260px;
-  margin:40px auto;
+  width:250px;
+  height:250px;
+  margin:60px auto;
   perspective:900px;
 }
 
@@ -42,7 +34,7 @@ body{
   height:100%;
   position:relative;
   transform-style:preserve-3d;
-  animation:spin 12s infinite linear;
+  animation:spin 10s infinite linear;
 }
 
 @keyframes spin{
@@ -52,24 +44,23 @@ body{
 
 .face{
   position:absolute;
-  width:260px;
-  height:260px;
-  background:rgba(255,255,255,0.08);
-  backdrop-filter:blur(15px);
+  width:250px;
+  height:250px;
+  background:rgba(255,255,255,0.1);
   border-radius:20px;
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  box-shadow:0 8px 30px rgba(0,0,0,0.3);
+  backdrop-filter:blur(10px);
 }
 
-.front{ transform:rotateY(0deg) translateZ(130px);}
-.back{ transform:rotateY(180deg) translateZ(130px);}
-.right{ transform:rotateY(90deg) translateZ(130px);}
-.left{ transform:rotateY(-90deg) translateZ(130px);}
-.top{ transform:rotateX(90deg) translateZ(130px);}
-.bottom{ transform:rotateX(-90deg) translateZ(130px);}
+.front{ transform:rotateY(0deg) translateZ(125px);}
+.back{ transform:rotateY(180deg) translateZ(125px);}
+.right{ transform:rotateY(90deg) translateZ(125px);}
+.left{ transform:rotateY(-90deg) translateZ(125px);}
+.top{ transform:rotateX(90deg) translateZ(125px);}
+.bottom{ transform:rotateX(-90deg) translateZ(125px);}
 
 input{
   padding:10px;
@@ -91,34 +82,87 @@ button{
   margin:20px;
   min-height:100px;
 }
-
-#status{
-  font-size:12px;
-  opacity:0.8;
-}
-
-/* PREMIUM */
-.premium{
-  background:rgba(255,255,255,0.1);
-  padding:10px;
-  border-radius:10px;
-  margin-top:10px;
-}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="loginBox">
-  <h2>🔐 Login</h2>
-  <input id="user" placeholder="Username"><br>
-  <input id="pass" type="password" placeholder="Password"><br>
-  <button onclick="login()">Enter</button>
+<h2>🌊 ReelMind AI</h2>
+<p>Powered by Artical Neavy</p>
+
+<div class="scene">
+  <div class="cube">
+
+    <div class="face front" onclick="select('chat')">Chat</div>
+    <div class="face back" onclick="select('story')">Story</div>
+    <div class="face right" onclick="select('image')">Image</div>
+    <div class="face left" onclick="select('video')">Video</div>
+    <div class="face top" onclick="select('music')">Music</div>
+    <div class="face bottom" onclick="select('money')">Money</div>
+
+  </div>
 </div>
 
-<!-- APP -->
-<div id="app">
+<input id="prompt" placeholder="Enter your idea"><br><br>
 
-<h2>🌊 ReelMind AI</h2>
-<p>Powered by Artical Neavy</p
+<button onclick="generate()">Generate</button>
+
+<div id="output">Select a feature 👆</div>
+
+<script>
+let mode="chat";
+
+function select(m){
+  mode=m;
+}
+
+// SIMPLE GENERATE (ALWAYS WORKS)
+function generate(){
+  let prompt=document.getElementById("prompt").value;
+
+  if(!prompt){
+    alert("Enter something!");
+    return;
+  }
+
+  // IMAGE
+  if(mode==="image"){
+    document.getElementById("output").innerHTML =
+      `<img src="https://image.pollinations.ai/prompt/${prompt}" width="250">`;
+    return;
+  }
+
+  // VIDEO
+  if(mode==="video"){
+    document.getElementById("output").innerText =
+      "🎬 Video feature coming soon";
+    return;
+  }
+
+  // TEXT MODES
+  if(mode==="story"){
+    document.getElementById("output").innerText =
+      "📖 Story: " + prompt + " becomes an amazing story...";
+    return;
+  }
+
+  if(mode==="music"){
+    document.getElementById("output").innerText =
+      "🎵 Music idea generated from: " + prompt;
+    return;
+  }
+
+  if(mode==="money"){
+    document.getElementById("output").innerText =
+      "💰 Business idea: " + prompt + " can make money online.";
+    return;
+  }
+
+  // DEFAULT
+  document.getElementById("output").innerText =
+    "🤖 AI says: " + prompt + " is a powerful idea!";
+}
+</script>
+
+</body>
+</html>
