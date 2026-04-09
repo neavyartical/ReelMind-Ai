@@ -14,7 +14,6 @@ body{
   height:100vh;
 }
 
-/* GRID */
 #grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -29,12 +28,8 @@ body{
   background:rgba(255,255,255,0.1);
 }
 
-.grid-btn span{
-  display:block;
-  font-size:12px;
-}
+.grid-btn span{font-size:12px;display:block;}
 
-/* CHAT */
 #chat{
   flex:1;
   overflow:auto;
@@ -51,7 +46,6 @@ body{
 .user{background:#ff6a00;margin-left:auto;}
 .ai{background:#222;}
 
-/* INPUT */
 #bottom{
   display:flex;
   padding:10px;
@@ -90,19 +84,17 @@ body{
   border-radius:12px;
   text-align:center;
 }
-
 .plan{
   margin:10px;
   padding:10px;
-  border-radius:10px;
   background:#222;
+  border-radius:10px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- GRID MENU -->
 <div id="grid">
   <div class="grid-btn" onclick="setMode('chat')">💬<span>Chat</span></div>
   <div class="grid-btn" onclick="setMode('story')">📖<span>Story</span></div>
@@ -119,7 +111,7 @@ body{
   <button onclick="send()">➤</button>
 </div>
 
-<!-- PAYMENT POPUP -->
+<!-- PAYMENT -->
 <div id="pay">
   <div id="payBox">
     <h3>Upgrade to Premium 💎</h3>
@@ -143,17 +135,28 @@ body{
 
 <script>
 
-// STATE
+// 🔧 CONFIG (IMPORTANT)
+const BACKEND_URL = "https://YOUR-REPL-URL"; // <-- paste your backend here
+
 let mode="chat";
 let premium=false;
 
-// MODE SWITCH
+// AUTO UNLOCK AFTER STRIPE RETURN
+window.onload = function(){
+  let url = new URLSearchParams(window.location.search);
+  if(url.get("paid")==="true"){
+    premium = true;
+    alert("Premium activated 💎");
+  }
+};
+
+// MODE
 function setMode(m){
   mode=m;
   add("Mode: "+m,"ai");
 }
 
-// ADD MESSAGE
+// MESSAGE
 function add(text,type){
   let d=document.createElement("div");
   d.className="msg "+type;
@@ -180,14 +183,14 @@ function typeText(text){
   });
 }
 
-// SAVE PROJECTS
+// SAVE
 function save(type,data){
   let p=JSON.parse(localStorage.getItem(type)||"[]");
   p.unshift(data);
   localStorage.setItem(type,JSON.stringify(p));
 }
 
-// VIEW SAVED
+// VIEW
 function viewProjects(){
   let s=JSON.parse(localStorage.getItem("stories")||"[]");
   if(s.length===0){
@@ -197,7 +200,7 @@ function viewProjects(){
   add("Saved Stories:<br><br>"+s.join("<br><br>"),"ai");
 }
 
-// PAYMENT POPUP
+// PAYMENT
 function openPay(){
   document.getElementById("pay").style.display="flex";
 }
@@ -205,7 +208,7 @@ function closePay(){
   document.getElementById("pay").style.display="none";
 }
 
-// REAL STRIPE LINKS (PASTE YOURS)
+// STRIPE LINKS (PUT YOUR REAL ONES)
 function buyMonthly(){
   window.location.href = "https://buy.stripe.com/YOUR_MONTHLY_LINK";
 }
@@ -216,12 +219,12 @@ function buyYearly(){
 
 // TEMP UNLOCK
 function unlockAfterPay(){
-  premium = true;
+  premium=true;
   alert("Premium unlocked 💎");
   closePay();
 }
 
-// CHECK PREMIUM
+// CHECK
 function checkPremium(){
   if(!premium){
     openPay();
@@ -230,7 +233,22 @@ function checkPremium(){
   return true;
 }
 
-// MAIN SEND
+// REAL AI
+async function realAI(prompt){
+  try{
+    let res = await fetch(BACKEND_URL + "/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt})
+    });
+    let data = await res.json();
+    return data.reply;
+  }catch(e){
+    return "⚠️ AI not connected";
+  }
+}
+
+// SEND
 async function send(){
   let txt=input.value.trim();
   if(!txt) return;
@@ -245,7 +263,7 @@ async function send(){
     return;
   }
 
-  // VIDEO (PREMIUM)
+  // VIDEO
   if(mode==="video"){
     if(!checkPremium()) return;
 
@@ -255,56 +273,19 @@ async function send(){
       </video>
       🔥 Viral caption ready
     `,"ai");
-
     return;
   }
 
-  // STORY (FULL LENGTH)
+  // STORY (AI GENERATED)
   if(mode==="story"){
-    let story = `
-🎬 Cinematic Story
-
-${txt}
-
-━━━━━━━━━━━━━━━
-
-🌍 Beginning:
-In a world where ${txt}, everything felt ordinary. But something beneath the surface was changing.
-
-⚡ Rising Action:
-Challenges began to appear. Emotions grew stronger. Every decision carried weight.
-
-🔥 Climax:
-Then came the moment that changed everything. A decision that could either destroy everything… or create something legendary.
-
-🌅 Resolution:
-From that moment, nothing remained the same. Growth, power, and transformation took over.
-
-✨ Final Line:
-And this was only the beginning...
-
-━━━━━━━━━━━━━━━
-🔥 Caption: This will go viral #fyp #viral
-`;
-
-    await typeText(story);
-    save("stories",story);
+    let reply = await realAI("Write a long cinematic story about: " + txt);
+    await typeText(reply);
+    save("stories",reply);
     return;
   }
 
   // CHAT
-  let reply = `
-🤖 AI Response
-
-"${txt}"
-
-Think bigger.
-Act smarter.
-Stay consistent.
-
-🔥 You’re building something powerful.
-`;
-
+  let reply = await realAI(txt);
   await typeText(reply);
 }
 
