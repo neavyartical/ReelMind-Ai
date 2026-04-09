@@ -6,7 +6,7 @@
 
   <style>
     body {
-      background: #0f0f0f;
+      background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
       color: white;
       font-family: Arial;
       text-align: center;
@@ -14,32 +14,62 @@
     }
 
     h2 {
+      font-size: 28px;
       margin-bottom: 20px;
     }
 
     input {
       width: 90%;
-      padding: 12px;
-      border-radius: 8px;
+      padding: 14px;
+      border-radius: 10px;
       border: none;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       font-size: 16px;
+      outline: none;
     }
 
     button {
-      padding: 12px 20px;
-      background: #00c853;
+      padding: 14px 25px;
+      background: linear-gradient(45deg, #00c853, #00e676);
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 16px;
       cursor: pointer;
+      transition: 0.3s;
     }
 
-    img {
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    #result img {
       max-width: 100%;
       margin-top: 20px;
-      border-radius: 10px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,255,100,0.3);
+    }
+
+    /* 🔥 LOADING SPINNER */
+    .loader {
+      margin: 20px auto;
+      border: 5px solid #333;
+      border-top: 5px solid #00e676;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -48,10 +78,10 @@
 
   <h2>🎬 ReelMind AI</h2>
 
-  <input id="prompt" placeholder="Type: lion dancing in savanna" />
-  <br><br>
+  <input id="prompt" placeholder="Describe your scene..." />
+  <br>
 
-  <button onclick="generate()">Generate</button>
+  <button onclick="generate()">✨ Generate</button>
 
   <p id="status"></p>
   <div id="result"></div>
@@ -68,8 +98,9 @@
         return;
       }
 
-      status.innerText = "Generating... ⏳";
-      result.innerHTML = "";
+      // 🔥 Show loader
+      status.innerText = "Creating magic... ✨";
+      result.innerHTML = '<div class="loader"></div>';
 
       try {
         const res = await fetch("https://backend-ppyz.onrender.com/generate", {
@@ -93,7 +124,6 @@
       } catch (err) {
         status.innerText = "Server error ❌";
         result.innerText = err.message;
-        console.error(err);
       }
     }
   </script>
