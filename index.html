@@ -6,152 +6,184 @@
 
   <style>
     body {
-      background:#111;
-      color:white;
-      text-align:center;
+      margin:0;
       font-family:Arial;
-    }
-
-    input, button {
-      width:90%;
-      padding:12px;
-      margin:6px;
-      border-radius:8px;
-      border:none;
-    }
-
-    button {
-      background:#ff6a00;
+      background:#0f0f0f;
       color:white;
-      font-weight:bold;
     }
 
-    .card {
-      background:#222;
+    #chat {
+      max-height:70vh;
+      overflow:auto;
+      padding:10px;
+    }
+
+    .msg {
       margin:10px;
       padding:10px;
       border-radius:10px;
+      max-width:80%;
     }
 
-    .hidden { display:none; }
+    .user { background:#ff6a00; margin-left:auto; }
+    .ai { background:#1f1f1f; }
+
+    input {
+      width:70%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      background:#1a1a1a;
+      color:white;
+    }
+
+    button {
+      padding:10px;
+      border:none;
+      border-radius:10px;
+      background:#ff6a00;
+      color:white;
+      font-weight:bold;
+      margin:5px;
+    }
+
+    img {
+      width:100%;
+      border-radius:10px;
+      margin-top:10px;
+    }
   </style>
 </head>
 
 <body>
 
-<h2>ReelMind AI</h2>
+<h2 style="text-align:center;">🎬 ReelMind AI</h2>
 
-<!-- LOGIN -->
-<div id="auth">
-  <input id="email" placeholder="Email">
-  <input id="password" placeholder="Password">
-  <button onclick="login()">Login</button>
+<div id="chat"></div>
+
+<div style="text-align:center;">
+  <input id="input" placeholder="Ask anything...">
+  <button onclick="send()">Send</button>
 </div>
 
-<!-- APP -->
-<div id="app" class="hidden">
-
-  <!-- MODE BUTTONS -->
-  <div class="card">
-    <button onclick="setMode('chat')">Chat</button>
-    <button onclick="setMode('story')">Story</button>
-    <button onclick="setMode('image')">Image</button>
-    <button onclick="setMode('video')">Video</button>
-  </div>
-
-  <p id="modeText">Mode: image</p>
-
-  <!-- TEMPLATES -->
-  <div class="card">
-    <button onclick="setPrompt('Funny TikTok idea')">Funny</button>
-    <button onclick="setPrompt('Sad love story')">Sad</button>
-    <button onclick="setPrompt('Anime fight scene')">Anime</button>
-    <button onclick="setPrompt('Make money online')">Money</button>
-  </div>
-
-  <input id="prompt" placeholder="Type something...">
-
-  <button onclick="generate()">Generate</button>
-
-  <!-- CHAT -->
-  <div id="chatBox" class="card hidden"></div>
-
-  <!-- OUTPUT -->
-  <div id="output"></div>
-
-  <!-- TIKTOK -->
-  <button onclick="toggleTikTok()">TikTok Mode</button>
-  <p id="tt">OFF</p>
-
-  <p style="color:white;">Powered by Artical Neavy</p>
-
+<div style="text-align:center;">
+  <button onclick="quick('Funny TikTok idea')">😂</button>
+  <button onclick="quick('Sad love story')">💔</button>
+  <button onclick="quick('Anime fight scene')">🔥</button>
+  <button onclick="quick('Create a viral video idea')">🎬</button>
 </div>
+
+<button onclick="toggleTikTok()">🎵 TikTok Mode</button>
+<p id="tt" style="text-align:center;">OFF</p>
+
+<p style="text-align:center;">✨ Powered by Artical Neavy</p>
 
 <script>
 
-let mode = "image";
 let tiktok = false;
 
-// LOGIN
-function login(){
-  document.getElementById("auth").style.display = "none";
-  document.getElementById("app").style.display = "block";
+// MESSAGE
+function addMessage(text, type){
+  const chat = document.getElementById("chat");
+  const div = document.createElement("div");
+  div.className = "msg " + type;
+  div.innerHTML = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
 }
 
-// MODE
-function setMode(m){
-  mode = m;
-  document.getElementById("modeText").innerText = "Mode: " + m;
+// TYPING EFFECT
+function typeMessage(text){
+  let i = 0;
+  const chat = document.getElementById("chat");
+  const div = document.createElement("div");
+  div.className = "msg ai";
+  chat.appendChild(div);
 
-  if(m === "chat"){
-    document.getElementById("chatBox").classList.remove("hidden");
-  } else {
-    document.getElementById("chatBox").classList.add("hidden");
-  }
+  let interval = setInterval(()=>{
+    div.innerHTML = text.substring(0,i);
+    i++;
+    chat.scrollTop = chat.scrollHeight;
+
+    if(i > text.length){
+      clearInterval(interval);
+    }
+  },20);
 }
 
-// TEMPLATE
-function setPrompt(text){
-  document.getElementById("prompt").value = text;
+// VOICE
+function speak(text){
+  let speech = new SpeechSynthesisUtterance(text);
+  speech.lang = "en-US";
+  speech.rate = 1;
+  speech.pitch = 1;
+  window.speechSynthesis.speak(speech);
+}
+
+// QUICK
+function quick(text){
+  document.getElementById("input").value = text;
 }
 
 // TIKTOK
 function toggleTikTok(){
   tiktok = !tiktok;
-  document.getElementById("tt").innerText = tiktok ? "ON" : "OFF";
+  document.getElementById("tt").innerText = tiktok ? "ON 🔥" : "OFF";
 }
 
-// GENERATE
-function generate(){
-  let p = document.getElementById("prompt").value;
-  let out = document.getElementById("output");
+// DOWNLOAD
+function downloadImage(url){
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = "ReelMind.jpg";
+  a.click();
+}
 
-  if(!p){
-    alert("Type something");
+// MAIN SEND
+function send(){
+  let input = document.getElementById("input").value.trim();
+  if(!input) return;
+
+  addMessage(input, "user");
+
+  let lower = input.toLowerCase();
+
+  // IMAGE (REAL API)
+  if(lower.includes("image") || lower.includes("photo") || lower.includes("picture")){
+    let url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(input);
+
+    addMessage(`
+      🖼 Generating real image...
+      <img src="${url}">
+      <button onclick="downloadImage('${url}')">⬇ Download</button>
+    `,"ai");
+
     return;
   }
 
-  if(mode === "chat"){
-    let box = document.getElementById("chatBox");
-    box.innerHTML += "<p>You: " + p + "</p>";
-    box.innerHTML += "<p>AI: I understand '" + p + "'</p>";
+  // STORY
+  if(lower.includes("story")){
+    let story = "Once upon a time... " + input + ". It became a powerful cinematic journey.";
+
+    typeMessage("📖 " + story);
+    speak(story);
     return;
   }
 
-  if(mode === "story"){
-    out.innerHTML = "<div class='card'>Story: Once upon a time... " + p + "</div>";
+  // VIDEO
+  if(lower.includes("video")){
+    let video = "🎬 Create a cinematic viral video based on: " + input;
+
+    typeMessage(video);
+    speak(video);
     return;
   }
 
-  if(mode === "image"){
-    out.innerHTML = "<div class='card'>Image for: " + p + "</div>";
-    return;
-  }
+  // CHAT
+  let reply = "I understand: '" + input + "'. Let me help you with something powerful 🔥";
 
-  if(mode === "video"){
-    out.innerHTML = "<div class='card'>Video idea: " + p + "</div>";
-    return;
-  }
+  typeMessage(reply);
+  speak(reply);
 }
 
 </script>
