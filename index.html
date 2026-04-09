@@ -8,11 +8,11 @@
 body{
   margin:0;
   font-family:sans-serif;
-  background:linear-gradient(135deg,#0f2027,#2c5364,#1c92d2);
-  background-size:400% 400%;
-  animation:water 10s infinite ease-in-out;
   color:white;
   text-align:center;
+  background:linear-gradient(135deg,#0f2027,#2c5364,#1c92d2);
+  background-size:400% 400%;
+  animation:water 12s infinite ease-in-out;
 }
 
 @keyframes water{
@@ -21,12 +21,20 @@ body{
   100%{background-position:0% 50%;}
 }
 
+/* LOGIN */
+#loginBox{
+  margin-top:100px;
+}
+
+/* APP */
+#app{display:none}
+
 /* CUBE */
 .scene{
-  width:250px;
-  height:250px;
-  margin:50px auto;
-  perspective:800px;
+  width:260px;
+  height:260px;
+  margin:40px auto;
+  perspective:900px;
 }
 
 .cube{
@@ -34,28 +42,33 @@ body{
   height:100%;
   position:relative;
   transform-style:preserve-3d;
-  transition:1s;
+  animation:spin 12s infinite linear;
+}
+
+@keyframes spin{
+  from{transform:rotateX(0deg) rotateY(0deg);}
+  to{transform:rotateX(360deg) rotateY(360deg);}
 }
 
 .face{
   position:absolute;
-  width:250px;
-  height:250px;
+  width:260px;
+  height:260px;
   background:rgba(255,255,255,0.1);
   border-radius:20px;
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
+  backdrop-filter:blur(10px);
 }
 
-/* POSITIONS */
-.front{ transform:rotateY(0deg) translateZ(125px);}
-.back{ transform:rotateY(180deg) translateZ(125px);}
-.right{ transform:rotateY(90deg) translateZ(125px);}
-.left{ transform:rotateY(-90deg) translateZ(125px);}
-.top{ transform:rotateX(90deg) translateZ(125px);}
-.bottom{ transform:rotateX(-90deg) translateZ(125px);}
+.front{ transform:rotateY(0deg) translateZ(130px);}
+.back{ transform:rotateY(180deg) translateZ(130px);}
+.right{ transform:rotateY(90deg) translateZ(130px);}
+.left{ transform:rotateY(-90deg) translateZ(130px);}
+.top{ transform:rotateX(90deg) translateZ(130px);}
+.bottom{ transform:rotateX(-90deg) translateZ(130px);}
 
 input{
   padding:10px;
@@ -77,16 +90,34 @@ button{
   margin:20px;
   min-height:100px;
 }
+
+/* PREMIUM BOX */
+.premium{
+  background:rgba(255,255,255,0.1);
+  padding:10px;
+  border-radius:10px;
+  margin-top:10px;
+}
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
+<div id="loginBox">
+  <h2>🔐 Login</h2>
+  <input id="user" placeholder="Username"><br>
+  <input id="pass" type="password" placeholder="Password"><br>
+  <button onclick="login()">Enter</button>
+</div>
+
+<!-- APP -->
+<div id="app">
 <h2>🌊 ReelMind AI</h2>
 <p>Powered by Artical Neavy</p>
 
 <div class="scene">
-  <div class="cube" id="cube">
+  <div class="cube">
 
     <div class="face front" onclick="select('chat')">Chat</div>
     <div class="face back" onclick="select('story')">Story</div>
@@ -98,60 +129,68 @@ button{
   </div>
 </div>
 
-<input id="prompt" placeholder="Enter your idea"><br><br>
-
+<input id="prompt" placeholder="Enter idea"><br>
 <button onclick="generate()">Generate</button>
 <button onclick="download()">Download</button>
 
-<div id="output">Select a mode 👆</div>
+<div id="output"></div>
+
+<div class="premium">
+  <p>💎 Premium</p>
+  <button onclick="unlock()">Unlock</button>
+</div>
+
+</div>
 
 <script>
 let mode="chat";
+let premium=false;
+
+// LOGIN (LOCAL)
+function login(){
+  let u=document.getElementById("user").value;
+  let p=document.getElementById("pass").value;
+
+  if(u && p){
+    localStorage.setItem("user",u);
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("app").style.display="block";
+  } else {
+    alert("Enter details");
+  }
+}
 
 // SELECT MODE
 function select(m){
   mode=m;
-
-  let cube=document.getElementById("cube");
-
-  if(m==="chat") cube.style.transform="rotateY(0deg)";
-  if(m==="story") cube.style.transform="rotateY(180deg)";
-  if(m==="image") cube.style.transform="rotateY(90deg)";
-  if(m==="video") cube.style.transform="rotateY(-90deg)";
-  if(m==="music") cube.style.transform="rotateX(90deg)";
-  if(m==="money") cube.style.transform="rotateX(-90deg)";
 }
 
-// GENERATE
-async function generate(){
+// GENERATE (WORKS OFFLINE)
+function generate(){
   let prompt=document.getElementById("prompt").value;
 
   if(!prompt){
-    alert("Enter something!");
+    alert("Enter something");
     return;
   }
 
-  document.getElementById("output").innerText="⏳ Loading...";
-
-  try{
-    let res=await fetch("https://reelmindbackend-1.onrender.com/generate",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({prompt,type:mode})
-    });
-
-    let data=await res.json();
-
-    if(mode==="image"){
-      document.getElementById("output").innerHTML =
-        `<img src="${data.result}" width="250">`;
-    } else {
-      document.getElementById("output").innerText=data.result;
-    }
-
-  }catch(e){
-    document.getElementById("output").innerText="❌ Server error";
+  // IMAGE
+  if(mode==="image"){
+    document.getElementById("output").innerHTML =
+      `<img src="https://image.pollinations.ai/prompt/${prompt}" width="250">`;
+    return;
   }
+
+  // VIDEO LOCK
+  if(mode==="video" && !premium){
+    document.getElementById("output").innerText =
+      "🔒 Premium only video feature";
+    return;
+  }
+
+  // FAKE AI (OFFLINE)
+  document.getElementById("output").innerText =
+    "🤖 AI says: " + prompt + " is a powerful idea!";
 }
 
 // DOWNLOAD
@@ -163,6 +202,18 @@ function download(){
   a.href=URL.createObjectURL(blob);
   a.download="reelmind.txt";
   a.click();
+}
+
+// PREMIUM
+function unlock(){
+  let code=prompt("Enter code:");
+
+  if(code==="NEAVY"){
+    premium=true;
+    alert("Premium unlocked");
+  } else {
+    alert("Wrong code");
+  }
 }
 </script>
 
