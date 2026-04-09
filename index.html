@@ -6,16 +6,39 @@
 
   <style>
     body {
+      margin: 0;
+      font-family: Arial;
       background: linear-gradient(135deg, #6a00ff, #ff6a00);
       color: white;
-      font-family: Arial;
       text-align: center;
-      padding: 15px;
     }
 
-    h2 {
-      font-size: 26px;
-      margin-bottom: 15px;
+    /* 🔥 SPLASH SCREEN */
+    #splash {
+      position: fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background: linear-gradient(135deg, #6a00ff, #ff6a00);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      z-index:9999;
+    }
+
+    #splash h1 {
+      font-size: 32px;
+      animation: fade 2s infinite alternate;
+    }
+
+    @keyframes fade {
+      from {opacity:0.5;}
+      to {opacity:1;}
+    }
+
+    .container {
+      padding: 15px;
+      display:none;
     }
 
     input, select {
@@ -24,72 +47,71 @@
       border-radius: 12px;
       border: none;
       margin-bottom: 10px;
-      font-size: 16px;
     }
 
     button {
-      padding: 12px 20px;
+      padding: 12px 18px;
       margin: 5px;
-      background: rgba(255,255,255,0.2);
-      border: none;
       border-radius: 12px;
+      border: none;
+      background: rgba(255,255,255,0.2);
       color: white;
-      font-size: 16px;
-      backdrop-filter: blur(10px);
+      font-size: 14px;
     }
 
-    #feed {
-      margin-top: 20px;
+    .tabs button {
+      background: rgba(0,0,0,0.3);
+    }
+
+    .active {
+      background: #fff;
+      color: #000;
     }
 
     .card {
-      margin-bottom: 20px;
-      border-radius: 15px;
-      overflow: hidden;
+      margin-top: 20px;
       background: rgba(0,0,0,0.3);
       padding: 10px;
-      backdrop-filter: blur(10px);
+      border-radius: 15px;
     }
 
-    .card img {
-      width: 100%;
-      height: 300px;
-      object-fit: cover;
+    img {
+      width:100%;
+      border-radius:10px;
       animation: zoom 6s infinite alternate;
-      border-radius: 10px;
     }
 
     @keyframes zoom {
       100% { transform: scale(1.2); }
     }
 
-    .story {
-      margin-top: 10px;
-      font-size: 14px;
-      text-align: left;
-    }
-
-    .loader {
-      margin: 20px auto;
-      border: 5px solid rgba(255,255,255,0.3);
-      border-top: 5px solid white;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      100% { transform: rotate(360deg); }
+    video {
+      width:100%;
+      border-radius:10px;
     }
   </style>
 </head>
 
 <body>
 
-  <h2>🎬 ReelMind AI</h2>
+<!-- 🔥 SPLASH -->
+<div id="splash">
+  <h1>🎬 ReelMind AI</h1>
+  <p>Creating the future...</p>
+</div>
 
-  <input id="prompt" placeholder="Tell me your story idea..." />
+<div class="container" id="app">
+
+  <h2>ReelMind AI</h2>
+
+  <!-- 🔥 MODES -->
+  <div class="tabs">
+    <button onclick="switchMode('image')" class="active">🖼 Image</button>
+    <button onclick="switchMode('story')">🧠 Story</button>
+    <button onclick="switchMode('video')">🎬 Video</button>
+  </div>
+
+  <input id="prompt" placeholder="Enter idea..." />
 
   <select id="musicSelect">
     <option value="">No Music</option>
@@ -97,109 +119,111 @@
     <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">Hype</option>
   </select>
 
-  <input type="file" id="uploadMusic" accept="audio/*" />
+  <input type="file" id="uploadMusic" accept="audio/*">
 
-  <button onclick="generate()">✨ Create Story</button>
+  <button onclick="generate()">✨ Generate</button>
 
-  <p id="status"></p>
+  <div id="output"></div>
 
-  <div id="feed"></div>
+  <audio id="music" loop></audio>
 
-  <audio id="bgMusic" loop></audio>
+</div>
 
-  <script>
-    let recorder, chunks = [];
+<script>
+let mode = "image";
 
-    function generateStory(prompt) {
-      const styles = [
-        "In a world where",
-        "One day, suddenly",
-        "Nobody expected that",
-        "Everything changed when",
-        "Deep in the future"
-      ];
+setTimeout(() => {
+  document.getElementById("splash").style.display = "none";
+  document.getElementById("app").style.display = "block";
+}, 2000);
 
-      const endings = [
-        "and nothing was ever the same again.",
-        "but the ending shocked everyone.",
-        "and it became legendary.",
-        "but something went terribly wrong.",
-        "and the truth was revealed."
-      ];
+function switchMode(m) {
+  mode = m;
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  event.target.classList.add("active");
+}
 
-      const start = styles[Math.floor(Math.random()*styles.length)];
-      const end = endings[Math.floor(Math.random()*endings.length)];
+function generateStory(prompt) {
+  return "One day, " + prompt + " and everything changed forever...";
+}
 
-      return `${start} ${prompt}, ${end}`;
-    }
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
+  const output = document.getElementById("output");
+  const music = document.getElementById("music");
 
-    async function generate() {
-      const prompt = document.getElementById("prompt").value;
-      const status = document.getElementById("status");
-      const feed = document.getElementById("feed");
-      const music = document.getElementById("bgMusic");
+  if (!prompt) return;
 
-      if (!prompt) {
-        status.innerText = "Enter something ⚠️";
-        return;
-      }
+  output.innerHTML = "Loading...";
 
-      const enhancedPrompt = prompt + ", cinematic, ultra realistic";
+  const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({prompt: prompt + ", ultra realistic"})
+  });
 
-      status.innerText = "Creating story... ✨";
+  const data = await res.json();
 
-      const loader = document.createElement("div");
-      loader.className = "loader";
-      feed.prepend(loader);
+  // 🎧 MUSIC
+  const uploaded = document.getElementById("uploadMusic").files[0];
+  const selected = document.getElementById("musicSelect").value;
 
-      try {
-        const res = await fetch("https://backend-ppyz.onrender.com/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: enhancedPrompt })
-        });
+  if(uploaded) music.src = URL.createObjectURL(uploaded);
+  else if(selected) music.src = selected;
 
-        const data = await res.json();
-        loader.remove();
+  if(music.src) music.play();
 
-        if (data.url) {
+  if(mode === "image") {
+    output.innerHTML = `
+      <div class="card">
+        <img src="${data.url}">
+      </div>
+    `;
+  }
 
-          // 🎧 MUSIC
-          const uploaded = document.getElementById("uploadMusic").files[0];
-          const selected = document.getElementById("musicSelect").value;
+  if(mode === "story") {
+    output.innerHTML = `
+      <div class="card">
+        <img src="${data.url}">
+        <p>${generateStory(prompt)}</p>
+      </div>
+    `;
+  }
 
-          if (uploaded) {
-            music.src = URL.createObjectURL(uploaded);
-          } else if (selected) {
-            music.src = selected;
-          }
+  if(mode === "video") {
+    output.innerHTML = `
+      <div class="card">
+        <img id="vidImg" src="${data.url}">
+        <button onclick="record()">🎥 Export Video</button>
+      </div>
+    `;
+  }
+}
 
-          if (music.src) {
-            music.play();
-          }
+// 🎬 RECORD VIDEO
+function record() {
+  const img = document.getElementById("vidImg");
+  const stream = img.captureStream(30);
 
-          // 🧠 STORY
-          const story = generateStory(prompt);
+  const rec = new MediaRecorder(stream);
+  let chunks=[];
 
-          const card = document.createElement("div");
-          card.className = "card";
+  rec.ondataavailable = e=>chunks.push(e.data);
 
-          card.innerHTML = `
-            <img src="${data.url}" />
-            <div class="story">${story}</div>
-            <button onclick="window.open('${data.url}')">📥 Image</button>
-          `;
+  rec.onstop = ()=>{
+    const blob = new Blob(chunks);
+    const url = URL.createObjectURL(blob);
 
-          feed.prepend(card);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "video.mp4";
+    a.click();
+  };
 
-          status.innerText = "Done ✅";
-        }
-
-      } catch (err) {
-        status.innerText = "Error ❌";
-      }
-    }
-  </script>
+  rec.start();
+  setTimeout(()=>rec.stop(),5000);
+}
+</script>
 
 </body>
 </html>
