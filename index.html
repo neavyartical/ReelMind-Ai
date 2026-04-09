@@ -6,73 +6,54 @@
 
   <style>
     body {
-      margin: 0;
+      margin:0;
       font-family: Arial;
-      background: linear-gradient(135deg, #6a00ff, #ff6a00);
-      color: white;
-      text-align: center;
+      background: radial-gradient(circle at top, #6a00ff, #ff6a00);
+      color:white;
+      text-align:center;
     }
 
-    /* 🔥 SPLASH SCREEN */
     #splash {
-      position: fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background: linear-gradient(135deg, #6a00ff, #ff6a00);
+      position:fixed;
+      width:100%;
+      height:100%;
       display:flex;
       justify-content:center;
       align-items:center;
       flex-direction:column;
-      z-index:9999;
+      background:linear-gradient(135deg,#6a00ff,#ff6a00);
+      z-index:999;
     }
 
-    #splash h1 {
-      font-size: 32px;
-      animation: fade 2s infinite alternate;
-    }
-
-    @keyframes fade {
-      from {opacity:0.5;}
-      to {opacity:1;}
-    }
-
-    .container {
-      padding: 15px;
-      display:none;
-    }
+    #app { display:none; padding:15px; }
 
     input, select {
-      width: 90%;
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
-      margin-bottom: 10px;
+      width:90%;
+      padding:12px;
+      border-radius:12px;
+      border:none;
+      margin:8px 0;
     }
 
     button {
-      padding: 12px 18px;
-      margin: 5px;
-      border-radius: 12px;
-      border: none;
-      background: rgba(255,255,255,0.2);
-      color: white;
-      font-size: 14px;
+      padding:12px;
+      margin:5px;
+      border-radius:12px;
+      border:none;
+      background:rgba(255,255,255,0.2);
+      color:white;
     }
 
-    .tabs button {
-      background: rgba(0,0,0,0.3);
-    }
-
-    .active {
-      background: #fff;
-      color: #000;
+    .tabs button.active {
+      background:white;
+      color:black;
     }
 
     .card {
-      margin-top: 20px;
-      background: rgba(0,0,0,0.3);
-      padding: 10px;
-      border-radius: 15px;
+      margin-top:20px;
+      background:rgba(0,0,0,0.3);
+      padding:10px;
+      border-radius:15px;
     }
 
     img {
@@ -82,141 +63,162 @@
     }
 
     @keyframes zoom {
-      100% { transform: scale(1.2); }
+      100% { transform:scale(1.2); }
     }
 
-    video {
-      width:100%;
-      border-radius:10px;
+    video { width:100%; }
+
+    .caption {
+      font-size:14px;
+      margin-top:10px;
+    }
+
+    .terms {
+      font-size:12px;
+      margin-top:20px;
+      opacity:0.8;
     }
   </style>
 </head>
 
 <body>
 
-<!-- 🔥 SPLASH -->
 <div id="splash">
-  <h1>🎬 ReelMind AI</h1>
-  <p>Creating the future...</p>
+  <img src="logo.png" width="120">
+  <h1>ReelMind AI</h1>
+  <p>AI Content Creator</p>
 </div>
 
-<div class="container" id="app">
+<div id="app">
 
-  <h2>ReelMind AI</h2>
+<h2>ReelMind AI</h2>
 
-  <!-- 🔥 MODES -->
-  <div class="tabs">
-    <button onclick="switchMode('image')" class="active">🖼 Image</button>
-    <button onclick="switchMode('story')">🧠 Story</button>
-    <button onclick="switchMode('video')">🎬 Video</button>
-  </div>
+<div class="tabs">
+  <button onclick="setMode('image')" class="active">🖼 Image</button>
+  <button onclick="setMode('story')">🧠 Story</button>
+  <button onclick="setMode('video')">🎬 Video</button>
+</div>
 
-  <input id="prompt" placeholder="Enter idea..." />
+<input id="prompt" placeholder="Enter idea..." />
 
-  <select id="musicSelect">
-    <option value="">No Music</option>
-    <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Chill</option>
-    <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">Hype</option>
-  </select>
+<select id="musicSelect">
+  <option value="">No Music</option>
+  <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Chill</option>
+  <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">Hype</option>
+</select>
 
-  <input type="file" id="uploadMusic" accept="audio/*">
+<input type="file" id="uploadMusic" accept="audio/*">
 
-  <button onclick="generate()">✨ Generate</button>
+<button onclick="generate()">✨ Generate</button>
 
-  <div id="output"></div>
+<div id="output"></div>
 
-  <audio id="music" loop></audio>
+<!-- 📜 TERMS & CONTACT -->
+<div class="terms">
+  <h3>📜 Terms & Contact</h3>
+  <p>
+    By using ReelMind AI, you agree that generated content is for creative purposes only.  
+    Users are responsible for how they use generated media.
+  </p>
+  <p>
+    📧 Contact Support:<br>
+    neavyartical@gmail.com<br>
+    arsesay89@gmail.com
+  </p>
+</div>
+
+<audio id="music" loop></audio>
 
 </div>
 
 <script>
-let mode = "image";
+let mode="image";
 
-setTimeout(() => {
-  document.getElementById("splash").style.display = "none";
-  document.getElementById("app").style.display = "block";
-}, 2000);
+setTimeout(()=>{
+  splash.style.display="none";
+  app.style.display="block";
+},2000);
 
-function switchMode(m) {
-  mode = m;
+function setMode(m){
+  mode=m;
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
   event.target.classList.add("active");
 }
 
-function generateStory(prompt) {
-  return "One day, " + prompt + " and everything changed forever...";
+function storyGen(p){
+  return "In a world where " + p + ", everything changed forever...";
 }
 
-async function generate() {
+async function generate(){
   const prompt = document.getElementById("prompt").value;
-  const output = document.getElementById("output");
+  const out = document.getElementById("output");
   const music = document.getElementById("music");
 
-  if (!prompt) return;
+  if(!prompt) return;
 
-  output.innerHTML = "Loading...";
+  out.innerHTML="Loading...";
 
-  const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+  const res = await fetch("https://backend-ppyz.onrender.com/generate",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({prompt: prompt + ", ultra realistic"})
+    body:JSON.stringify({prompt:prompt})
   });
 
   const data = await res.json();
 
   // 🎧 MUSIC
-  const uploaded = document.getElementById("uploadMusic").files[0];
+  const upload = document.getElementById("uploadMusic").files[0];
   const selected = document.getElementById("musicSelect").value;
 
-  if(uploaded) music.src = URL.createObjectURL(uploaded);
+  if(upload) music.src = URL.createObjectURL(upload);
   else if(selected) music.src = selected;
 
   if(music.src) music.play();
 
-  if(mode === "image") {
-    output.innerHTML = `
+  if(mode==="image"){
+    out.innerHTML=`
       <div class="card">
         <img src="${data.url}">
+        <div class="caption">${prompt}</div>
       </div>
     `;
   }
 
-  if(mode === "story") {
-    output.innerHTML = `
+  if(mode==="story"){
+    out.innerHTML=`
       <div class="card">
         <img src="${data.url}">
-        <p>${generateStory(prompt)}</p>
+        <p>${storyGen(prompt)}</p>
       </div>
     `;
   }
 
-  if(mode === "video") {
-    output.innerHTML = `
+  if(mode==="video"){
+    out.innerHTML=`
       <div class="card">
-        <img id="vidImg" src="${data.url}">
+        <img id="vid" src="${data.url}">
+        <p class="caption">${prompt}</p>
         <button onclick="record()">🎥 Export Video</button>
       </div>
     `;
   }
 }
 
-// 🎬 RECORD VIDEO
-function record() {
-  const img = document.getElementById("vidImg");
+function record(){
+  const img = document.getElementById("vid");
   const stream = img.captureStream(30);
-
   const rec = new MediaRecorder(stream);
   let chunks=[];
 
-  rec.ondataavailable = e=>chunks.push(e.data);
+  rec.ondataavailable=e=>chunks.push(e.data);
 
-  rec.onstop = ()=>{
-    const blob = new Blob(chunks);
-    const url = URL.createObjectURL(blob);
+  rec.onstop=()=>{
+    const blob=new Blob(chunks);
+    const url=URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "video.mp4";
+    const a=document.createElement("a");
+    a.href=url;
+    a.download="reelmind.mp4";
     a.click();
   };
 
