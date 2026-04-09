@@ -1,49 +1,123 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ReelMind AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReelMind AI</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: linear-gradient(135deg,#2b1055,#ff6a00);
+  color: white;
+  text-align: center;
+}
+
+h2 {
+  margin-top: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 15px;
+  padding: 20px;
+}
+
+.card {
+  background: rgba(255,255,255,0.1);
+  padding: 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+#result {
+  padding: 20px;
+  white-space: pre-wrap;
+  font-size: 16px;
+}
+</style>
 </head>
 
-<body style="background:black;color:white;text-align:center;font-family:sans-serif">
+<body>
 
-  <h1>🔥 ReelMind AI</h1>
+<h2>🚀 ReelMind AI</h2>
 
-  <!-- BUTTON -->
-  <button onclick="generateAI()">Generate</button>
+<div class="grid">
+  <div class="card" onclick="generate('chat')">💬 Chat</div>
+  <div class="card" onclick="generate('story')">📖 Story</div>
+  <div class="card" onclick="generate('image')">🖼 Image</div>
+  <div class="card" onclick="generate('video')">🎬 Video</div>
+  <div class="card" onclick="generate('funny')">😂 Funny</div>
+  <div class="card" onclick="generate('sad')">💔 Sad</div>
+  <div class="card" onclick="generate('anime')">🔥 Anime</div>
+  <div class="card" onclick="generate('money')">💰 Money</div>
+  <div class="card" onclick="generate('tiktok')">🚀 TikTok</div>
+</div>
 
-  <script>
-    const API_URL = "https://reelmindbackend-1.onrender.com/generate";
+<div id="result">Tap any feature 👆</div>
 
-    // 🔥 THIS FUNCTION MUST MATCH BUTTON
-    async function generateAI() {
-      let userInput = prompt("Enter your idea:");
+<script>
+const API_URL = "https://reelmindbackend-1.onrender.com/generate";
 
-      if (!userInput) {
-        alert("Type something!");
-        return;
-      }
+async function generate(type){
+  let promptText = prompt("Enter your idea:");
+  if(!promptText) return;
 
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            prompt: userInput
-          })
-        });
+  document.getElementById("result").innerText = "⏳ Loading...";
 
-        const data = await res.json();
+  try{
+    let res = await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ prompt: promptText })
+    });
 
-        alert(data.result);
+    let data = await res.json();
 
-      } catch (err) {
-        alert("❌ Error connecting to server");
-        console.error(err);
-      }
+    // 🔥 Custom display per mode
+    let output = "";
+
+    if(type === "story"){
+      output = "📖 STORY:\n\n" + data.result;
+    } 
+    else if(type === "funny"){
+      output = "😂 FUNNY MODE:\n\n" + data.result;
+    } 
+    else if(type === "sad"){
+      output = "💔 SAD MODE:\n\n" + data.result;
+    } 
+    else if(type === "anime"){
+      output = "🔥 ANIME MODE:\n\n" + data.result;
+    } 
+    else if(type === "money"){
+      output = "💰 MONEY IDEA:\n\n" + data.result;
+    } 
+    else if(type === "tiktok"){
+      output = "🚀 TIKTOK IDEA:\n\n" + data.result;
+    } 
+    else if(type === "video"){
+      output = "🎬 VIDEO SCENE:\n\n" + data.result;
+    } 
+    else if(type === "image"){
+      output = "🖼 IMAGE IDEA:\n\n" + data.result;
+    } 
+    else {
+      output = "💬 AI CHAT:\n\n" + data.result;
     }
-  </script>
+
+    document.getElementById("result").innerText = output;
+
+  }catch(e){
+    document.getElementById("result").innerText = "❌ Error connecting to server";
+  }
+}
+</script>
 
 </body>
 </html>
