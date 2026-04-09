@@ -5,33 +5,31 @@
 <title>ReelMind AI</title>
 
 <style>
-body {
+body{
   margin:0;
   font-family:sans-serif;
+  background:linear-gradient(135deg,#0f2027,#2c5364,#1c92d2);
+  background-size:400% 400%;
+  animation:water 10s infinite ease-in-out;
   color:white;
   text-align:center;
-  background: linear-gradient(135deg,#0f2027,#2c5364,#1c92d2);
-  background-size:400% 400%;
-  animation: water 10s infinite ease-in-out;
 }
 
-@keyframes water {
+@keyframes water{
   0%{background-position:0% 50%;}
   50%{background-position:100% 50%;}
   100%{background-position:0% 50%;}
 }
 
-h1 {margin-top:20px;}
-
 /* CUBE */
-.scene {
-  width:260px;
-  height:260px;
-  margin:40px auto;
-  perspective:900px;
+.scene{
+  width:250px;
+  height:250px;
+  margin:50px auto;
+  perspective:800px;
 }
 
-.cube {
+.cube{
   width:100%;
   height:100%;
   position:relative;
@@ -39,36 +37,34 @@ h1 {margin-top:20px;}
   transition:1s;
 }
 
-.face {
+.face{
   position:absolute;
-  width:260px;
-  height:260px;
-  border:1px solid rgba(255,255,255,0.2);
-  background:rgba(255,255,255,0.08);
-  backdrop-filter:blur(10px);
+  width:250px;
+  height:250px;
+  background:rgba(255,255,255,0.1);
+  border-radius:20px;
   display:flex;
   align-items:center;
   justify-content:center;
-  border-radius:20px;
   cursor:pointer;
 }
 
-/* SIDES */
-.front  { transform: rotateY(0deg) translateZ(130px); }
-.back   { transform: rotateY(180deg) translateZ(130px); }
-.right  { transform: rotateY(90deg) translateZ(130px); }
-.left   { transform: rotateY(-90deg) translateZ(130px); }
-.top    { transform: rotateX(90deg) translateZ(130px); }
-.bottom { transform: rotateX(-90deg) translateZ(130px); }
+/* POSITIONS */
+.front{ transform:rotateY(0deg) translateZ(125px);}
+.back{ transform:rotateY(180deg) translateZ(125px);}
+.right{ transform:rotateY(90deg) translateZ(125px);}
+.left{ transform:rotateY(-90deg) translateZ(125px);}
+.top{ transform:rotateX(90deg) translateZ(125px);}
+.bottom{ transform:rotateX(-90deg) translateZ(125px);}
 
-input {
+input{
   padding:10px;
   width:75%;
   border-radius:10px;
   border:none;
 }
 
-button {
+button{
   padding:10px;
   border:none;
   border-radius:10px;
@@ -77,30 +73,16 @@ button {
   margin:5px;
 }
 
-#output {
+#output{
   margin:20px;
-}
-
-/* PRICING */
-.pricing {
-  margin-top:20px;
-  background:rgba(255,255,255,0.1);
-  padding:15px;
-  border-radius:15px;
-}
-
-/* FOOTER */
-.footer {
-  margin-top:30px;
-  font-size:12px;
-  opacity:0.7;
+  min-height:100px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🌊 ReelMind AI</h1>
+<h2>🌊 ReelMind AI</h2>
 <p>Powered by Artical Neavy</p>
 
 <div class="scene">
@@ -110,92 +92,61 @@ button {
     <div class="face back" onclick="select('story')">Story</div>
     <div class="face right" onclick="select('image')">Image</div>
     <div class="face left" onclick="select('video')">Video</div>
-    <div class="face top" onclick="select('funny')">Funny</div>
+    <div class="face top" onclick="select('music')">Music</div>
     <div class="face bottom" onclick="select('money')">Money</div>
 
   </div>
 </div>
 
-<input id="prompt" placeholder="Enter your idea..."><br><br>
+<input id="prompt" placeholder="Enter your idea"><br><br>
+
 <button onclick="generate()">Generate</button>
+<button onclick="download()">Download</button>
 
-<div id="output"></div>
-
-<!-- ADS -->
-<div style="margin:20px;">
-  <p>🔸 Ads will appear here</p>
-</div>
-
-<!-- PRICING -->
-<div class="pricing">
-  <h3>💎 Premium</h3>
-  <button onclick="buyMonthly()">$9/month</button>
-  <button onclick="buyLifetime()">$99 lifetime</button>
-</div>
-
-<div class="footer">
-  <a href="#" onclick="terms()">Terms & Conditions</a>
-</div>
+<div id="output">Select a mode 👆</div>
 
 <script>
 let mode="chat";
-let cube=document.getElementById("cube");
 
-// AUTO ROTATION
-let angleY=0;
-setInterval(()=>{
-  angleY += 1;
-  cube.style.transform = `rotateY(${angleY}deg)`;
-},50);
-
-// SELECT MODE (OVERRIDE ROTATION TEMP)
+// SELECT MODE
 function select(m){
   mode=m;
+
+  let cube=document.getElementById("cube");
 
   if(m==="chat") cube.style.transform="rotateY(0deg)";
   if(m==="story") cube.style.transform="rotateY(180deg)";
   if(m==="image") cube.style.transform="rotateY(90deg)";
   if(m==="video") cube.style.transform="rotateY(-90deg)";
-  if(m==="funny") cube.style.transform="rotateX(90deg)";
+  if(m==="music") cube.style.transform="rotateX(90deg)";
   if(m==="money") cube.style.transform="rotateX(-90deg)";
 }
-
-// SWIPE CONTROL
-let startX=0;
-document.addEventListener("touchstart",e=>{
-  startX=e.touches[0].clientX;
-});
-document.addEventListener("touchend",e=>{
-  let endX=e.changedTouches[0].clientX;
-  if(endX-startX>50) cube.style.transform="rotateY(90deg)";
-  if(startX-endX>50) cube.style.transform="rotateY(-90deg)";
-});
 
 // GENERATE
 async function generate(){
   let prompt=document.getElementById("prompt").value;
 
   if(!prompt){
-    alert("Enter prompt");
+    alert("Enter something!");
     return;
   }
 
   document.getElementById("output").innerText="⏳ Loading...";
 
   try{
-    let res = await fetch("https://reelmindbackend-1.onrender.com/generate",{
+    let res=await fetch("https://reelmindbackend-1.onrender.com/generate",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({prompt, type:mode})
+      body:JSON.stringify({prompt,type:mode})
     });
 
-    let data = await res.json();
+    let data=await res.json();
 
     if(mode==="image"){
       document.getElementById("output").innerHTML =
-        `<img src="${data.result}" width="280">`;
+        `<img src="${data.result}" width="250">`;
     } else {
-      document.getElementById("output").innerText = data.result;
+      document.getElementById("output").innerText=data.result;
     }
 
   }catch(e){
@@ -203,24 +154,15 @@ async function generate(){
   }
 }
 
-// PAYPAL
-function buyMonthly(){
-  window.location.href="https://www.paypal.com/paypalme/YOURNAME/9";
-}
+// DOWNLOAD
+function download(){
+  let text=document.getElementById("output").innerText;
 
-function buyLifetime(){
-  window.location.href="https://www.paypal.com/paypalme/YOURNAME/99";
-}
-
-// TERMS
-function terms(){
-  alert(`Terms:
-Use responsibly.
-No illegal content.
-AI results may vary.
-Premium unlocks full features.
-
-© Artical Neavy`);
+  let blob=new Blob([text],{type:"text/plain"});
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="reelmind.txt";
+  a.click();
 }
 </script>
 
