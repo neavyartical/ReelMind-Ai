@@ -71,14 +71,17 @@
   <h2>🎬 ReelMind AI</h2>
 
   <input id="prompt" placeholder="Describe your scene..." />
-
   <br>
 
-  <!-- ✅ BUTTON BACK -->
   <button onclick="generate()">✨ Generate</button>
 
   <p id="status"></p>
   <div id="videoContainer"></div>
+
+  <!-- 🎧 BACKGROUND MUSIC -->
+  <audio id="bgMusic" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+  </audio>
 
   <script>
     let currentImage = "";
@@ -88,6 +91,7 @@
       const prompt = document.getElementById("prompt").value;
       const status = document.getElementById("status");
       const container = document.getElementById("videoContainer");
+      const music = document.getElementById("bgMusic");
 
       if (!prompt) {
         status.innerText = "Enter something ⚠️";
@@ -113,13 +117,18 @@
         if (data.url) {
           currentImage = data.url;
 
-          status.innerText = "Done ✅";
+          status.innerText = "Playing 🎬";
+
+          // 🔥 PLAY MUSIC
+          music.currentTime = 0;
+          music.play();
 
           container.innerHTML = `
             <img id="animImage" src="${data.url}" />
             <br>
             <button onclick="downloadImage()">📥 Download Image</button>
             <button onclick="recordVideo()">🎥 Download Video</button>
+            <button onclick="toggleMusic()">🔊 Toggle Music</button>
           `;
         } else {
           status.innerText = "Error ❌";
@@ -134,6 +143,15 @@
 
     function downloadImage() {
       window.open(currentImage, "_blank");
+    }
+
+    function toggleMusic() {
+      const music = document.getElementById("bgMusic");
+      if (music.paused) {
+        music.play();
+      } else {
+        music.pause();
+      }
     }
 
     function recordVideo() {
