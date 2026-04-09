@@ -1,10 +1,6 @@
-console.log("SCRIPT LOADED ✅");
-
 const BACKEND_URL = "https://backend-ppyz.onrender.com";
 
 async function generate() {
-  console.log("🔥 Button clicked");
-
   const prompt = document.getElementById("prompt").value;
   const status = document.getElementById("status");
   const img = document.getElementById("video");
@@ -28,19 +24,18 @@ async function generate() {
 
     const data = await res.json();
 
-    // 🔥 DEBUG POPUP (KEEP THIS)
-    alert("STATUS: " + res.status + " | DATA: " + JSON.stringify(data));
+    console.log("DATA:", data);
 
     if (data.video) {
       status.innerText = "Done ✅";
       img.src = data.video;
       img.style.display = "block";
     } else {
-      status.innerText = "Failed ❌";
+      status.innerText = "No video returned ❌";
     }
 
   } catch (err) {
-    alert("ERROR: " + err.message);
+    console.error(err);
     status.innerText = "Server waking up... try again 🔁";
   }
 }
