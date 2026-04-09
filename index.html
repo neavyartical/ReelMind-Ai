@@ -17,10 +17,9 @@ body{
 /* MODES */
 #topBar{
   display:flex;
-  gap:8px;
+  gap:6px;
   padding:10px;
 }
-
 .mode{
   flex:1;
   padding:10px;
@@ -29,7 +28,6 @@ body{
   background:rgba(255,255,255,0.1);
   color:white;
 }
-
 .active{
   background:linear-gradient(90deg,#ff6a00,#ff00cc);
 }
@@ -40,19 +38,16 @@ body{
   overflow:auto;
   padding:12px;
 }
-
 .msg{
   margin:10px;
   padding:14px;
   border-radius:16px;
   max-width:85%;
 }
-
 .user{
   background:linear-gradient(135deg,#ff6a00,#ff00cc);
   margin-left:auto;
 }
-
 .ai{
   background:rgba(0,0,0,0.65);
 }
@@ -63,7 +58,6 @@ body{
   padding:10px;
   background:rgba(0,0,0,0.5);
 }
-
 #bottomBar input{
   flex:1;
   padding:14px;
@@ -72,7 +66,6 @@ body{
   background:rgba(255,255,255,0.1);
   color:white;
 }
-
 #bottomBar button{
   margin-left:6px;
   padding:14px;
@@ -89,6 +82,7 @@ body{
   border-radius:8px;
   background:#ff6a00;
   color:white;
+  font-size:12px;
 }
 
 #branding{
@@ -96,16 +90,33 @@ body{
   font-size:12px;
   opacity:0.6;
 }
+
+/* thinking dots */
+#thinking span{
+  animation:blink 1s infinite;
+}
+#thinking span:nth-child(2){animation-delay:0.2s;}
+#thinking span:nth-child(3){animation-delay:0.4s;}
+@keyframes blink{
+  0%,100%{opacity:0;}
+  50%{opacity:1;}
+}
 </style>
 </head>
 
-<body>
+<body onload="dailyReward()">
 
 <div id="topBar">
   <button class="mode active" onclick="setMode('chat',this)">💬</button>
   <button class="mode" onclick="setMode('story',this)">📖</button>
   <button class="mode" onclick="setMode('image',this)">🖼</button>
   <button class="mode" onclick="setMode('video',this)">🎬</button>
+</div>
+
+<div style="padding:5px;">
+  <button onclick="quick('Give me 5 viral TikTok hooks')">Hooks</button>
+  <button onclick="quick('Create a viral story script')">Script</button>
+  <button onclick="quick('Generate business idea')">Ideas</button>
 </div>
 
 <div id="chat"></div>
@@ -123,8 +134,9 @@ body{
 let mode="chat";
 let queue=[];
 let processing=false;
+let memory=[];
 
-// MODE SWITCH
+// MODE
 function setMode(m,btn){
   mode=m;
   document.querySelectorAll(".mode").forEach(b=>b.classList.remove("active"));
@@ -169,14 +181,20 @@ async function run(){
 // THINKING
 function think(){
   let d=document.createElement("div");
-  d.id="t";
+  d.id="thinking";
   d.className="msg ai";
-  d.innerHTML="🤖 Generating...";
+  d.innerHTML="🤖 Generating<span>.</span><span>.</span><span>.</span>";
   chat.appendChild(d);
 }
 function stop(){
-  let t=document.getElementById("t");
+  let t=document.getElementById("thinking");
   if(t) t.remove();
+}
+
+// MEMORY
+function remember(text){
+  memory.push(text);
+  if(memory.length>5) memory.shift();
 }
 
 // VOICE
@@ -188,10 +206,45 @@ function voice(){
   r.start();
 }
 
+// SPEAK
+function speak(text){
+  let s=new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(s);
+}
+
+// SHARE
+function shareText(text){
+  if(navigator.share){
+    navigator.share({text:text});
+  }
+}
+
 // COPY
 function copyAll(txt){
   navigator.clipboard.writeText(txt);
   alert("Copied");
+}
+
+// SAVE PROJECT
+function saveProject(type,data){
+  let p=JSON.parse(localStorage.getItem(type)||"[]");
+  p.unshift(data);
+  localStorage.setItem(type,JSON.stringify(p));
+}
+
+// QUICK
+function quick(t){
+  input.value=t;
+}
+
+// DAILY REWARD
+function dailyReward(){
+  let last=localStorage.getItem("lastVisit");
+  let today=new Date().toDateString();
+  if(last!==today){
+    alert("🎁 Daily reward unlocked!");
+    localStorage.setItem("lastVisit",today);
+  }
 }
 
 // SEND
@@ -200,6 +253,9 @@ function send(){
   if(!txt) return;
 
   add(txt,"user");
+  remember(txt);
+
+  let context=memory.join(" | ");
 
   // IMAGE MODE
   if(mode==="image"){
@@ -208,20 +264,25 @@ function send(){
     add(`
       🖼 AI Image
       <img src="${url}">
-      <button class="small" onclick="copyAll('${url}')">Copy Link</button>
+      <button class="small" onclick="copyAll('${url}')">Copy</button>
+      <button class="small" onclick="shareText('${url}')">Share</button>
     `,"ai");
+
+    saveProject("images",url);
     return;
   }
 
   // VIDEO MODE
   if(mode==="video"){
-    add(`
+    let v=`
       🎬 AI Video
       <video controls>
       <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4">
       </video>
       🔥 Viral caption ready
-    `,"ai");
+    `;
+    add(v,"ai");
+    saveProject("videos",v);
     return;
   }
 
@@ -237,15 +298,19 @@ function send(){
 
 ${txt}
 
-A powerful journey begins...
-
-Everything changes in one moment.
+A powerful journey shaped by emotion, struggle and victory.
 
 🔥 This will go viral.
 `;
 
       await type(s);
-      add(`<button class="small" onclick="copyAll(\`${s}\`)">Copy</button>`,"ai");
+
+      add(`
+        <button class="small" onclick="copyAll(\`${s}\`)">Copy</button>
+        <button class="small" onclick="shareText(\`${s}\`)">Share</button>
+      `,"ai");
+
+      saveProject("stories",s);
     });
 
     run();
@@ -258,8 +323,10 @@ Everything changes in one moment.
     await new Promise(r=>setTimeout(r,500));
     stop();
 
-    let rply=`
+    let reply=`
 🤖 Smart AI
+
+Based on context: ${context}
 
 "${txt}"
 
@@ -270,7 +337,8 @@ Stay consistent.
 🔥 You're building something powerful.
 `;
 
-    await type(rply);
+    await type(reply);
+    speak(reply);
   });
 
   run();
