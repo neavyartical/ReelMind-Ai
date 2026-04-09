@@ -3,6 +3,8 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>ReelMind AI</title>
+
 <style>
 body{
   margin:0;
@@ -25,11 +27,6 @@ body{
   z-index:-1;
 }
 
-/* TITLE */
-h2{
-  margin-top:20px;
-}
-
 /* CUBE */
 .scene{
   width:220px;
@@ -44,6 +41,7 @@ h2{
   position:relative;
   transform-style:preserve-3d;
   transform:rotateX(20deg) rotateY(20deg);
+  transition:0.3s;
 }
 
 .face{
@@ -98,12 +96,18 @@ button{
 
 <h2>ReelMind AI</h2>
 
+<!-- LOGIN / REGISTER -->
 <div id="login">
+<h3>Login / Register</h3>
+
 <input id="user" placeholder="Username"><br>
 <input id="pass" type="password" placeholder="Password"><br>
-<button onclick="login()">Enter</button>
+
+<button onclick="login()">Login</button>
+<button onclick="register()">Register</button>
 </div>
 
+<!-- APP -->
 <div id="app">
 
 <div class="scene">
@@ -128,13 +132,17 @@ button{
 
 <button onclick="buy()">Unlock Premium ($9)</button>
 
+<h3>Powered by Artical Neavy</h3>
+
+<p>$9/month | $99/year</p>
+
 </div>
 
 <script>
 let mode="chat";
 let user="";
 
-/* AUTO LOGIN FIX */
+/* AUTO LOGIN */
 window.onload=()=>{
   let saved=localStorage.getItem("user");
   if(saved){
@@ -143,30 +151,51 @@ window.onload=()=>{
   }
 };
 
-/* MODE SELECT */
+/* MODE */
 function setMode(m){
   mode=m;
   alert("Mode: "+m);
 }
 
-/* LOGIN */
-function login(){
-  user=document.getElementById("user").value;
-  let pass=document.getElementById("pass").value;
+/* REGISTER */
+function register(){
+  let u=document.getElementById("user").value;
+  let p=document.getElementById("pass").value;
 
-  if(!user||!pass){alert("Enter details");return;}
-
-  fetch("https://reelmindbackend-1.onrender.com/login",{
+  fetch("https://reelmindbackend-1.onrender.com/register",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({username:user,password:pass})
+    body:JSON.stringify({username:u,password:p})
   })
   .then(r=>r.json())
   .then(d=>{
     if(d.success){
-      localStorage.setItem("user",user);
+      alert("Registered! Login now");
+    }else{
+      alert("User exists");
+    }
+  });
+}
+
+/* LOGIN */
+function login(){
+  let u=document.getElementById("user").value;
+  let p=document.getElementById("pass").value;
+
+  fetch("https://reelmindbackend-1.onrender.com/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username:u,password:p})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.success){
+      user=u;
+      localStorage.setItem("user",u);
       showApp();
-    }else alert("Login failed");
+    }else{
+      alert("Login failed");
+    }
   });
 }
 
@@ -175,13 +204,13 @@ function showApp(){
   document.getElementById("app").style.display="block";
 }
 
-/* LOGOUT */
+/* LOGOUT FIX */
 function logout(){
   localStorage.removeItem("user");
   location.reload();
 }
 
-/* GENERATE FIX */
+/* GENERATE (FIXED) */
 async function generate(){
   let prompt=document.getElementById("prompt").value;
 
@@ -202,14 +231,10 @@ async function generate(){
 
     let data=await res.json();
 
-    if(!data || !data.result){
-      output.innerHTML="⚠️ No response";
-      return;
-    }
-
     if(mode==="image"){
-      output.innerHTML=`<img src="${data.result}" width="220">`;
-    } else {
+      output.innerHTML=`<img src="${data.result}" width="250">`;
+    }
+    else{
       output.innerText=data.result;
     }
 
@@ -218,16 +243,25 @@ async function generate(){
   }
 }
 
-/* PAYPAL */
+/* PREMIUM */
 function buy(){
-  window.open("https://www.paypal.com/paypalme/YOURNAME/9");
+  fetch("https://reelmindbackend-1.onrender.com/verify",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username:user})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.success){
+      alert("Premium unlocked!");
+    }
+  });
 }
 
-/* SWIPE CONTROL */
+/* SWIPE CUBE */
 let startX=0;
 let rotateY=20;
-
-const cube=document.getElementById("cube");
+let cube=document.getElementById("cube");
 
 document.querySelector(".scene").addEventListener("touchstart",e=>{
   startX=e.touches[0].clientX;
@@ -237,8 +271,7 @@ document.querySelector(".scene").addEventListener("touchmove",e=>{
   let moveX=e.touches[0].clientX;
   let diff=moveX-startX;
 
-  rotateY += diff*0.4;
-
+  rotateY+=diff*0.4;
   cube.style.transform=`rotateX(20deg) rotateY(${rotateY}deg)`;
 
   startX=moveX;
