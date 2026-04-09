@@ -1,27 +1,118 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ReelMind AI</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f0f0f;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 90%;
+      max-width: 500px;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      background: #00c853;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #00a844;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    #result {
+      margin-top: 20px;
+    }
+
+    img, video {
+      max-width: 100%;
+      border-radius: 12px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
-<body style="background:black;color:white;text-align:center;">
+<body>
 
   <h1>🎬 ReelMind AI</h1>
 
-  <input id="prompt" placeholder="Type something..." />
-  <br><br>
+  <input id="prompt" placeholder="Type something like: lion dancing in savanna" />
+
+  <br/>
 
   <button onclick="generate()">Generate</button>
 
   <p id="status"></p>
 
-  <img id="video" style="display:none;width:90%;" />
+  <div id="result"></div>
 
-  <!-- LOAD SCRIPT (IMPORTANT) -->
+  <!-- SCRIPT -->
   <script>
-    const script = document.createElement("script");
-    script.src = "script.js?v=" + new Date().getTime();
-    document.body.appendChild(script);
+    async function generate() {
+      const prompt = document.getElementById("prompt").value;
+
+      const status = document.getElementById("status");
+      const result = document.getElementById("result");
+
+      status.innerText = "Generating...";
+      result.innerHTML = "";
+
+      try {
+        const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ prompt })
+        });
+
+        const data = await res.json();
+        console.log(data);
+
+        if (data.url) {
+          status.innerText = "Done ✅";
+
+          result.innerHTML = `
+            <img src="${data.url}" />
+          `;
+        } else {
+          status.innerText = "Error ❌";
+          result.innerText = JSON.stringify(data);
+        }
+
+      } catch (err) {
+        status.innerText = "Failed ❌";
+        console.error(err);
+      }
+    }
   </script>
 
 </body>
