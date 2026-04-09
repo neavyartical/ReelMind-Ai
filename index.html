@@ -19,6 +19,7 @@
       border-radius: 8px;
       border: none;
       margin-bottom: 10px;
+      font-size: 16px;
     }
 
     button {
@@ -27,6 +28,8 @@
       color: white;
       border: none;
       border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
     }
 
     img {
@@ -41,8 +44,9 @@
 
   <h2>🎬 ReelMind AI</h2>
 
-  <input id="prompt" placeholder="Type prompt..." />
-  <br>
+  <input id="prompt" placeholder="Type something like: lion dancing in savanna" />
+  <br><br>
+
   <button onclick="generate()">Generate</button>
 
   <p id="status"></p>
@@ -60,11 +64,12 @@
         return;
       }
 
-      status.innerText = "Generating...";
+      status.innerText = "Generating... ⏳";
       result.innerHTML = "";
 
       try {
-        const res = await fetch("https://your-backend-url.onrender.com/generate", {
+        // 🔥 REPLACE THIS LINK WITH YOUR REAL BACKEND
+        const res = await fetch("https://YOUR-BACKEND.onrender.com/generate", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -72,18 +77,23 @@
           body: JSON.stringify({ prompt })
         });
 
-        const data = await res.json();
+        const text = await res.text();
+        console.log("RAW RESPONSE:", text);
+
+        const data = JSON.parse(text);
 
         if (data.url) {
           status.innerText = "Done ✅";
           result.innerHTML = `<img src="${data.url}" />`;
         } else {
           status.innerText = "Error ❌";
-          result.innerText = JSON.stringify(data);
+          result.innerText = text;
         }
 
       } catch (err) {
         status.innerText = "Server error ❌";
+        result.innerText = err.message;
+        console.error(err);
       }
     }
   </script>
