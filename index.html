@@ -7,14 +7,14 @@
 body {
   margin:0;
   font-family:-apple-system, BlinkMacSystemFont;
-  background: linear-gradient(135deg,#1a001f,#ff6a00);
+  background: linear-gradient(135deg,#0f0018,#ff6a00);
   color:white;
   display:flex;
   flex-direction:column;
   height:100vh;
 }
 
-/* TOP BAR */
+/* HEADER */
 #topBar {
   display:flex;
   gap:8px;
@@ -30,10 +30,6 @@ body {
   color:white;
 }
 
-#topBar button:active {
-  transform:scale(0.9);
-}
-
 /* CHAT */
 #chat {
   flex:1;
@@ -45,13 +41,7 @@ body {
   margin:10px;
   padding:14px;
   border-radius:16px;
-  max-width:80%;
-  animation:fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {opacity:0; transform:translateY(10px);}
-  to {opacity:1;}
+  max-width:85%;
 }
 
 .user {
@@ -60,14 +50,14 @@ body {
 }
 
 .ai {
-  background:rgba(0,0,0,0.6);
+  background:rgba(0,0,0,0.65);
 }
 
 /* INPUT */
 #bottomBar {
   display:flex;
   padding:10px;
-  background:rgba(0,0,0,0.4);
+  background:rgba(0,0,0,0.5);
 }
 
 #bottomBar input {
@@ -93,39 +83,53 @@ img, video {
   border-radius:12px;
   margin-top:8px;
 }
+
+.small-btn{
+  margin-top:6px;
+  padding:6px;
+  border:none;
+  border-radius:8px;
+  background:#ff6a00;
+  color:white;
+  font-size:12px;
+}
+
+#branding{
+  text-align:center;
+  font-size:12px;
+  opacity:0.6;
+  padding:5px;
+}
 </style>
 </head>
 
 <body>
 
 <div id="topBar">
-  <button onclick="quick('Funny story')">😂</button>
-  <button onclick="quick('Sad story')">💔</button>
-  <button onclick="quick('Anime story')">🔥</button>
+  <button onclick="quick('Funny viral story')">😂</button>
+  <button onclick="quick('Sad emotional story')">💔</button>
+  <button onclick="quick('Anime cinematic story')">🔥</button>
   <button onclick="quick('Make money online')">💰</button>
-  <button onclick="toggleTikTok()">🔥 Mode</button>
   <button onclick="clearChat()">🧹</button>
-  <button onclick="viewHistory()">💾</button>
 </div>
 
 <div id="chat"></div>
 
-<input type="file" id="upload" onchange="handleUpload()">
+<div id="branding">Powered by Artical Neavy</div>
 
 <div id="bottomBar">
-  <input id="input" placeholder="Ask anything...">
+  <input id="input" placeholder="Ask, create, generate anything...">
   <button onclick="send()">➤</button>
   <button onclick="startVoice()">🎤</button>
 </div>
 
 <script>
 
-// SYSTEM
+// CORE SYSTEM
 let queue = [];
 let processing = false;
-let tiktok = false;
 
-// ADD MESSAGE
+// MESSAGE
 function addMessage(text,type){
   let chat = document.getElementById("chat");
   let div = document.createElement("div");
@@ -135,11 +139,10 @@ function addMessage(text,type){
   chat.scrollTop = chat.scrollHeight;
 }
 
-// TYPE EFFECT
+// TYPE
 function typeMessage(text){
   return new Promise(resolve=>{
     let i=0;
-    let chat=document.getElementById("chat");
     let div=document.createElement("div");
     div.className="msg ai";
     chat.appendChild(div);
@@ -148,7 +151,7 @@ function typeMessage(text){
       if(i<text.length){
         div.innerHTML+=text.charAt(i);
         i++;
-        setTimeout(typing,8);
+        setTimeout(typing,7);
       } else resolve();
     }
 
@@ -159,132 +162,117 @@ function typeMessage(text){
 // QUEUE
 async function processQueue(){
   if(processing) return;
-  processing = true;
+  processing=true;
 
   while(queue.length){
     await queue.shift()();
   }
 
-  processing = false;
+  processing=false;
 }
 
-// THINKING DOTS
-function showThinking(){
+// THINKING
+function thinking(){
   let div=document.createElement("div");
   div.className="msg ai";
-  div.id="thinking";
-  div.innerHTML="🤖 Thinking...";
+  div.id="t";
+  div.innerHTML="🤖 Generating...";
   chat.appendChild(div);
 }
 
-function removeThinking(){
-  let t=document.getElementById("thinking");
+function stopThinking(){
+  let t=document.getElementById("t");
   if(t) t.remove();
 }
 
-// VOICE OUTPUT
-function speak(text){
-  let speech = new SpeechSynthesisUtterance(text);
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(speech);
-}
-
-// HISTORY
-function saveHistory(text){
-  let history = JSON.parse(localStorage.getItem("history") || "[]");
-  history.unshift(text);
-  localStorage.setItem("history", JSON.stringify(history));
-}
-
-function viewHistory(){
-  let history = JSON.parse(localStorage.getItem("history") || "[]");
-  addMessage("💾 History:<br><br>" + history.slice(0,10).join("<br><br>"),"ai");
-}
-
-// CLEAR CHAT
-function clearChat(){
-  document.getElementById("chat").innerHTML="";
-}
-
-// VOICE INPUT
+// VOICE
 function startVoice(){
   let rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  rec.lang = "en-US";
   rec.onresult = e=>{
     document.getElementById("input").value = e.results[0][0].transcript;
   };
   rec.start();
 }
 
+// COPY
+function copyText(text){
+  navigator.clipboard.writeText(text);
+  alert("Copied!");
+}
+
+// DOWNLOAD IMAGE
+function downloadImage(url){
+  let a=document.createElement("a");
+  a.href=url;
+  a.download="image.jpg";
+  a.click();
+}
+
+// CLEAR
+function clearChat(){
+  document.getElementById("chat").innerHTML="";
+}
+
 // QUICK
 function quick(text){
-  document.getElementById("input").value = text;
-}
-
-// TOGGLE
-function toggleTikTok(){
-  tiktok = !tiktok;
-  alert("TikTok Mode: " + (tiktok ? "ON 🔥" : "OFF"));
-}
-
-// UPLOAD
-function handleUpload(){
-  let file = document.getElementById("upload").files[0];
-  if(!file) return;
-
-  let url = URL.createObjectURL(file);
-
-  addMessage(`<img src="${url}">`,"ai");
+  document.getElementById("input").value=text;
 }
 
 // SEND
 function send(){
-  let input = document.getElementById("input").value.trim();
+  let input=document.getElementById("input").value.trim();
   if(!input) return;
 
   addMessage(input,"user");
-  saveHistory(input);
 
-  let lower = input.toLowerCase();
+  let lower=input.toLowerCase();
 
-  // IMAGE
+  // IMAGE GENERATOR
   if(lower.includes("image")){
-    let url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(input);
-    addMessage(`<img src="${url}">`,"ai");
+    let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(input);
+
+    addMessage(`
+      🖼 <b>AI Image</b>
+      <img src="${url}">
+      <button class="small-btn" onclick="downloadImage('${url}')">Download</button>
+    `,"ai");
     return;
   }
 
   // VIDEO
   if(lower.includes("video")){
-    addMessage(`<video controls><source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4"></video>`,"ai");
+    addMessage(`
+      🎬 <b>AI Video Preview</b>
+      <video controls>
+        <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4">
+      </video>
+      <div>🔥 Caption: This will go viral #fyp</div>
+    `,"ai");
     return;
   }
 
-  // STORY
+  // STORY (PREMIUM)
   if(lower.includes("story")){
     queue.push(async ()=>{
-      showThinking();
-      await new Promise(r=>setTimeout(r,700));
-      removeThinking();
+      thinking();
+      await new Promise(r=>setTimeout(r,800));
+      stopThinking();
 
-      let story = `
-🎬 Cinematic Story:
+      let story=`
+🎬 <b>Cinematic Story</b>
 
-${input} begins in a world filled with tension and mystery...
+${input} begins in a world full of mystery and tension.
 
-Every decision matters. Every second counts.
+Every moment builds suspense… every action carries weight.
 
-Until one moment changes everything forever.
+Then comes the turning point — everything changes.
 
-🔥 This is where legends are born.
+🔥 This is not just a story… it’s a viral moment.
 `;
 
       await typeMessage(story);
-      speak(story);
 
-      if(tiktok){
-        addMessage("🔥 Viral Caption: You won't believe this ending! #fyp","ai");
-      }
+      addMessage(`<button class="small-btn" onclick="copyText(\`${story}\`)">Copy</button>`,"ai");
 
     });
 
@@ -292,25 +280,26 @@ Until one moment changes everything forever.
     return;
   }
 
-  // DEFAULT CHAT (SMARTER)
+  // SMART CHAT
   queue.push(async ()=>{
-    showThinking();
+    thinking();
     await new Promise(r=>setTimeout(r,500));
-    removeThinking();
+    stopThinking();
 
-    let reply = `🤖 Smart AI:
+    let reply=`
+🤖 <b>AI Response</b>
 
-"${input}" is interesting.
+"${input}"
 
-Here’s the smarter approach:
-• Think strategically  
-• Move fast  
-• Stay consistent  
+Here’s the smart breakdown:
+• Idea → Execution  
+• Strategy → Growth  
+• Consistency → Success  
 
-🔥 You're building something powerful.`;
+🔥 You’re building something powerful.
+`;
 
     await typeMessage(reply);
-    speak(reply);
   });
 
   processQueue();
