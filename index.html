@@ -8,15 +8,9 @@
     body {
       margin:0;
       font-family: Arial;
-      background: radial-gradient(circle at center, #0a0a0a, #1a0033);
+      background: linear-gradient(135deg, #1a0033, #ff6a00);
       color:white;
       text-align:center;
-    }
-
-    h2 {
-      background: linear-gradient(90deg,#ff6a00,#6a00ff);
-      -webkit-background-clip:text;
-      color:transparent;
     }
 
     input, select {
@@ -30,12 +24,13 @@
     }
 
     button {
-      padding:12px;
-      margin:6px;
+      padding:14px;
+      margin:8px;
       border:none;
-      border-radius:10px;
-      background: linear-gradient(90deg,#ff6a00,#6a00ff);
+      border-radius:12px;
+      background: linear-gradient(90deg,#ff6a00,#ff00cc,#6a00ff);
       color:white;
+      font-weight:bold;
       cursor:pointer;
       width:85%;
     }
@@ -45,7 +40,6 @@
       padding:15px;
       background:#111;
       border-radius:15px;
-      box-shadow:0 0 20px rgba(255,106,0,0.3);
     }
 
     img, video {
@@ -58,41 +52,19 @@
       white-space:pre-wrap;
     }
 
-    #ads {
-      margin-top:15px;
-      height:60px;
-      background:#222;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:12px;
-    }
-
     .hidden { display:none; }
+
+    #chatBox {
+      max-height:300px;
+      overflow:auto;
+      text-align:left;
+    }
 
     #splash {
       position:fixed;
-      top:0;
-      left:0;
       width:100%;
       height:100%;
-      background: radial-gradient(circle, #0a0a0a, #1a0033);
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
       z-index:9999;
-    }
-
-    #splash h1 {
-      font-size:28px;
-      background: linear-gradient(90deg,#ff6a00,#6a00ff);
-      -webkit-background-clip:text;
-      color:transparent;
-    }
-
-    #splash p {
-      color:#aaa;
     }
   </style>
 </head>
@@ -101,18 +73,11 @@
 
 <!-- SPLASH -->
 <div id="splash">
-  <h1>🎬 ReelMind AI</h1>
-  <p>Powered by Neavy</p>
+  <img src="splash.png" style="width:100%;height:100%;object-fit:cover;">
 </div>
 
 <h2>🎬 ReelMind AI</h2>
-
-<div class="card">
-  <h3>🔥 Create Viral Content Instantly</h3>
-  <p>
-    Videos 🎬 • Anime 🎌 • Stories 🧠
-  </p>
-</div>
+<p>Create • Inspire • Go Viral 🚀</p>
 
 <!-- AUTH -->
 <div id="auth">
@@ -126,12 +91,11 @@
 <div id="app" class="hidden">
 
   <div class="card">
-    <h3>🎯 Choose Mode</h3>
-    <button onclick="setMode('story')">🧠 Story</button>
-    <button onclick="setMode('image')">🖼 Image</button>
-    <button onclick="setMode('video')">🎬 Video</button>
+    <button onclick="setMode('chat')">Chat</button>
+    <button onclick="setMode('story')">Story</button>
+    <button onclick="setMode('image')">Image</button>
+    <button onclick="setMode('video')">Video</button>
 
-    <h3>🎨 Choose Style</h3>
     <select id="style">
       <option value="realistic">Realistic</option>
       <option value="anime">Anime</option>
@@ -139,192 +103,173 @@
     </select>
   </div>
 
-  <input id="prompt" placeholder="Describe what you want...">
+  <input id="prompt" placeholder="Ask or create anything...">
   <button onclick="generate()">✨ Generate</button>
 
-  <button onclick="shareApp()">📤 Share App</button>
+  <!-- CHAT -->
+  <div id="chatBox" class="card hidden"></div>
+
+  <!-- MEDIA -->
+  <div class="card">
+    <input type="file" id="musicUpload" accept="audio/*">
+    <input type="text" id="captionInput" placeholder="Caption">
+    <button onclick="toggleTikTok()">TikTok Mode</button>
+  </div>
 
   <div id="output"></div>
 
-  <div class="card">
-    <h3>💎 Premium</h3>
-    <p>$9/month • $99/year</p>
-    <button onclick="subscribe()">Upgrade</button>
-  </div>
+  <p style="background: linear-gradient(90deg,#ff6a00,#6a00ff);-webkit-background-clip:text;color:transparent;">
+    Powered by Artical Neavy 🚀
+  </p>
 
-  <div id="ads">🤖 Ad Space</div>
-
-  <div class="card">
-    <h4>🛡 Policy</h4>
-    <p>No harmful or illegal content allowed</p>
-  </div>
-
-  <button onclick="logout()" style="background:#ff4444;margin-top:30px;">
-    Logout
-  </button>
+  <button onclick="logout()" style="background:red;">Logout</button>
 
 </div>
 
 <script>
 
-// ADMIN
-const ADMIN_EMAILS = [
-  "neavyartical@gmail.com",
-  "arsesay89@gmail.com"
-];
-
-let premium = false;
 let currentMode = "image";
+let tikTokMode = false;
+let chatHistory = [];
 
 // AUTH
 function signup(){
-  const email = emailInput();
-  const pass = passInput();
-
-  if(!email || !pass){
-    alert("Enter email & password");
-    return;
-  }
-
-  const isAdmin = ADMIN_EMAILS.includes(email);
-  const user = { email, pass, premium: isAdmin };
-
-  localStorage.setItem("user", JSON.stringify(user));
-  premium = user.premium;
+  localStorage.setItem("user", JSON.stringify({
+    email: email.value,
+    pass: password.value
+  }));
   startApp();
 }
 
 function login(){
-  const email = emailInput();
-  const pass = passInput();
-  const saved = JSON.parse(localStorage.getItem("user"));
-
-  if(saved && saved.email === email && saved.pass === pass){
-    premium = saved.premium || ADMIN_EMAILS.includes(saved.email);
+  const user = JSON.parse(localStorage.getItem("user"));
+  if(user && user.email === email.value && user.pass === password.value){
     startApp();
-  } else {
-    alert("Invalid login");
-  }
+  } else alert("Invalid login");
 }
 
 function logout(){
-  const saved = JSON.parse(localStorage.getItem("user"));
-
-  if(saved && ADMIN_EMAILS.includes(saved.email)){
-    alert("Admin cannot logout 🔒");
-    return;
-  }
-
   localStorage.removeItem("user");
   location.reload();
 }
 
-function emailInput(){
-  return document.getElementById("email").value.trim();
-}
-
-function passInput(){
-  return document.getElementById("password").value.trim();
-}
-
 function startApp(){
-  document.getElementById("auth").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-
-  if(premium){
-    document.getElementById("ads").style.display="none";
-  }
-}
-
-// AUTO LOGIN
-window.onload = function(){
-  const saved = JSON.parse(localStorage.getItem("user"));
-  if(saved){
-    premium = saved.premium || ADMIN_EMAILS.includes(saved.email);
-    startApp();
-  }
+  auth.classList.add("hidden");
+  app.classList.remove("hidden");
 }
 
 // SPLASH
-setTimeout(()=>{
-  document.getElementById("splash").style.display = "none";
-}, 2500);
+setTimeout(()=> splash.style.display="none",2000);
 
 // MODE
 function setMode(mode){
   currentMode = mode;
-  alert("Mode: " + mode.toUpperCase());
+  chatBox.classList.toggle("hidden", mode !== "chat");
 }
 
-// PREMIUM
-function subscribe(){
-  premium = true;
-  let saved = JSON.parse(localStorage.getItem("user"));
-  saved.premium = true;
-  localStorage.setItem("user", JSON.stringify(saved));
-  document.getElementById("ads").style.display="none";
-}
-
-// SHARE
-function shareApp(){
-  const text = "🔥 Try ReelMind AI – create videos, anime & viral ideas instantly!";
-  if(navigator.share){
-    navigator.share({ title:"ReelMind AI", text, url:window.location.href });
-  } else {
-    alert("Copy this link:\n" + window.location.href);
-  }
+// TIKTOK
+function toggleTikTok(){
+  tikTokMode = !tikTokMode;
+  alert("TikTok Mode: " + (tikTokMode ? "ON" : "OFF"));
 }
 
 // DOWNLOAD
 function downloadFile(url){
   const a = document.createElement("a");
   a.href = url;
-  a.download = "ReelMind_AI";
-  document.body.appendChild(a);
+  a.download = "ReelMind";
   a.click();
-  document.body.removeChild(a);
 }
 
-// AI
+// MAIN GENERATE
 async function generate(){
-  const promptInput = document.getElementById("prompt");
+  let prompt = document.getElementById("prompt").value.trim();
   const output = document.getElementById("output");
-  const style = document.getElementById("style").value;
+  const chatBox = document.getElementById("chatBox");
 
-  let prompt = promptInput.value.trim();
+  if(!prompt) return alert("Enter something");
 
-  if(!prompt){
-    alert("Enter something");
-    return;
-  }
+  // ===== CHAT MODE (SMART MEMORY) =====
+  if(currentMode === "chat"){
+    chatHistory.push({ role:"user", content:prompt });
 
-  const blocked = ["nude","porn","illegal"];
-  if(blocked.some(w => prompt.toLowerCase().includes(w))){
-    output.innerHTML = "❌ Blocked";
-    return;
-  }
+    chatBox.innerHTML += `<p><b>You:</b> ${prompt}</p>`;
+    chatBox.innerHTML += `<p>🤖 Thinking...</p>`;
 
-  output.innerHTML = "🤖 Creating...";
+    try{
+      const res = await fetch("https://backend-ppyz.onrender.com/story",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          prompt,
+          history: chatHistory
+        })
+      });
 
-  // STORY
-  if(currentMode === "story"){
-    let story = "";
-    for(let i=1;i<=20;i++){
-      story += `${i}. A creative story about ${prompt}\n`;
+      const data = await res.json();
+      const reply = data.text || "No response";
+
+      chatHistory.push({ role:"assistant", content:reply });
+
+      chatBox.innerHTML += `<p><b>AI:</b> ${reply}</p>`;
+
+    } catch {
+      let context = chatHistory.slice(-3).map(m => m.content).join(" ");
+
+      const fallback = `
+Based on our conversation: "${context}"
+
+Here’s a helpful answer about "${prompt}":
+
+This involves understanding the situation, applying logic, and giving a meaningful response.
+`;
+
+      chatHistory.push({ role:"assistant", content:fallback });
+
+      chatBox.innerHTML += `<p><b>AI:</b> ${fallback}</p>`;
     }
-    output.innerHTML = `<div class="card"><pre>${story}\n...more 🔥</pre></div>`;
+
+    chatBox.scrollTop = chatBox.scrollHeight;
     return;
   }
 
-  // STYLE
-  if(style === "anime") prompt += ", anime style, vibrant colors";
-  if(style === "cartoon") prompt += ", cartoon style, 3D animated";
-  if(style === "realistic") prompt += ", ultra realistic, 4k";
+  // ===== STORY MODE =====
+  if(currentMode === "story"){
+    try{
+      const res = await fetch("https://backend-ppyz.onrender.com/story",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({prompt})
+      });
 
-  if(currentMode === "video"){
-    prompt += ", cinematic lighting, dramatic scene";
+      const data = await res.json();
+
+      if(data.text){
+        output.innerHTML = `<div class="card"><pre>${data.text}</pre></div>`;
+        return;
+      }
+
+    } catch {}
+
+    output.innerHTML = `
+      <div class="card">
+<pre>
+Title: ${prompt}
+
+One day, everything changed when ${prompt.toLowerCase()} became real.
+
+People reacted with fear and excitement.
+
+In the end, a bold decision changed everything forever.
+
+Nothing was ever the same again.
+</pre>
+      </div>
+    `;
+    return;
   }
 
+  // ===== IMAGE / VIDEO =====
   try{
     const res = await fetch("https://backend-ppyz.onrender.com/generate",{
       method:"POST",
@@ -334,24 +279,28 @@ async function generate(){
 
     const data = await res.json();
 
-    if(currentMode === "video"){
-      output.innerHTML = `
-        <div class="card">
-          <video src="${data.url}" controls autoplay loop muted></video>
-          <button onclick="downloadFile('${data.url}')">⬇ Download Video</button>
-        </div>
-      `;
-    } else {
-      output.innerHTML = `
-        <div class="card">
-          <img src="${data.url}">
-          <button onclick="downloadFile('${data.url}')">⬇ Download Image</button>
-        </div>
-      `;
-    }
+    const caption = document.getElementById("captionInput").value;
+    const music = document.getElementById("musicUpload").files[0];
+
+    let media = currentMode === "video"
+      ? `<video src="${data.url}" controls autoplay loop muted></video>`
+      : `<img src="${data.url}">`;
+
+    let audio = music ? `<audio src="${URL.createObjectURL(music)}" controls autoplay loop></audio>` : "";
+
+    let box = tikTokMode ? "style='width:300px;margin:auto;'" : "";
+
+    output.innerHTML = `
+      <div class="card" ${box}>
+        ${media}
+        ${caption ? `<p>${caption}</p>` : ""}
+        ${audio}
+        <button onclick="downloadFile('${data.url}')">Download</button>
+      </div>
+    `;
 
   } catch {
-    output.innerHTML = "❌ Error";
+    output.innerHTML = "❌ Error generating";
   }
 }
 
