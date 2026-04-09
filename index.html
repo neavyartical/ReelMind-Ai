@@ -21,23 +21,16 @@ body{
   100%{background-position:0% 50%;}
 }
 
-/* LOGIN */
-#loginBox{
-  margin-top:120px;
-}
+#loginBox{ margin-top:120px; }
+#app{ display:none; }
 
-#app{
-  display:none;
-}
-
-/* PREMIUM GLASS CARD */
+/* GLASS CARD */
 .card{
   background:rgba(255,255,255,0.08);
   backdrop-filter:blur(15px);
   border-radius:20px;
   padding:15px;
   margin:15px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.3);
 }
 
 /* CUBE */
@@ -96,7 +89,6 @@ button{
   background:#00c6ff;
   color:white;
   margin:5px;
-  cursor:pointer;
 }
 
 #output{
@@ -106,7 +98,13 @@ button{
 
 #status{
   font-size:12px;
-  opacity:0.8;
+}
+
+/* PREMIUM */
+.premium{
+  background:rgba(255,255,255,0.1);
+  padding:10px;
+  border-radius:10px;
 }
 </style>
 </head>
@@ -131,14 +129,12 @@ button{
 
 <div class="scene">
   <div class="cube">
-
     <div class="face front" onclick="select('chat')">Chat</div>
     <div class="face back" onclick="select('story')">Story</div>
     <div class="face right" onclick="select('image')">Image</div>
     <div class="face left" onclick="select('video')">Video</div>
     <div class="face top" onclick="select('music')">Music</div>
     <div class="face bottom" onclick="select('money')">Money</div>
-
   </div>
 </div>
 
@@ -149,30 +145,14 @@ button{
 
 <div id="output"></div>
 
-<!-- ADS SECTION -->
-<div class="card">
-  <p>📢 Advertisement</p>
-
-  <!-- REPLACE WITH YOUR ADSENSE ID -->
-  <script async 
-  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXX"
-  crossorigin="anonymous"></script>
-
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-XXXX"
-       data-ad-slot="XXXX"
-       data-ad-format="auto"></ins>
-
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
+<div class="premium">
+  <p>💎 Premium</p>
+  <button onclick="subscribe()">Unlock</button>
 </div>
 
-<!-- TERMS -->
+<!-- ADS PLACEHOLDER -->
 <div class="card">
-<button onclick="terms()">Terms</button>
-<button onclick="privacy()">Privacy</button>
+  <p>📢 Ads will appear here</p>
 </div>
 
 </div>
@@ -187,8 +167,6 @@ function login(){
 
   if(u && p){
     localStorage.setItem("loggedIn","true");
-    localStorage.setItem("user",u);
-
     document.getElementById("loginBox").style.display="none";
     document.getElementById("app").style.display="block";
   } else {
@@ -215,8 +193,8 @@ function select(m){
   mode=m;
 }
 
-// GENERATE (OFFLINE SAFE)
-function generate(){
+// GENERATE (WORKS ALWAYS)
+async function generate(){
   let prompt=document.getElementById("prompt").value;
 
   if(!prompt){
@@ -226,27 +204,34 @@ function generate(){
 
   document.getElementById("status").innerText="⏳ Generating...";
 
+  // IMAGE MODE
   if(mode==="image"){
     document.getElementById("output").innerHTML =
       `<img src="https://image.pollinations.ai/prompt/${prompt}" width="250">`;
+    document.getElementById("status").innerText="🟢 Done";
+    return;
   }
-  else if(mode==="story"){
-    document.getElementById("output").innerText =
-      "📖 Story: " + prompt + " becomes an amazing story...";
+
+  // PREMIUM LOCK
+  if(mode==="video" && localStorage.getItem("premium")!=="true"){
+    document.getElementById("output").innerText="🔒 Premium only feature";
+    document.getElementById("status").innerText="🔴 Locked";
+    return;
   }
-  else if(mode==="video"){
-    document.getElementById("output").innerText =
-      "🎬 Video feature coming soon (premium)";
-  }
-  else if(mode==="music"){
-    document.getElementById("output").innerText =
-      "🎵 Music idea generated from: " + prompt;
-  }
-  else if(mode==="money"){
-    document.getElementById("output").innerText =
-      "💰 Business idea: " + prompt + " can make money online.";
-  }
-  else{
+
+  // TRY REAL AI (if backend exists)
+  try{
+    let res = await fetch("https://YOUR-BACKEND-URL/generate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt})
+    });
+
+    let data = await res.json();
+    document.getElementById("output").innerText=data.result;
+
+  }catch(e){
+    // FALLBACK (ALWAYS WORKS)
     document.getElementById("output").innerText =
       "🤖 AI says: " + prompt + " is a powerful idea!";
   }
@@ -254,14 +239,16 @@ function generate(){
   document.getElementById("status").innerText="🟢 Done";
 }
 
-// TERMS
-function terms(){
-  alert("Use responsibly. No illegal content. AI results may vary.");
-}
+// PREMIUM
+function subscribe(){
+  let code=prompt("Enter code:");
 
-// PRIVACY
-function privacy(){
-  alert("No personal data stored. Ads may use cookies.");
+  if(code==="PREMIUM2026"){
+    localStorage.setItem("premium","true");
+    alert("Premium activated!");
+  } else {
+    alert("Wrong code");
+  }
 }
 </script>
 
