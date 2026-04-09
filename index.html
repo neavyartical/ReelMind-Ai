@@ -14,37 +14,7 @@ body{
   height:100vh;
 }
 
-/* AUTH */
-#auth{
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:#000;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-}
-
-/* INPUT */
-input{
-  padding:12px;
-  margin:6px;
-  border:none;
-  border-radius:10px;
-  width:80%;
-}
-
-button{
-  padding:12px;
-  margin:6px;
-  border:none;
-  border-radius:10px;
-  background:#ff6a00;
-  color:white;
-}
-
-/* GRID (3D CUBES) */
+/* GRID CUBES */
 #grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -58,13 +28,11 @@ button{
   border-radius:14px;
   background:linear-gradient(145deg,#1a1a1a,#2a2a2a);
   box-shadow:5px 5px 15px #000,-5px -5px 15px #333;
-  transform:perspective(200px) translateZ(5px);
 }
 
 .grid-btn span{
   display:block;
   font-size:12px;
-  margin-top:5px;
 }
 
 /* CHAT */
@@ -90,36 +58,49 @@ img,video{
   margin-top:5px;
 }
 
-/* INPUT BAR */
+/* INPUT */
 #bottom{
   display:flex;
   padding:10px;
+}
+
+#bottom input{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+}
+
+#bottom button{
+  margin-left:5px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#ff6a00;
+  color:white;
 }
 </style>
 </head>
 
 <body>
 
-<!-- AUTH -->
-<div id="auth">
-  <h2>Welcome</h2>
-  <input id="email" placeholder="Email">
-  <input id="pass" type="password" placeholder="Password">
-
-  <button onclick="register()">Register</button>
-  <button onclick="login()">Login</button>
-</div>
-
-<!-- APP -->
-<div id="app" style="display:none">
-
+<!-- GRID -->
 <div id="grid">
+  <!-- MODES -->
   <div class="grid-btn" onclick="setMode('chat')">💬<span>Chat</span></div>
   <div class="grid-btn" onclick="setMode('story')">📖<span>Story</span></div>
   <div class="grid-btn" onclick="setMode('image')">🖼<span>Image</span></div>
   <div class="grid-btn" onclick="setMode('video')">🎬<span>Video</span></div>
+
+  <!-- TEMPLATES -->
+  <div class="grid-btn" onclick="template('funny')">😂<span>Funny</span></div>
+  <div class="grid-btn" onclick="template('sad')">💔<span>Emotional</span></div>
+  <div class="grid-btn" onclick="template('anime')">🔥<span>Anime</span></div>
+  <div class="grid-btn" onclick="template('money')">💰<span>Money</span></div>
+
+  <!-- EXTRA -->
+  <div class="grid-btn" onclick="toggleTikTok()">🚀<span>TikTok</span></div>
   <div class="grid-btn" onclick="viewProjects()">📂<span>Projects</span></div>
-  <div class="grid-btn" onclick="logout()">🚪<span>Logout</span></div>
 </div>
 
 <div id="chat"></div>
@@ -129,93 +110,60 @@ img,video{
   <button onclick="send()">➤</button>
 </div>
 
-</div>
-
 <script>
 
-// USER
-let currentUser=null;
-
-// REGISTER
-function register(){
-  let email=emailEl.value;
-  let pass=passEl.value;
-
-  if(!email || !pass){alert("Fill all");return;}
-
-  let users=JSON.parse(localStorage.getItem("users")||"{}");
-
-  if(users[email]){alert("User exists");return;}
-
-  users[email]={pass:pass,projects:[]};
-  localStorage.setItem("users",JSON.stringify(users));
-
-  alert("Registered!");
-}
-
-// LOGIN
-function login(){
-  let email=emailEl.value;
-  let pass=passEl.value;
-
-  let users=JSON.parse(localStorage.getItem("users")||"{}");
-
-  if(!users[email] || users[email].pass!==pass){
-    alert("Wrong login");
-    return;
-  }
-
-  currentUser=email;
-  localStorage.setItem("currentUser",email);
-
-  auth.style.display="none";
-  app.style.display="block";
-}
-
-// LOGOUT
-function logout(){
-  localStorage.removeItem("currentUser");
-  location.reload();
-}
-
-// AUTO LOGIN
-window.onload=function(){
-  let saved=localStorage.getItem("currentUser");
-  if(saved){
-    currentUser=saved;
-    auth.style.display="none";
-    app.style.display="block";
-  }
-}
-
-// SAVE PROJECT (PER USER)
-function saveProject(data){
-  let users=JSON.parse(localStorage.getItem("users"));
-  users[currentUser].projects.unshift(data);
-  localStorage.setItem("users",JSON.stringify(users));
-}
-
-// VIEW PROJECTS
-function viewProjects(){
-  let users=JSON.parse(localStorage.getItem("users"));
-  let list=users[currentUser].projects;
-
-  if(!list.length){
-    add("No projects yet","ai");
-    return;
-  }
-
-  add("📂 Your Projects:<br><br>"+list.join("<br><br>"),"ai");
-}
-
-// UI
+// STATE
 let mode="chat";
+let tiktok=false;
 
+// MODE
 function setMode(m){
   mode=m;
   add("Mode: "+m,"ai");
 }
 
+// TEMPLATE SYSTEM
+function template(type){
+  if(type==="funny"){
+    input.value="Create a funny viral story with unexpected twist";
+    mode="story";
+  }
+  if(type==="sad"){
+    input.value="Write a deep emotional story that makes people cry";
+    mode="story";
+  }
+  if(type==="anime"){
+    input.value="Create an epic anime battle story with powers and transformation";
+    mode="story";
+  }
+  if(type==="money"){
+    input.value="Explain how to make money online step by step";
+    mode="chat";
+  }
+  add("Template loaded: "+type,"ai");
+}
+
+// TIKTOK MODE
+function toggleTikTok(){
+  tiktok=!tiktok;
+  add("TikTok Mode: "+(tiktok?"ON 🔥":"OFF"),"ai");
+}
+
+// SMART PROMPT ENGINE
+function enhancePrompt(text){
+  if(mode==="story"){
+    return "Write a long cinematic, detailed, emotional story with plot twists about: "+text;
+  }
+  if(mode==="chat"){
+    return "Answer in a smart, helpful and powerful way: "+text;
+  }
+  if(mode==="image"){
+    return "high quality cinematic image of "+text;
+  }
+  return text;
+}
+
+// UI
 function add(t,type){
   let d=document.createElement("div");
   d.className="msg "+type;
@@ -225,11 +173,27 @@ function add(t,type){
 }
 
 // DOWNLOAD
-function downloadFile(url,type){
+function download(url,type){
   let a=document.createElement("a");
   a.href=url;
   a.download= type==="video"?"video.mp4":"image.jpg";
   a.click();
+}
+
+// PROJECTS (simple)
+function saveProject(data){
+  let p=JSON.parse(localStorage.getItem("projects")||"[]");
+  p.unshift(data);
+  localStorage.setItem("projects",JSON.stringify(p));
+}
+
+function viewProjects(){
+  let p=JSON.parse(localStorage.getItem("projects")||"[]");
+  if(!p.length){
+    add("No projects yet","ai");
+    return;
+  }
+  add("📂 Projects:<br><br>"+p.join("<br><br>"),"ai");
 }
 
 // SEND
@@ -239,13 +203,15 @@ async function send(){
 
   add(txt,"user");
 
+  let prompt = enhancePrompt(txt);
+
   // IMAGE
   if(mode==="image"){
-    let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(txt);
+    let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(prompt);
 
     add(`
       <img src="${url}">
-      <button onclick="downloadFile('${url}','image')">⬇ Download</button>
+      <button onclick="download('${url}','image')">⬇ Download</button>
     `,"ai");
 
     saveProject("Image: "+txt);
@@ -260,7 +226,7 @@ async function send(){
       <video controls>
         <source src="${vid}">
       </video>
-      <button onclick="downloadFile('${vid}','video')">⬇ Download</button>
+      <button onclick="download('${vid}','video')">⬇ Download</button>
     `,"ai");
 
     saveProject("Video: "+txt);
@@ -269,15 +235,32 @@ async function send(){
 
   // STORY
   if(mode==="story"){
-    let story=`
-📖 Story:
+    let story = `
+🎬 Cinematic Story
 
 ${txt}
 
-A deep cinematic journey filled with emotion, power and transformation.
+━━━━━━━━━━━━━━━
 
-✨ A story that feels real and unforgettable.
+In a world where ${txt}, everything changed.
+
+At first, it seemed normal. But soon, emotions, struggles, and powerful challenges began to rise.
+
+A moment came that changed everything forever.
+
+🔥 Transformation happened.
+
+✨ And this was only the beginning...
+
+━━━━━━━━━━━━━━━
 `;
+
+    if(tiktok){
+      story += `
+🔥 Caption: This will shock everyone 😳
+#viral #fyp #trending #story
+`;
+    }
 
     add(story,"ai");
     saveProject(story);
@@ -285,7 +268,15 @@ A deep cinematic journey filled with emotion, power and transformation.
   }
 
   // CHAT
-  add("🤖 AI: " + txt,"ai");
+  let reply = `
+🤖 AI:
+
+${txt}
+
+Think smart. Move smart. Build something powerful.
+`;
+
+  add(reply,"ai");
 }
 
 </script>
