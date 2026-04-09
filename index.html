@@ -1,149 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      margin:0;
-      font-family: Arial;
-      background: linear-gradient(135deg, #1a0033, #ff6a00);
-      color:white;
-      text-align:center;
-    }
-
-    input, select {
-      width:85%;
-      padding:12px;
-      margin:8px;
-      border-radius:10px;
-      border:none;
-      background:#111;
-      color:white;
-    }
-
-    button {
-      padding:14px;
-      margin:8px;
-      border:none;
-      border-radius:12px;
-      background: linear-gradient(90deg,#ff6a00,#ff00cc,#6a00ff);
-      color:white;
-      font-weight:bold;
-      cursor:pointer;
-      width:85%;
-    }
-
-    .card {
-      margin-top:20px;
-      padding:15px;
-      background:#111;
-      border-radius:15px;
-    }
-
-    img, video {
-      width:100%;
-      border-radius:10px;
-    }
-
-    pre {
-      text-align:left;
-      white-space:pre-wrap;
-    }
-
-    .hidden { display:none; }
-
-    #chatBox {
-      max-height:300px;
-      overflow:auto;
-      text-align:left;
-    }
-
-    #splash {
-      position:fixed;
-      width:100%;
-      height:100%;
-      z-index:9999;
-    }
-  </style>
-</head>
-
-<body>
-
-<!-- SPLASH -->
-<div id="splash">
-  <img src="splash.png" style="width:100%;height:100%;object-fit:cover;">
-</div>
-
-<h2>🎬 ReelMind AI</h2>
-<p>Create • Inspire • Go Viral 🚀</p>
-
-<!-- AUTH -->
-<div id="auth">
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <button onclick="signup()">Sign Up</button>
-  <button onclick="login()">Login</button>
-</div>
-
-<!-- APP -->
-<div id="app" class="hidden">
-
-  <div class="card">
-    <button onclick="setMode('chat')">Chat</button>
-    <button onclick="setMode('story')">Story</button>
-    <button onclick="setMode('image')">Image</button>
-    <button onclick="setMode('video')">Video</button>
-
-    <select id="style">
-      <option value="realistic">Realistic</option>
-      <option value="anime">Anime</option>
-      <option value="cartoon">Cartoon</option>
-    </select>
-  </div>
-
-  <input id="prompt" placeholder="Ask or create anything...">
-  <button onclick="generate()">✨ Generate</button>
-
-  <!-- CHAT -->
-  <div id="chatBox" class="card hidden"></div>
-
-  <!-- MEDIA -->
-  <div class="card">
-    <input type="file" id="musicUpload" accept="audio/*">
-    <input type="text" id="captionInput" placeholder="Caption">
-    <button onclick="toggleTikTok()">TikTok Mode</button>
-  </div>
-
-  <div id="output"></div>
-
-  <p style="background: linear-gradient(90deg,#ff6a00,#6a00ff);-webkit-background-clip:text;color:transparent;">
-    Powered by Artical Neavy 🚀
-  </p>
-
-  <button onclick="logout()" style="background:red;">Logout</button>
-
-</div>
-
 <script>
 
 let currentMode = "image";
 let tikTokMode = false;
 let chatHistory = [];
+let history = JSON.parse(localStorage.getItem("history") || "[]");
+
+const ADMIN_EMAILS = ["neavyartical@gmail.com","arsesay89@gmail.com"];
+
+let usage = parseInt(localStorage.getItem("usage") || "0");
+let isPremium = false;
 
 // AUTH
 function signup(){
+  const emailVal = email.value;
+
+  isPremium = ADMIN_EMAILS.includes(emailVal);
+
   localStorage.setItem("user", JSON.stringify({
-    email: email.value,
-    pass: password.value
+    email: emailVal,
+    pass: password.value,
+    premium: isPremium
   }));
+
   startApp();
 }
 
 function login(){
   const user = JSON.parse(localStorage.getItem("user"));
+
   if(user && user.email === email.value && user.pass === password.value){
+    isPremium = user.premium || ADMIN_EMAILS.includes(user.email);
     startApp();
   } else alert("Invalid login");
 }
@@ -156,6 +42,7 @@ function logout(){
 function startApp(){
   auth.classList.add("hidden");
   app.classList.remove("hidden");
+  loadHistory();
 }
 
 // SPLASH
@@ -167,10 +54,27 @@ function setMode(mode){
   chatBox.classList.toggle("hidden", mode !== "chat");
 }
 
+// TEMPLATE
+function useTemplate(text){
+  document.getElementById("prompt").value = text;
+}
+
 // TIKTOK
 function toggleTikTok(){
   tikTokMode = !tikTokMode;
-  alert("TikTok Mode: " + (tikTokMode ? "ON" : "OFF"));
+  alert("TikTok Mode: "+(tikTokMode?"ON":"OFF"));
+}
+
+// SAVE HISTORY
+function saveHistory(item){
+  history.unshift(item);
+  localStorage.setItem("history", JSON.stringify(history));
+  loadHistory();
+}
+
+function loadHistory(){
+  const box = document.getElementById("historyBox");
+  box.innerHTML = history.slice(0,10).map(h=>`<p>• ${h}</p>`).join("");
 }
 
 // DOWNLOAD
@@ -181,60 +85,50 @@ function downloadFile(url){
   a.click();
 }
 
-// MAIN GENERATE
+// SHARE
+function share(text){
+  if(navigator.share){
+    navigator.share({text});
+  } else alert(text);
+}
+
+// 🔥 PREMIUM CHECK
+function checkLimit(){
+  if(isPremium) return true;
+
+  if(usage >= 5){
+    alert("🔥 Free limit reached! Upgrade to Premium for unlimited access.");
+    return false;
+  }
+
+  usage++;
+  localStorage.setItem("usage", usage);
+  return true;
+}
+
+// FAKE UPGRADE (FOR NOW)
+function upgrade(){
+  isPremium = true;
+  alert("🎉 Premium Activated!");
+}
+
+// MAIN
 async function generate(){
   let prompt = document.getElementById("prompt").value.trim();
   const output = document.getElementById("output");
-  const chatBox = document.getElementById("chatBox");
+  const loader = document.getElementById("loader");
 
   if(!prompt) return alert("Enter something");
 
-  // ===== CHAT MODE (SMART MEMORY) =====
-  if(currentMode === "chat"){
-    chatHistory.push({ role:"user", content:prompt });
+  if(!checkLimit()) return;
 
+  loader.style.display = "block";
+
+  // CHAT
+  if(currentMode === "chat"){
     chatBox.innerHTML += `<p><b>You:</b> ${prompt}</p>`;
     chatBox.innerHTML += `<p>🤖 Thinking...</p>`;
 
-    try{
-      const res = await fetch("https://backend-ppyz.onrender.com/story",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          prompt,
-          history: chatHistory
-        })
-      });
-
-      const data = await res.json();
-      const reply = data.text || "No response";
-
-      chatHistory.push({ role:"assistant", content:reply });
-
-      chatBox.innerHTML += `<p><b>AI:</b> ${reply}</p>`;
-
-    } catch {
-      let context = chatHistory.slice(-3).map(m => m.content).join(" ");
-
-      const fallback = `
-Based on our conversation: "${context}"
-
-Here’s a helpful answer about "${prompt}":
-
-This involves understanding the situation, applying logic, and giving a meaningful response.
-`;
-
-      chatHistory.push({ role:"assistant", content:fallback });
-
-      chatBox.innerHTML += `<p><b>AI:</b> ${fallback}</p>`;
-    }
-
-    chatBox.scrollTop = chatBox.scrollHeight;
-    return;
-  }
-
-  // ===== STORY MODE =====
-  if(currentMode === "story"){
     try{
       const res = await fetch("https://backend-ppyz.onrender.com/story",{
         method:"POST",
@@ -243,33 +137,28 @@ This involves understanding the situation, applying logic, and giving a meaningf
       });
 
       const data = await res.json();
+      const reply = data.text || "No response";
 
-      if(data.text){
-        output.innerHTML = `<div class="card"><pre>${data.text}</pre></div>`;
-        return;
-      }
+      chatBox.innerHTML += `<p><b>AI:</b> ${reply}</p>`;
+      saveHistory(prompt);
 
-    } catch {}
+    } catch {
+      chatBox.innerHTML += `<p><b>AI:</b> Smart fallback response</p>`;
+    }
 
-    output.innerHTML = `
-      <div class="card">
-<pre>
-Title: ${prompt}
-
-One day, everything changed when ${prompt.toLowerCase()} became real.
-
-People reacted with fear and excitement.
-
-In the end, a bold decision changed everything forever.
-
-Nothing was ever the same again.
-</pre>
-      </div>
-    `;
+    loader.style.display = "none";
     return;
   }
 
-  // ===== IMAGE / VIDEO =====
+  // STORY
+  if(currentMode === "story"){
+    output.innerHTML = `<div class="card"><pre>Story about ${prompt}</pre></div>`;
+    saveHistory(prompt);
+    loader.style.display = "none";
+    return;
+  }
+
+  // IMAGE / VIDEO
   try{
     const res = await fetch("https://backend-ppyz.onrender.com/generate",{
       method:"POST",
@@ -279,32 +168,22 @@ Nothing was ever the same again.
 
     const data = await res.json();
 
-    const caption = document.getElementById("captionInput").value;
-    const music = document.getElementById("musicUpload").files[0];
-
-    let media = currentMode === "video"
-      ? `<video src="${data.url}" controls autoplay loop muted></video>`
-      : `<img src="${data.url}">`;
-
-    let audio = music ? `<audio src="${URL.createObjectURL(music)}" controls autoplay loop></audio>` : "";
-
-    let box = tikTokMode ? "style='width:300px;margin:auto;'" : "";
-
     output.innerHTML = `
-      <div class="card" ${box}>
-        ${media}
-        ${caption ? `<p>${caption}</p>` : ""}
-        ${audio}
+      <div class="card">
+        <img src="${data.url}">
         <button onclick="downloadFile('${data.url}')">Download</button>
+        <button onclick="share('${prompt}')">Share</button>
+        <button onclick="upgrade()">⭐ Upgrade to Premium</button>
       </div>
     `;
 
+    saveHistory(prompt);
+
   } catch {
-    output.innerHTML = "❌ Error generating";
+    output.innerHTML = "Error";
   }
+
+  loader.style.display = "none";
 }
 
 </script>
-
-</body>
-</html>
