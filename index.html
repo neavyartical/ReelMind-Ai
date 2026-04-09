@@ -14,17 +14,17 @@ body{
   height:100vh;
 }
 
-/* GRID MENU */
+/* GRID */
 #grid{
   display:grid;
-  grid-template-columns: repeat(4,1fr);
-  gap:10px;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
   padding:10px;
 }
 
 .grid-btn{
   text-align:center;
-  padding:12px;
+  padding:10px;
   border-radius:12px;
   background:rgba(255,255,255,0.1);
 }
@@ -32,7 +32,6 @@ body{
 .grid-btn span{
   display:block;
   font-size:12px;
-  margin-top:5px;
 }
 
 /* CHAT */
@@ -45,7 +44,7 @@ body{
 .msg{
   margin:8px;
   padding:12px;
-  border-radius:14px;
+  border-radius:12px;
   max-width:85%;
 }
 
@@ -74,12 +73,29 @@ body{
   color:white;
 }
 
-/* ADS */
-#ad{
+/* PAYMENT POPUP */
+#pay{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.8);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+#payBox{
+  background:#111;
+  padding:20px;
+  border-radius:12px;
   text-align:center;
-  padding:8px;
-  font-size:12px;
-  background:#000;
+}
+
+.plan{
+  margin:10px;
+  padding:10px;
+  border-radius:10px;
+  background:#222;
 }
 </style>
 </head>
@@ -92,31 +108,48 @@ body{
   <div class="grid-btn" onclick="setMode('story')">📖<span>Story</span></div>
   <div class="grid-btn" onclick="setMode('image')">🖼<span>Image</span></div>
   <div class="grid-btn" onclick="setMode('video')">🎬<span>Video</span></div>
-  <div class="grid-btn" onclick="upgrade()">💎<span>Premium</span></div>
+  <div class="grid-btn" onclick="openPay()">💎<span>Premium</span></div>
   <div class="grid-btn" onclick="viewProjects()">📂<span>Projects</span></div>
 </div>
 
 <div id="chat"></div>
 
-<div id="ad">🔥 Your Ad Here (AdMob later)</div>
-
 <div id="bottom">
-  <input id="input" placeholder="Ask or create...">
+  <input id="input" placeholder="Ask anything...">
   <button onclick="send()">➤</button>
+</div>
+
+<!-- PAYMENT -->
+<div id="pay">
+  <div id="payBox">
+    <h3>Upgrade to Premium 💎</h3>
+
+    <div class="plan">
+      $9 / month  
+      <br><button onclick="buy()">Subscribe</button>
+    </div>
+
+    <div class="plan">
+      $99 / year  
+      <br><button onclick="buy()">Subscribe</button>
+    </div>
+
+    <br><button onclick="closePay()">Cancel</button>
+  </div>
 </div>
 
 <script>
 
-// MODE
 let mode="chat";
 let premium=false;
 
+// MODE
 function setMode(m){
   mode=m;
   add("Mode: "+m,"ai");
 }
 
-// ADD MESSAGE
+// MESSAGE
 function add(t,type){
   let d=document.createElement("div");
   d.className="msg "+type;
@@ -125,47 +158,57 @@ function add(t,type){
   chat.scrollTop=chat.scrollHeight;
 }
 
-// SAVE PROJECT
+// SAVE
 function save(type,data){
   let p=JSON.parse(localStorage.getItem(type)||"[]");
   p.unshift(data);
   localStorage.setItem(type,JSON.stringify(p));
 }
 
+// VIEW PROJECTS
 function viewProjects(){
   let s=JSON.parse(localStorage.getItem("stories")||"[]");
-  add("Saved:<br>"+s.join("<br><br>"),"ai");
+  add("Saved Stories:<br>"+s.join("<br><br>"),"ai");
 }
 
-// PREMIUM LOCK
-function upgrade(){
+// PAYMENT
+function openPay(){
+  document.getElementById("pay").style.display="flex";
+}
+function closePay(){
+  document.getElementById("pay").style.display="none";
+}
+function buy(){
   premium=true;
-  alert("Premium unlocked 💎");
+  alert("Payment successful 💎 (demo)");
+  closePay();
 }
 
+// CHECK PREMIUM
 function checkPremium(){
   if(!premium){
-    alert("Upgrade to Premium 💎");
+    openPay();
     return false;
   }
   return true;
 }
 
-// REAL AI CALL (IMPORTANT)
-async function realAI(prompt){
-  try{
-    let res = await fetch("https://YOUR-BACKEND-URL/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({prompt})
-    });
+// TYPE EFFECT
+function typeText(text){
+  return new Promise(resolve=>{
+    let i=0;
+    let div=document.createElement("div");
+    div.className="msg ai";
+    chat.appendChild(div);
 
-    let data = await res.json();
-    return data.reply;
-
-  }catch(e){
-    return "⚠️ AI not connected yet";
-  }
+    function typing(){
+      if(i<text.length){
+        div.innerHTML+=text[i++];
+        setTimeout(typing,6);
+      }else resolve();
+    }
+    typing();
+  });
 }
 
 // SEND
@@ -193,30 +236,55 @@ async function send(){
       </video>
       🔥 Viral caption ready
     `,"ai");
-
     return;
   }
 
-  // STORY
+  // STORY (CHATGPT STYLE LONG)
   if(mode==="story"){
     let story = `
-🎬 Story:
+🎬 Cinematic Story
 
 ${txt}
 
-A journey filled with emotion and power.
+━━━━━━━━━━━━━━━
 
-🔥 Viral ending.
+It began in a world where everything seemed ordinary. But beneath the surface, something was shifting. The atmosphere carried a quiet tension, like the calm before a storm.
+
+As time moved forward, small changes turned into powerful moments. Decisions became harder. Emotions grew deeper. Every step forward felt uncertain, yet necessary.
+
+Then came the moment that changed everything. A single action triggered a chain of events no one could stop. Fear, courage, doubt, and determination collided in one defining instant.
+
+From that point, nothing was the same. What once felt impossible slowly became reality. Strength was discovered in the darkest moments, and clarity emerged from chaos.
+
+In the end, what started as a simple idea became something far greater — a story of transformation, resilience, and purpose.
+
+✨ And this was only the beginning…
+
+━━━━━━━━━━━━━━━
+🔥 Caption: This will break the internet #viral #fyp
 `;
 
-    add(story,"ai");
+    await typeText(story);
     save("stories",story);
     return;
   }
 
-  // CHAT (REAL AI)
-  let reply = await realAI(txt);
-  add("🤖 "+reply,"ai");
+  // CHAT (SMART SIMULATED)
+  let reply = `
+🤖 AI Response
+
+"${txt}"
+
+Here’s a smarter way to look at it:
+
+• Understand the goal  
+• Break it into steps  
+• Execute consistently  
+
+🔥 You’re building something powerful.
+`;
+
+  await typeText(reply);
 }
 
 </script>
