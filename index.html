@@ -54,13 +54,14 @@ body{
   position:absolute;
   width:260px;
   height:260px;
-  background:rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(15px);
   border-radius:20px;
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  backdrop-filter:blur(10px);
+  box-shadow:0 8px 30px rgba(0,0,0,0.3);
 }
 
 .front{ transform:rotateY(0deg) translateZ(130px);}
@@ -91,7 +92,12 @@ button{
   min-height:100px;
 }
 
-/* PREMIUM BOX */
+#status{
+  font-size:12px;
+  opacity:0.8;
+}
+
+/* PREMIUM */
 .premium{
   background:rgba(255,255,255,0.1);
   padding:10px;
@@ -113,109 +119,6 @@ button{
 
 <!-- APP -->
 <div id="app">
+
 <h2>🌊 ReelMind AI</h2>
-<p>Powered by Artical Neavy</p>
-
-<div class="scene">
-  <div class="cube">
-
-    <div class="face front" onclick="select('chat')">Chat</div>
-    <div class="face back" onclick="select('story')">Story</div>
-    <div class="face right" onclick="select('image')">Image</div>
-    <div class="face left" onclick="select('video')">Video</div>
-    <div class="face top" onclick="select('music')">Music</div>
-    <div class="face bottom" onclick="select('money')">Money</div>
-
-  </div>
-</div>
-
-<input id="prompt" placeholder="Enter idea"><br>
-<button onclick="generate()">Generate</button>
-<button onclick="download()">Download</button>
-
-<div id="output"></div>
-
-<div class="premium">
-  <p>💎 Premium</p>
-  <button onclick="unlock()">Unlock</button>
-</div>
-
-</div>
-
-<script>
-let mode="chat";
-let premium=false;
-
-// LOGIN (LOCAL)
-function login(){
-  let u=document.getElementById("user").value;
-  let p=document.getElementById("pass").value;
-
-  if(u && p){
-    localStorage.setItem("user",u);
-    document.getElementById("loginBox").style.display="none";
-    document.getElementById("app").style.display="block";
-  } else {
-    alert("Enter details");
-  }
-}
-
-// SELECT MODE
-function select(m){
-  mode=m;
-}
-
-// GENERATE (WORKS OFFLINE)
-function generate(){
-  let prompt=document.getElementById("prompt").value;
-
-  if(!prompt){
-    alert("Enter something");
-    return;
-  }
-
-  // IMAGE
-  if(mode==="image"){
-    document.getElementById("output").innerHTML =
-      `<img src="https://image.pollinations.ai/prompt/${prompt}" width="250">`;
-    return;
-  }
-
-  // VIDEO LOCK
-  if(mode==="video" && !premium){
-    document.getElementById("output").innerText =
-      "🔒 Premium only video feature";
-    return;
-  }
-
-  // FAKE AI (OFFLINE)
-  document.getElementById("output").innerText =
-    "🤖 AI says: " + prompt + " is a powerful idea!";
-}
-
-// DOWNLOAD
-function download(){
-  let text=document.getElementById("output").innerText;
-
-  let blob=new Blob([text],{type:"text/plain"});
-  let a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="reelmind.txt";
-  a.click();
-}
-
-// PREMIUM
-function unlock(){
-  let code=prompt("Enter code:");
-
-  if(code==="NEAVY"){
-    premium=true;
-    alert("Premium unlocked");
-  } else {
-    alert("Wrong code");
-  }
-}
-</script>
-
-</body>
-</html>
+<p>Powered by Artical Neavy</p
