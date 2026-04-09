@@ -17,7 +17,12 @@
 
   <img id="video" style="display:none;width:90%;" />
 
-  <!-- VERY IMPORTANT LINE -->
-  <script src="./script.js?v=9999"></script>
+  <!-- FORCE LOAD NEW SCRIPT -->
+  <script>
+    const script = document.createElement("script");
+    script.src = "script.js?v=" + new Date().getTime();
+    document.body.appendChild(script);
+  </script>
+
 </body>
 </html>
