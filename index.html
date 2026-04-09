@@ -6,14 +6,15 @@
 <style>
 body {
   margin:0;
-  font-family:Arial;
-  background: linear-gradient(135deg,#2a003f,#ff6a00);
+  font-family:-apple-system, BlinkMacSystemFont;
+  background: linear-gradient(135deg,#1a001f,#ff6a00);
   color:white;
   display:flex;
   flex-direction:column;
   height:100vh;
 }
 
+/* TOP BAR */
 #topBar {
   display:flex;
   gap:8px;
@@ -24,57 +25,64 @@ body {
 #topBar button {
   padding:10px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:rgba(255,255,255,0.1);
   color:white;
+  backdrop-filter: blur(10px);
 }
 
+/* CHAT */
 #chat {
   flex:1;
   overflow:auto;
-  padding:10px;
+  padding:12px;
 }
 
 .msg {
   margin:8px;
-  padding:10px;
-  border-radius:10px;
+  padding:12px;
+  border-radius:16px;
   max-width:80%;
 }
 
 .user {
-  background:#ff6a00;
+  background:linear-gradient(135deg,#ff6a00,#ff00cc);
   margin-left:auto;
 }
 
 .ai {
-  background:#1f1f1f;
+  background:rgba(0,0,0,0.5);
 }
 
+/* INPUT */
 #bottomBar {
   display:flex;
   padding:10px;
+  background:rgba(0,0,0,0.4);
 }
 
 #bottomBar input {
   flex:1;
-  padding:12px;
+  padding:14px;
   border:none;
-  border-radius:10px;
-}
-
-#bottomBar button {
-  margin-left:5px;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#ff6a00;
+  border-radius:14px;
+  background:rgba(255,255,255,0.1);
   color:white;
 }
 
-img,video {
+#bottomBar button {
+  margin-left:6px;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(90deg,#ff6a00,#ff00cc);
+  color:white;
+}
+
+img, video {
   width:100%;
-  border-radius:10px;
+  border-radius:12px;
+  margin-top:8px;
 }
 </style>
 </head>
@@ -82,11 +90,12 @@ img,video {
 <body>
 
 <div id="topBar">
-  <button onclick="quick('Funny TikTok story')">😂</button>
-  <button onclick="quick('Sad emotional story')">💔</button>
-  <button onclick="quick('Anime battle')">🔥</button>
+  <button onclick="quick('Funny story')">😂</button>
+  <button onclick="quick('Sad story')">💔</button>
+  <button onclick="quick('Anime story')">🔥</button>
   <button onclick="quick('Make money online')">💰</button>
   <button onclick="quick('Create video')">🎬</button>
+  <button onclick="viewHistory()">💾</button>
 </div>
 
 <div id="chat"></div>
@@ -95,21 +104,19 @@ img,video {
 
 <div id="bottomBar">
   <input id="input" placeholder="Ask anything...">
-  <button onclick="send()">Send</button>
+  <button onclick="send()">➤</button>
+  <button onclick="startVoice()">🎤</button>
 </div>
 
 <script>
 
-// SAFE VARIABLES
-let tiktok = false;
+// SYSTEM
 let queue = [];
 let processing = false;
 
 // ADD MESSAGE
 function addMessage(text,type){
   let chat = document.getElementById("chat");
-  if(!chat) return;
-
   let div = document.createElement("div");
   div.className = "msg " + type;
   div.innerHTML = text;
@@ -117,24 +124,21 @@ function addMessage(text,type){
   chat.scrollTop = chat.scrollHeight;
 }
 
-// TYPE (SAFE)
+// TYPE EFFECT
 function typeMessage(text){
-  return new Promise(resolve => {
-    let i = 0;
-    let chat = document.getElementById("chat");
-
-    let div = document.createElement("div");
-    div.className = "msg ai";
+  return new Promise(resolve=>{
+    let i=0;
+    let chat=document.getElementById("chat");
+    let div=document.createElement("div");
+    div.className="msg ai";
     chat.appendChild(div);
 
     function typing(){
-      if(i < text.length){
-        div.innerHTML += text.charAt(i);
+      if(i<text.length){
+        div.innerHTML+=text.charAt(i);
         i++;
-        setTimeout(typing, 10);
-      } else {
-        resolve();
-      }
+        setTimeout(typing,10);
+      } else resolve();
     }
 
     typing();
@@ -147,11 +151,55 @@ async function processQueue(){
   processing = true;
 
   while(queue.length){
-    let job = queue.shift();
-    await job();
+    await queue.shift()();
   }
 
   processing = false;
+}
+
+// THINKING
+function showThinking(){
+  let chat=document.getElementById("chat");
+  let div=document.createElement("div");
+  div.className="msg ai";
+  div.id="thinking";
+  div.innerHTML="🤖 Thinking...";
+  chat.appendChild(div);
+}
+
+function removeThinking(){
+  let t=document.getElementById("thinking");
+  if(t) t.remove();
+}
+
+// SAVE HISTORY
+function saveHistory(text){
+  let history = JSON.parse(localStorage.getItem("history") || "[]");
+  history.unshift(text);
+  localStorage.setItem("history", JSON.stringify(history));
+}
+
+function viewHistory(){
+  let history = JSON.parse(localStorage.getItem("history") || "[]");
+
+  if(history.length === 0){
+    addMessage("💾 No history yet","ai");
+    return;
+  }
+
+  addMessage("💾 History:<br><br>" + history.slice(0,10).join("<br><br>"),"ai");
+}
+
+// VOICE INPUT
+function startVoice(){
+  let rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  rec.lang = "en-US";
+
+  rec.onresult = function(e){
+    document.getElementById("input").value = e.results[0][0].transcript;
+  };
+
+  rec.start();
 }
 
 // QUICK
@@ -178,20 +226,17 @@ function handleUpload(){
 
 // SEND
 function send(){
-  let inputEl = document.getElementById("input");
-  if(!inputEl) return;
-
-  let input = inputEl.value.trim();
+  let input = document.getElementById("input").value.trim();
   if(!input) return;
 
   addMessage(input,"user");
+  saveHistory(input);
 
   let lower = input.toLowerCase();
 
   // IMAGE
   if(lower.includes("image")){
     let url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(input);
-
     addMessage(`<img src="${url}">`,"ai");
     return;
   }
@@ -209,18 +254,63 @@ function send(){
   // STORY
   if(lower.includes("story")){
     queue.push(async ()=>{
-      let story = "Once upon a time... " + input + " and it became something powerful.";
+      showThinking();
+      await new Promise(r=>setTimeout(r,700));
+      removeThinking();
+
+      let story = `
+📖 Story:
+
+In a world where ${input}, everything began to change.
+
+At first, it felt normal. But soon, hidden truths started to reveal themselves.
+
+Challenges came — powerful and emotional.
+
+Then came the turning point. Everything changed.
+
+✨ This is just the beginning...
+`;
 
       await typeMessage(story);
+
+      addMessage("🔥 Caption: This story hits different… #viral #fyp","ai");
+
     });
 
     processQueue();
     return;
   }
 
-  // DEFAULT
+  // CAPTION
+  if(lower.includes("caption")){
+    queue.push(async ()=>{
+      showThinking();
+      await new Promise(r=>setTimeout(r,500));
+      removeThinking();
+
+      let caption = `
+🔥 Viral Caption:
+
+"${input}"
+
+#fyp #viral #trending #reels
+`;
+
+      await typeMessage(caption);
+    });
+
+    processQueue();
+    return;
+  }
+
+  // DEFAULT CHAT
   queue.push(async ()=>{
-    await typeMessage("AI: I understand " + input);
+    showThinking();
+    await new Promise(r=>setTimeout(r,500));
+    removeThinking();
+
+    await typeMessage("🤖 AI: I understand " + input);
   });
 
   processQueue();
