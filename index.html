@@ -3,19 +3,25 @@
 <head>
   <title>ReelMind AI</title>
 </head>
+
 <body style="background:black;color:white;text-align:center;font-family:sans-serif">
 
   <h1>🔥 ReelMind AI</h1>
 
-  <button onclick="generate()">Generate</button>
+  <!-- BUTTON -->
+  <button onclick="generateAI()">Generate</button>
 
   <script>
     const API_URL = "https://reelmindbackend-1.onrender.com/generate";
 
-    async function generate() {
-      const prompt = prompt("Enter your idea:");
+    // 🔥 THIS FUNCTION MUST MATCH BUTTON
+    async function generateAI() {
+      let userInput = prompt("Enter your idea:");
 
-      if (!prompt) return;
+      if (!userInput) {
+        alert("Type something!");
+        return;
+      }
 
       try {
         const res = await fetch(API_URL, {
@@ -23,7 +29,9 @@
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ prompt })
+          body: JSON.stringify({
+            prompt: userInput
+          })
         });
 
         const data = await res.json();
@@ -31,7 +39,7 @@
         alert(data.result);
 
       } catch (err) {
-        alert("Error connecting to server ❌");
+        alert("❌ Error connecting to server");
         console.error(err);
       }
     }
