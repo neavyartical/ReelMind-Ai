@@ -6,66 +6,40 @@
 
   <style>
     body {
-      margin:0;
-      font-family: Arial;
-      background: linear-gradient(135deg, #1a0033, #ff6a00);
-      color:white;
-      text-align:center;
-    }
-
-    input {
-      width:85%;
-      padding:12px;
-      margin:8px;
-      border-radius:10px;
-      border:none;
       background:#111;
       color:white;
+      text-align:center;
+      font-family:Arial;
+    }
+
+    input, button {
+      width:90%;
+      padding:12px;
+      margin:6px;
+      border-radius:8px;
+      border:none;
     }
 
     button {
-      padding:12px;
-      margin:6px;
-      border:none;
-      border-radius:10px;
       background:#ff6a00;
       color:white;
       font-weight:bold;
-      cursor:pointer;
-      width:85%;
-    }
-
-    .small-btn {
-      width:auto;
-      padding:6px 10px;
-      font-size:12px;
-    }
-
-    .active {
-      background:#00ffcc !important;
-      color:black;
     }
 
     .card {
-      margin-top:15px;
-      padding:15px;
-      background:#111;
-      border-radius:15px;
+      background:#222;
+      margin:10px;
+      padding:10px;
+      border-radius:10px;
     }
 
-    img { width:100%; border-radius:10px; }
-
     .hidden { display:none; }
-
-    #chatBox { max-height:300px; overflow:auto; text-align:left; }
-    #historyBox { max-height:200px; overflow:auto; text-align:left; }
   </style>
 </head>
 
 <body>
 
-<h2>🎬 ReelMind AI</h2>
-<p>Create • Inspire • Go Viral 🚀</p>
+<h2>ReelMind AI</h2>
 
 <!-- LOGIN -->
 <div id="auth">
@@ -77,30 +51,27 @@
 <!-- APP -->
 <div id="app" class="hidden">
 
-  <!-- MODES -->
+  <!-- MODE BUTTONS -->
   <div class="card">
-    <button id="chatBtn" onclick="setMode('chat')">Chat</button>
-    <button id="storyBtn" onclick="setMode('story')">Story</button>
-    <button id="imageBtn" onclick="setMode('image')">Image</button>
-    <button id="videoBtn" onclick="setMode('video')">Video</button>
+    <button onclick="setMode('chat')">Chat</button>
+    <button onclick="setMode('story')">Story</button>
+    <button onclick="setMode('image')">Image</button>
+    <button onclick="setMode('video')">Video</button>
   </div>
 
-  <p id="modeStatus">Mode: IMAGE</p>
+  <p id="modeText">Mode: image</p>
 
   <!-- TEMPLATES -->
   <div class="card">
-    <h3>🔥 Templates</h3>
-    <button class="small-btn" onclick="useTemplate('Funny viral TikTok idea')">😂 Funny</button>
-    <button class="small-btn" onclick="useTemplate('Sad emotional love story')">💔 Sad</button>
-    <button class="small-btn" onclick="useTemplate('Anime fight scene')">🔥 Anime</button>
-    <button class="small-btn" onclick="useTemplate('How to make money online fast')">💰 Money</button>
+    <button onclick="setPrompt('Funny TikTok idea')">Funny</button>
+    <button onclick="setPrompt('Sad love story')">Sad</button>
+    <button onclick="setPrompt('Anime fight scene')">Anime</button>
+    <button onclick="setPrompt('Make money online')">Money</button>
   </div>
 
-  <input id="prompt" placeholder="Ask or create anything...">
-  <button onclick="generate()">✨ Generate</button>
+  <input id="prompt" placeholder="Type something...">
 
-  <button onclick="toggleTikTok()">🎵 TikTok Mode</button>
-  <p id="tiktokStatus">OFF</p>
+  <button onclick="generate()">Generate</button>
 
   <!-- CHAT -->
   <div id="chatBox" class="card hidden"></div>
@@ -108,150 +79,78 @@
   <!-- OUTPUT -->
   <div id="output"></div>
 
-  <!-- HISTORY -->
-  <div class="card">
-    <h3>💾 History</h3>
-    <div id="historyBox"></div>
-  </div>
+  <!-- TIKTOK -->
+  <button onclick="toggleTikTok()">TikTok Mode</button>
+  <p id="tt">OFF</p>
 
-  <!-- BRAND FIXED -->
-  <p style="
-    font-weight:bold;
-    margin-top:20px;
-    font-size:14px;
-    color:#fff;
-    text-shadow: 0 0 5px #ff6a00, 0 0 10px #6a00ff;
-  ">
-    ✨ Powered by Artical Neavy
-  </p>
+  <p style="color:white;">Powered by Artical Neavy</p>
 
 </div>
 
 <script>
 
-let currentMode = "image";
-let tikTokMode = false;
-let savedHistory = JSON.parse(localStorage.getItem("history") || "[]");
-
-let usage = parseInt(localStorage.getItem("usage") || "0");
-let isPremium = false;
+let mode = "image";
+let tiktok = false;
 
 // LOGIN
 function login(){
-  document.getElementById("auth").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  loadHistory();
+  document.getElementById("auth").style.display = "none";
+  document.getElementById("app").style.display = "block";
 }
 
-// MODE SWITCH
-function setMode(mode){
-  currentMode = mode;
+// MODE
+function setMode(m){
+  mode = m;
+  document.getElementById("modeText").innerText = "Mode: " + m;
 
-  document.getElementById("modeStatus").innerText = "Mode: " + mode.toUpperCase();
-
-  document.getElementById("chatBox").classList.toggle("hidden", mode !== "chat");
-
-  ["chatBtn","storyBtn","imageBtn","videoBtn"].forEach(id=>{
-    document.getElementById(id).classList.remove("active");
-  });
-
-  document.getElementById(mode + "Btn").classList.add("active");
+  if(m === "chat"){
+    document.getElementById("chatBox").classList.remove("hidden");
+  } else {
+    document.getElementById("chatBox").classList.add("hidden");
+  }
 }
 
 // TEMPLATE
-function useTemplate(text){
+function setPrompt(text){
   document.getElementById("prompt").value = text;
 }
 
 // TIKTOK
 function toggleTikTok(){
-  tikTokMode = !tikTokMode;
-  document.getElementById("tiktokStatus").innerText = tikTokMode ? "ON 🔥" : "OFF";
+  tiktok = !tiktok;
+  document.getElementById("tt").innerText = tiktok ? "ON" : "OFF";
 }
 
-// HISTORY
-function saveHistory(item){
-  savedHistory.unshift(item);
-  localStorage.setItem("history", JSON.stringify(savedHistory));
-  loadHistory();
-}
-
-function loadHistory(){
-  const box = document.getElementById("historyBox");
-  box.innerHTML = savedHistory.slice(0,10).map(h=>`<p>• ${h}</p>`).join("");
-}
-
-// PREMIUM
-function checkLimit(){
-  if(isPremium) return true;
-
-  if(usage >= 5){
-    alert("🔥 Free limit reached! Upgrade to Premium.");
-    return false;
-  }
-
-  usage++;
-  localStorage.setItem("usage", usage);
-  return true;
-}
-
-// MAIN GENERATE
+// GENERATE
 function generate(){
-  let prompt = document.getElementById("prompt").value.trim();
-  const output = document.getElementById("output");
+  let p = document.getElementById("prompt").value;
+  let out = document.getElementById("output");
 
-  if(!prompt) return alert("Type something");
-  if(!checkLimit()) return;
-
-  // CHAT
-  if(currentMode === "chat"){
-    const chatBox = document.getElementById("chatBox");
-
-    chatBox.innerHTML += `<p><b>You:</b> ${prompt}</p>`;
-    chatBox.innerHTML += `<p><b>AI:</b> I understand: "${prompt}". Let me help you with that 🔥</p>`;
-
-    saveHistory(prompt);
+  if(!p){
+    alert("Type something");
     return;
   }
 
-  // STORY (FIXED)
-  if(currentMode === "story"){
-    const story = "Once upon a time... " + prompt;
-
-    output.innerHTML = `
-      <div class="card">
-        <h3>📖 Story</h3>
-        <p>${story}</p>
-      </div>
-    `;
-
-    saveHistory(story);
+  if(mode === "chat"){
+    let box = document.getElementById("chatBox");
+    box.innerHTML += "<p>You: " + p + "</p>";
+    box.innerHTML += "<p>AI: I understand '" + p + "'</p>";
     return;
   }
 
-  // IMAGE
-  if(currentMode === "image"){
-    output.innerHTML = `
-      <div class="card">
-        <p>🖼 Image generated for:</p>
-        <p>${prompt}</p>
-      </div>
-    `;
-
-    saveHistory(prompt);
+  if(mode === "story"){
+    out.innerHTML = "<div class='card'>Story: Once upon a time... " + p + "</div>";
     return;
   }
 
-  // VIDEO
-  if(currentMode === "video"){
-    output.innerHTML = `
-      <div class="card">
-        <p>🎬 Video idea:</p>
-        <p>${prompt}</p>
-      </div>
-    `;
+  if(mode === "image"){
+    out.innerHTML = "<div class='card'>Image for: " + p + "</div>";
+    return;
+  }
 
-    saveHistory(prompt);
+  if(mode === "video"){
+    out.innerHTML = "<div class='card'>Video idea: " + p + "</div>";
+    return;
   }
 }
 
