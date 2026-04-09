@@ -1,46 +1,92 @@
-<script>
-async function generate() {
-  const prompt = document.getElementById("prompt").value;
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ReelMind AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  const status = document.getElementById("status");
-  const result = document.getElementById("result");
-
-  if (!prompt) {
-    status.innerText = "Enter something first ⚠️";
-    return;
-  }
-
-  status.innerText = "Generating... ⏳";
-  result.innerHTML = `
-    <div style="opacity:0.6">Please wait...</div>
-  `;
-
-  try {
-    const res = await fetch("https://backend-ppyz.onrender.com/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await res.json();
-    console.log(data);
-
-    if (data.url) {
-      status.innerText = "Done ✅";
-
-      result.innerHTML = `
-        <img src="${data.url}" style="max-width:100%; border-radius:12px;" />
-      `;
-    } else {
-      status.innerText = "Error ❌";
-      result.innerText = JSON.stringify(data);
+  <style>
+    body {
+      background: #0f0f0f;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+      padding: 20px;
     }
 
-  } catch (err) {
-    status.innerText = "Server error ❌";
-    console.error(err);
-  }
-}
-</script>
+    input {
+      width: 90%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 12px 20px;
+      background: #00c853;
+      color: white;
+      border: none;
+      border-radius: 8px;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 20px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>🎬 ReelMind AI</h2>
+
+  <input id="prompt" placeholder="Type prompt..." />
+  <br>
+  <button onclick="generate()">Generate</button>
+
+  <p id="status"></p>
+  <div id="result"></div>
+
+  <script>
+    async function generate() {
+      const prompt = document.getElementById("prompt").value;
+
+      const status = document.getElementById("status");
+      const result = document.getElementById("result");
+
+      if (!prompt) {
+        status.innerText = "Enter something ⚠️";
+        return;
+      }
+
+      status.innerText = "Generating...";
+      result.innerHTML = "";
+
+      try {
+        const res = await fetch("https://your-backend-url.onrender.com/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ prompt })
+        });
+
+        const data = await res.json();
+
+        if (data.url) {
+          status.innerText = "Done ✅";
+          result.innerHTML = `<img src="${data.url}" />`;
+        } else {
+          status.innerText = "Error ❌";
+          result.innerText = JSON.stringify(data);
+        }
+
+      } catch (err) {
+        status.innerText = "Server error ❌";
+      }
+    }
+  </script>
+
+</body>
+</html>
