@@ -44,7 +44,7 @@
 
   <h2>🎬 ReelMind AI</h2>
 
-  <input id="prompt" placeholder="Type something like: lion dancing in savanna" />
+  <input id="prompt" placeholder="Type: lion dancing in savanna" />
   <br><br>
 
   <button onclick="generate()">Generate</button>
@@ -68,7 +68,7 @@
       result.innerHTML = "";
 
       try {
-        // 🔥 REPLACE THIS LINK WITH YOUR REAL BACKEND
+        // 🔥 IMPORTANT: PUT YOUR REAL BACKEND LINK HERE
         const res = await fetch("https://YOUR-BACKEND.onrender.com/generate", {
           method: "POST",
           headers: {
@@ -77,17 +77,14 @@
           body: JSON.stringify({ prompt })
         });
 
-        const text = await res.text();
-        console.log("RAW RESPONSE:", text);
-
-        const data = JSON.parse(text);
+        const data = await res.json();
 
         if (data.url) {
           status.innerText = "Done ✅";
           result.innerHTML = `<img src="${data.url}" />`;
         } else {
           status.innerText = "Error ❌";
-          result.innerText = text;
+          result.innerText = JSON.stringify(data);
         }
 
       } catch (err) {
