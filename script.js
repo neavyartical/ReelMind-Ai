@@ -34,15 +34,10 @@ async function generate() {
     console.log("📦 Response:", data);
 
     if (data.video) {
-      console.log("✅ Got image");
-
       status.innerText = "Done ✅";
-
       img.src = data.video;
       img.style.display = "block";
     } else {
-      console.log("❌ No video field");
-
       status.innerText = "Failed ❌";
     }
 
