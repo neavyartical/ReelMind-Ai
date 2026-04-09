@@ -6,34 +6,34 @@
 <style>
 body{
   margin:0;
-  color:white;
   font-family:sans-serif;
   text-align:center;
-  background:linear-gradient(135deg,#0f2027,#2c5364,#1c92d2);
-  background-size:400% 400%;
-  animation:bg 10s infinite;
-}
-@keyframes bg{
-  0%{background-position:0%}
-  50%{background-position:100%}
-  100%{background-position:0%}
+  color:white;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  overflow:hidden;
 }
 
-#app{display:none;}
+/* TITLE */
+h2{
+  margin-top:20px;
+}
 
+/* CUBE */
 .scene{
-  width:250px;
-  height:250px;
-  margin:40px auto;
+  width:220px;
+  height:220px;
+  margin:30px auto;
   perspective:800px;
 }
+
 .cube{
   width:100%;
   height:100%;
   position:relative;
   transform-style:preserve-3d;
-  animation:spin 10s linear infinite;
+  animation:spin 12s infinite linear;
 }
+
 @keyframes spin{
   from{transform:rotateX(0) rotateY(0)}
   to{transform:rotateX(360deg) rotateY(360deg)}
@@ -41,52 +41,80 @@ body{
 
 .face{
   position:absolute;
-  width:250px;height:250px;
+  width:220px;
+  height:220px;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:rgba(255,255,255,0.1);
+  font-size:18px;
   border-radius:20px;
+  background:rgba(255,255,255,0.1);
+  backdrop-filter:blur(10px);
 }
 
-.front{transform:translateZ(125px)}
-.back{transform:rotateY(180deg) translateZ(125px)}
-.right{transform:rotateY(90deg) translateZ(125px)}
-.left{transform:rotateY(-90deg) translateZ(125px)}
-.top{transform:rotateX(90deg) translateZ(125px)}
-.bottom{transform:rotateX(-90deg) translateZ(125px)}
+.front{transform:translateZ(110px)}
+.back{transform:rotateY(180deg) translateZ(110px)}
+.right{transform:rotateY(90deg) translateZ(110px)}
+.left{transform:rotateY(-90deg) translateZ(110px)}
+.top{transform:rotateX(90deg) translateZ(110px)}
+.bottom{transform:rotateX(-90deg) translateZ(110px)}
 
-input{padding:10px;width:70%;border-radius:10px;border:none}
-button{padding:10px;border:none;border-radius:10px;background:#00c6ff;color:white}
+/* INPUT */
+input{
+  width:80%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  margin-top:10px;
+}
 
-#output{margin:20px}
+/* BUTTONS */
+button{
+  margin:10px;
+  padding:12px 20px;
+  border:none;
+  border-radius:12px;
+  background:#00c6ff;
+  color:white;
+  font-weight:bold;
+}
+
+/* OUTPUT */
+#output{
+  margin:15px;
+}
+
+/* LOGIN FIX */
+#app{display:none;}
 </style>
 </head>
 
 <body>
 
+<h2>ReelMind AI</h2>
+
 <div id="login">
-<h2>Login</h2>
-<input id="user" placeholder="Username"><br><br>
-<input id="pass" type="password" placeholder="Password"><br><br>
+<input id="user" placeholder="Username"><br>
+<input id="pass" type="password" placeholder="Password"><br>
 <button onclick="login()">Enter</button>
 </div>
 
 <div id="app">
-<h2>ReelMind AI</h2>
 
 <div class="scene">
 <div class="cube">
-<div class="face front" onclick="mode='chat'">Chat</div>
-<div class="face back" onclick="mode='story'">Story</div>
-<div class="face right" onclick="mode='image'">Image</div>
-<div class="face left" onclick="mode='video'">Video</div>
-<div class="face top" onclick="mode='music'">Music</div>
-<div class="face bottom" onclick="mode='money'">Money</div>
+<div class="face front" onclick="setMode('chat')">Chat</div>
+<div class="face back" onclick="setMode('story')">Story</div>
+<div class="face right" onclick="setMode('image')">Image</div>
+<div class="face left" onclick="setMode('video')">Video</div>
+<div class="face top" onclick="setMode('music')">Music</div>
+<div class="face bottom" onclick="setMode('money')">Money</div>
 </div>
 </div>
 
-<input id="prompt" placeholder="Enter idea"><br><br>
+<input id="prompt" placeholder="Enter your idea...">
+
+<br>
 
 <button onclick="generate()">Generate</button>
 <button onclick="logout()">Logout</button>
@@ -95,20 +123,13 @@ button{padding:10px;border:none;border-radius:10px;background:#00c6ff;color:whit
 
 <button onclick="buy()">Unlock Premium ($9)</button>
 
-<!-- ADS -->
-<div>
-<script>
-/* AdMob will go in APK */
-</script>
-</div>
-
 </div>
 
 <script>
 let mode="chat";
 let user="";
 
-// AUTO LOGIN (FIXED 🚀)
+// FIX LOGIN STABILITY 🔥
 window.onload=()=>{
   let saved=localStorage.getItem("user");
   if(saved){
@@ -117,11 +138,15 @@ window.onload=()=>{
   }
 };
 
+function setMode(m){
+  mode=m;
+  alert("Mode: "+m);
+}
+
+// LOGIN
 function login(){
   user=document.getElementById("user").value;
   let pass=document.getElementById("pass").value;
-
-  if(!user||!pass){alert("Enter details");return;}
 
   fetch("https://reelmindbackend-1.onrender.com/login",{
     method:"POST",
@@ -131,9 +156,9 @@ function login(){
   .then(r=>r.json())
   .then(d=>{
     if(d.success){
-      localStorage.setItem("user",user); // 🔥 NEVER LOGOUT AGAIN
+      localStorage.setItem("user",user);
       showApp();
-    }else alert("Login failed");
+    } else alert("Login failed");
   });
 }
 
@@ -142,12 +167,13 @@ function showApp(){
   document.getElementById("app").style.display="block";
 }
 
+// LOGOUT
 function logout(){
   localStorage.removeItem("user");
   location.reload();
 }
 
-// GENERATE (FIXED)
+// GENERATE FIX 🔥
 async function generate(){
   let prompt=document.getElementById("prompt").value;
 
@@ -156,42 +182,27 @@ async function generate(){
     return;
   }
 
-  document.getElementById("output").innerText="Loading...";
+  document.getElementById("output").innerHTML="Loading...";
 
-  try{
-    let res=await fetch("https://reelmindbackend-1.onrender.com/generate",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({prompt,type:mode})
-    });
+  let res = await fetch("https://reelmindbackend-1.onrender.com/generate",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt:prompt,type:mode})
+  });
 
-    let data=await res.json();
+  let data = await res.json();
 
-    if(mode==="image"){
-      document.getElementById("output").innerHTML=
-        `<img src="${data.result}" width="250">`;
-    }else{
-      document.getElementById("output").innerText=data.result;
-    }
-
-  }catch(e){
-    document.getElementById("output").innerText="Offline mode";
+  if(mode==="image"){
+    document.getElementById("output").innerHTML=
+      `<img src="${data.result}" width="200">`;
+  } else {
+    document.getElementById("output").innerText=data.result;
   }
 }
 
-// PAYPAL (SIMPLIFIED)
+// PAYPAL BUTTON
 function buy(){
   window.open("https://www.paypal.com/paypalme/YOURNAME/9");
-
-  // AFTER PAYMENT USER RETURNS → VERIFY
-  setTimeout(()=>{
-    fetch("https://reelmindbackend-1.onrender.com/verify-payment",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({username:user})
-    });
-    alert("Premium activated!");
-  },5000);
 }
 </script>
 
