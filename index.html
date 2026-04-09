@@ -7,41 +7,18 @@
 <style>
 body {
   margin:0;
-  font-family:sans-serif;
-  background:#0f0c29;
+  background:#000;
   color:white;
+  font-family:sans-serif;
   text-align:center;
 }
 
-/* LOGIN SCREEN */
-#login {
-  margin-top:100px;
-}
-
-input {
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  margin:5px;
-}
-
-button {
-  padding:10px 15px;
-  border:none;
-  border-radius:10px;
-  background:#ff4ecd;
-  color:white;
-}
-
-/* APP */
-#app { display:none; }
-
-/* 3D CUBE */
+/* CUBE CONTAINER */
 .scene {
-  width:200px;
-  height:200px;
-  margin:50px auto;
-  perspective:600px;
+  width:250px;
+  height:250px;
+  margin:60px auto;
+  perspective:800px;
 }
 
 .cube {
@@ -52,54 +29,62 @@ button {
   transition:1s;
 }
 
+/* TRANSPARENT FACES */
 .face {
   position:absolute;
-  width:200px;
-  height:200px;
-  background:rgba(255,255,255,0.1);
+  width:250px;
+  height:250px;
+  border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:20px;
+  font-size:18px;
   border-radius:20px;
   cursor:pointer;
 }
 
-/* CUBE SIDES */
-.front  { transform: rotateY(0deg) translateZ(100px); }
-.back   { transform: rotateY(180deg) translateZ(100px); }
-.right  { transform: rotateY(90deg) translateZ(100px); }
-.left   { transform: rotateY(-90deg) translateZ(100px); }
-.top    { transform: rotateX(90deg) translateZ(100px); }
-.bottom { transform: rotateX(-90deg) translateZ(100px); }
+/* POSITIONS */
+.front  { transform: rotateY(0deg) translateZ(125px); }
+.back   { transform: rotateY(180deg) translateZ(125px); }
+.right  { transform: rotateY(90deg) translateZ(125px); }
+.left   { transform: rotateY(-90deg) translateZ(125px); }
+.top    { transform: rotateX(90deg) translateZ(125px); }
+.bottom { transform: rotateX(-90deg) translateZ(125px); }
+
+/* INPUT */
+input {
+  padding:10px;
+  width:70%;
+  border-radius:10px;
+  border:none;
+}
+
+button {
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#ff4ecd;
+  color:white;
+}
 
 /* RESULT */
 #result {
   margin:20px;
+  min-height:100px;
 }
 
 /* FOOTER */
 .footer {
   margin-top:40px;
   font-size:12px;
-  opacity:0.7;
+  opacity:0.6;
 }
 </style>
 </head>
 
 <body>
-
-<!-- LOGIN -->
-<div id="login">
-  <h2>🔐 Login</h2>
-  <input id="user" placeholder="Username"><br>
-  <input id="pass" type="password" placeholder="Password"><br>
-  <button onclick="login()">Login</button>
-  <p>Use: admin / 1234</p>
-</div>
-
-<!-- APP -->
-<div id="app">
 
 <h2>🚀 ReelMind AI</h2>
 
@@ -119,55 +104,46 @@ button {
 <input id="input" placeholder="Type your idea...">
 <button onclick="send()">Generate</button>
 
-<div id="result">Select a feature 👆</div>
+<div id="result">Tap a cube side 👆</div>
+
+<button onclick="unlock()">Unlock Premium</button>
 
 <div class="footer">
-  Powered by Artical Neavy |
+  Powered by Artical Neavy | 
   <a href="#" onclick="terms()">Terms</a>
-</div>
-
 </div>
 
 <script>
 let mode="chat";
 let premium=false;
 
-// LOGIN
-function login(){
-  let u=document.getElementById("user").value;
-  let p=document.getElementById("pass").value;
-
-  if(u==="admin" && p==="1234"){
-    document.getElementById("login").style.display="none";
-    document.getElementById("app").style.display="block";
-  }else{
-    alert("Wrong login");
-  }
-}
-
-// ROTATE CUBE
-function rotateCube(x,y){
+// ROTATION
+function rotate(x,y){
   document.getElementById("cube").style.transform =
     "rotateX("+x+"deg) rotateY("+y+"deg)";
 }
 
-// SELECT MODE
 function selectMode(m){
   mode=m;
 
-  if(m==="chat") rotateCube(0,0);
-  if(m==="story") rotateCube(0,180);
-  if(m==="image") rotateCube(0,90);
-  if(m==="video") rotateCube(0,-90);
-  if(m==="money") rotateCube(90,0);
-  if(m==="tiktok") rotateCube(-90,0);
+  if(m==="chat") rotate(0,0);
+  if(m==="story") rotate(0,180);
+  if(m==="image") rotate(0,90);
+  if(m==="video") rotate(0,-90);
+  if(m==="money") rotate(90,0);
+  if(m==="tiktok") rotate(-90,0);
 
   document.getElementById("result").innerText="Mode: "+m;
 }
 
-// IMAGE API (FREE)
-function getImage(prompt){
+// FREE IMAGE
+function img(prompt){
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+}
+
+// FREE VIDEO (WORKAROUND)
+async function fakeVideo(prompt){
+  return "🎬 Video generation coming (free APIs limited)";
 }
 
 // SEND
@@ -179,40 +155,55 @@ async function send(){
 
   // IMAGE
   if(mode==="image"){
-    let img=getImage(text);
-    document.getElementById("result").innerHTML=
-      `<img src="${img}" width="250">`;
+    document.getElementById("result").innerHTML =
+      `<img src="${img(text)}" width="250">`;
     return;
   }
 
-  // VIDEO (PREMIUM LOCK)
+  // VIDEO
   if(mode==="video"){
     if(!premium){
-      document.getElementById("result").innerText=
-        "🔒 Premium feature. Upgrade needed.";
+      document.getElementById("result").innerText =
+        "🔒 Premium only. Unlock first.";
       return;
     }
+
+    let vid = await fakeVideo(text);
+    document.getElementById("result").innerText = vid;
+    return;
   }
 
-  // BACKEND TEXT
+  // TEXT BACKEND
   try{
-    let res=await fetch("https://reelmindbackend-1.onrender.com/generate",{
+    let res = await fetch("https://reelmindbackend-1.onrender.com/generate",{
       method:"POST",
       headers:{ "Content-Type":"application/json"},
       body:JSON.stringify({prompt:text})
     });
 
-    let data=await res.json();
-    document.getElementById("result").innerText=data.result;
+    let data = await res.json();
+    document.getElementById("result").innerText = data.result;
 
   }catch(e){
-    document.getElementById("result").innerText="❌ Error";
+    document.getElementById("result").innerText="❌ Server error";
+  }
+}
+
+// PREMIUM UNLOCK (TEMP)
+function unlock(){
+  let code = prompt("Enter premium code:");
+
+  if(code==="NEAVY2026"){
+    premium=true;
+    alert("✅ Premium unlocked!");
+  }else{
+    alert("❌ Wrong code");
   }
 }
 
 // TERMS
 function terms(){
-  alert("Terms & Conditions:\nUse responsibly. No abuse. AI results may vary.");
+  alert("Terms:\nUse responsibly. No abuse. AI results may vary.");
 }
 </script>
 
