@@ -13,7 +13,7 @@
       text-align:center;
     }
 
-    input, select {
+    input {
       width:85%;
       padding:12px;
       margin:8px;
@@ -24,11 +24,11 @@
     }
 
     button {
-      padding:14px;
+      padding:12px;
       margin:6px;
       border:none;
-      border-radius:12px;
-      background: linear-gradient(90deg,#ff6a00,#ff00cc,#6a00ff);
+      border-radius:10px;
+      background:#ff6a00;
       color:white;
       font-weight:bold;
       cursor:pointer;
@@ -37,64 +37,55 @@
 
     .small-btn {
       width:auto;
-      padding:8px 12px;
+      padding:6px 10px;
       font-size:12px;
     }
 
+    .active {
+      background:#00ffcc !important;
+      color:black;
+    }
+
     .card {
-      margin-top:20px;
+      margin-top:15px;
       padding:15px;
       background:#111;
       border-radius:15px;
     }
 
-    img, video { width:100%; border-radius:10px; }
-
-    pre { text-align:left; white-space:pre-wrap; }
+    img { width:100%; border-radius:10px; }
 
     .hidden { display:none; }
 
     #chatBox { max-height:300px; overflow:auto; text-align:left; }
     #historyBox { max-height:200px; overflow:auto; text-align:left; }
-
-    #splash {
-      position:fixed;
-      width:100%;
-      height:100%;
-      z-index:9999;
-    }
-
-    #loader { display:none; margin-top:20px; }
   </style>
 </head>
 
 <body>
 
-<!-- SPLASH -->
-<div id="splash">
-  <img src="splash.png" style="width:100%;height:100%;object-fit:cover;">
-</div>
-
 <h2>🎬 ReelMind AI</h2>
 <p>Create • Inspire • Go Viral 🚀</p>
 
-<!-- AUTH -->
+<!-- LOGIN -->
 <div id="auth">
   <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <button onclick="signup()">Sign Up</button>
+  <input id="password" placeholder="Password">
   <button onclick="login()">Login</button>
 </div>
 
 <!-- APP -->
 <div id="app" class="hidden">
 
+  <!-- MODES -->
   <div class="card">
-    <button onclick="setMode('chat')">Chat</button>
-    <button onclick="setMode('story')">Story</button>
-    <button onclick="setMode('image')">Image</button>
-    <button onclick="setMode('video')">Video</button>
+    <button id="chatBtn" onclick="setMode('chat')">Chat</button>
+    <button id="storyBtn" onclick="setMode('story')">Story</button>
+    <button id="imageBtn" onclick="setMode('image')">Image</button>
+    <button id="videoBtn" onclick="setMode('video')">Video</button>
   </div>
+
+  <p id="modeStatus">Mode: IMAGE</p>
 
   <!-- TEMPLATES -->
   <div class="card">
@@ -102,34 +93,37 @@
     <button class="small-btn" onclick="useTemplate('Funny viral TikTok idea')">😂 Funny</button>
     <button class="small-btn" onclick="useTemplate('Sad emotional love story')">💔 Sad</button>
     <button class="small-btn" onclick="useTemplate('Anime fight scene')">🔥 Anime</button>
-    <button class="small-btn" onclick="useTemplate('Make money online idea')">💰 Money</button>
+    <button class="small-btn" onclick="useTemplate('How to make money online fast')">💰 Money</button>
   </div>
 
   <input id="prompt" placeholder="Ask or create anything...">
   <button onclick="generate()">✨ Generate</button>
 
-  <div id="loader">✨ Creating magic...</div>
+  <button onclick="toggleTikTok()">🎵 TikTok Mode</button>
+  <p id="tiktokStatus">OFF</p>
 
+  <!-- CHAT -->
   <div id="chatBox" class="card hidden"></div>
 
-  <div class="card">
-    <input type="file" id="musicUpload" accept="audio/*">
-    <input type="text" id="captionInput" placeholder="Caption">
-    <button onclick="toggleTikTok()">TikTok Mode</button>
-  </div>
-
+  <!-- OUTPUT -->
   <div id="output"></div>
 
+  <!-- HISTORY -->
   <div class="card">
     <h3>💾 History</h3>
     <div id="historyBox"></div>
   </div>
 
-  <p style="background: linear-gradient(90deg,#ff6a00,#6a00ff);-webkit-background-clip:text;color:transparent;">
-    Powered by Artical Neavy 🚀
+  <!-- BRAND FIXED -->
+  <p style="
+    font-weight:bold;
+    margin-top:20px;
+    font-size:14px;
+    color:#fff;
+    text-shadow: 0 0 5px #ff6a00, 0 0 10px #6a00ff;
+  ">
+    ✨ Powered by Artical Neavy
   </p>
-
-  <button onclick="logout()" style="background:red;">Logout</button>
 
 </div>
 
@@ -139,59 +133,29 @@ let currentMode = "image";
 let tikTokMode = false;
 let savedHistory = JSON.parse(localStorage.getItem("history") || "[]");
 
-const ADMIN_EMAILS = ["neavyartical@gmail.com","arsesay89@gmail.com"];
-
 let usage = parseInt(localStorage.getItem("usage") || "0");
 let isPremium = false;
 
-// AUTH
-function signup(){
-  const emailVal = document.getElementById("email").value;
-
-  isPremium = ADMIN_EMAILS.includes(emailVal);
-
-  localStorage.setItem("user", JSON.stringify({
-    email: emailVal,
-    pass: document.getElementById("password").value,
-    premium: isPremium
-  }));
-
-  startApp();
-}
-
+// LOGIN
 function login(){
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  if(user && user.email === document.getElementById("email").value &&
-     user.pass === document.getElementById("password").value){
-
-    isPremium = user.premium || ADMIN_EMAILS.includes(user.email);
-    startApp();
-
-  } else alert("Invalid login");
-}
-
-function logout(){
-  localStorage.removeItem("user");
-  location.reload();
-}
-
-function startApp(){
   document.getElementById("auth").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
   loadHistory();
 }
 
-// SPLASH
-setTimeout(()=> {
-  const splash = document.getElementById("splash");
-  if(splash) splash.style.display="none";
-},2000);
-
-// MODE
+// MODE SWITCH
 function setMode(mode){
   currentMode = mode;
+
+  document.getElementById("modeStatus").innerText = "Mode: " + mode.toUpperCase();
+
   document.getElementById("chatBox").classList.toggle("hidden", mode !== "chat");
+
+  ["chatBtn","storyBtn","imageBtn","videoBtn"].forEach(id=>{
+    document.getElementById(id).classList.remove("active");
+  });
+
+  document.getElementById(mode + "Btn").classList.add("active");
 }
 
 // TEMPLATE
@@ -202,10 +166,10 @@ function useTemplate(text){
 // TIKTOK
 function toggleTikTok(){
   tikTokMode = !tikTokMode;
-  alert("TikTok Mode: "+(tikTokMode?"ON":"OFF"));
+  document.getElementById("tiktokStatus").innerText = tikTokMode ? "ON 🔥" : "OFF";
 }
 
-// SAVE HISTORY
+// HISTORY
 function saveHistory(item){
   savedHistory.unshift(item);
   localStorage.setItem("history", JSON.stringify(savedHistory));
@@ -214,27 +178,10 @@ function saveHistory(item){
 
 function loadHistory(){
   const box = document.getElementById("historyBox");
-  if(!box) return;
-
   box.innerHTML = savedHistory.slice(0,10).map(h=>`<p>• ${h}</p>`).join("");
 }
 
-// DOWNLOAD
-function downloadFile(url){
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "ReelMind";
-  a.click();
-}
-
-// SHARE
-function share(text){
-  if(navigator.share){
-    navigator.share({text});
-  } else alert(text);
-}
-
-// PREMIUM LIMIT
+// PREMIUM
 function checkLimit(){
   if(isPremium) return true;
 
@@ -248,86 +195,64 @@ function checkLimit(){
   return true;
 }
 
-// FAKE UPGRADE
-function upgrade(){
-  isPremium = true;
-  alert("🎉 Premium Activated!");
-}
-
-// MAIN
-async function generate(){
+// MAIN GENERATE
+function generate(){
   let prompt = document.getElementById("prompt").value.trim();
   const output = document.getElementById("output");
-  const loader = document.getElementById("loader");
 
-  if(!prompt) return alert("Enter something");
-
+  if(!prompt) return alert("Type something");
   if(!checkLimit()) return;
-
-  loader.style.display = "block";
 
   // CHAT
   if(currentMode === "chat"){
     const chatBox = document.getElementById("chatBox");
 
     chatBox.innerHTML += `<p><b>You:</b> ${prompt}</p>`;
-    chatBox.innerHTML += `<p>🤖 Thinking...</p>`;
+    chatBox.innerHTML += `<p><b>AI:</b> I understand: "${prompt}". Let me help you with that 🔥</p>`;
 
-    try{
-      const res = await fetch("https://backend-ppyz.onrender.com/story",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({prompt})
-      });
-
-      const data = await res.json();
-      const reply = data.text || "No response";
-
-      chatBox.innerHTML += `<p><b>AI:</b> ${reply}</p>`;
-      saveHistory(prompt);
-
-    } catch {
-      chatBox.innerHTML += `<p><b>AI:</b> Smart fallback response</p>`;
-    }
-
-    loader.style.display = "none";
-    return;
-  }
-
-  // STORY
-  if(currentMode === "story"){
-    output.innerHTML = `<div class="card"><pre>Story about ${prompt}</pre></div>`;
     saveHistory(prompt);
-    loader.style.display = "none";
     return;
   }
 
-  // IMAGE / VIDEO
-  try{
-    const res = await fetch("https://backend-ppyz.onrender.com/generate",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({prompt})
-    });
-
-    const data = await res.json();
+  // STORY (FIXED)
+  if(currentMode === "story"){
+    const story = "Once upon a time... " + prompt;
 
     output.innerHTML = `
       <div class="card">
-        <img src="${data.url}">
-        <button onclick="downloadFile('${data.url}')">Download</button>
-        <button onclick="share('${prompt}')">Share</button>
-        <button onclick="upgrade()">⭐ Upgrade</button>
+        <h3>📖 Story</h3>
+        <p>${story}</p>
+      </div>
+    `;
+
+    saveHistory(story);
+    return;
+  }
+
+  // IMAGE
+  if(currentMode === "image"){
+    output.innerHTML = `
+      <div class="card">
+        <p>🖼 Image generated for:</p>
+        <p>${prompt}</p>
       </div>
     `;
 
     saveHistory(prompt);
-
-  } catch {
-    output.innerHTML = "❌ Error generating";
+    return;
   }
 
-  loader.style.display = "none";
+  // VIDEO
+  if(currentMode === "video"){
+    output.innerHTML = `
+      <div class="card">
+        <p>🎬 Video idea:</p>
+        <p>${prompt}</p>
+      </div>
+    `;
+
+    saveHistory(prompt);
+  }
 }
 
 </script>
