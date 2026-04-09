@@ -1,9 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ReelMind AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin:0;
+      font-family: Arial;
+      background: linear-gradient(135deg, #1a0033, #ff6a00);
+      color:white;
+      text-align:center;
+    }
+
+    input, select {
+      width:85%;
+      padding:12px;
+      margin:8px;
+      border-radius:10px;
+      border:none;
+      background:#111;
+      color:white;
+    }
+
+    button {
+      padding:14px;
+      margin:6px;
+      border:none;
+      border-radius:12px;
+      background: linear-gradient(90deg,#ff6a00,#ff00cc,#6a00ff);
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+      width:85%;
+    }
+
+    .small-btn {
+      width:auto;
+      padding:8px 12px;
+      font-size:12px;
+    }
+
+    .card {
+      margin-top:20px;
+      padding:15px;
+      background:#111;
+      border-radius:15px;
+    }
+
+    img, video { width:100%; border-radius:10px; }
+
+    pre { text-align:left; white-space:pre-wrap; }
+
+    .hidden { display:none; }
+
+    #chatBox { max-height:300px; overflow:auto; text-align:left; }
+    #historyBox { max-height:200px; overflow:auto; text-align:left; }
+
+    #splash {
+      position:fixed;
+      width:100%;
+      height:100%;
+      z-index:9999;
+    }
+
+    #loader { display:none; margin-top:20px; }
+  </style>
+</head>
+
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <img src="splash.png" style="width:100%;height:100%;object-fit:cover;">
+</div>
+
+<h2>🎬 ReelMind AI</h2>
+<p>Create • Inspire • Go Viral 🚀</p>
+
+<!-- AUTH -->
+<div id="auth">
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="signup()">Sign Up</button>
+  <button onclick="login()">Login</button>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+
+  <div class="card">
+    <button onclick="setMode('chat')">Chat</button>
+    <button onclick="setMode('story')">Story</button>
+    <button onclick="setMode('image')">Image</button>
+    <button onclick="setMode('video')">Video</button>
+  </div>
+
+  <!-- TEMPLATES -->
+  <div class="card">
+    <h3>🔥 Templates</h3>
+    <button class="small-btn" onclick="useTemplate('Funny viral TikTok idea')">😂 Funny</button>
+    <button class="small-btn" onclick="useTemplate('Sad emotional love story')">💔 Sad</button>
+    <button class="small-btn" onclick="useTemplate('Anime fight scene')">🔥 Anime</button>
+    <button class="small-btn" onclick="useTemplate('Make money online idea')">💰 Money</button>
+  </div>
+
+  <input id="prompt" placeholder="Ask or create anything...">
+  <button onclick="generate()">✨ Generate</button>
+
+  <div id="loader">✨ Creating magic...</div>
+
+  <div id="chatBox" class="card hidden"></div>
+
+  <div class="card">
+    <input type="file" id="musicUpload" accept="audio/*">
+    <input type="text" id="captionInput" placeholder="Caption">
+    <button onclick="toggleTikTok()">TikTok Mode</button>
+  </div>
+
+  <div id="output"></div>
+
+  <div class="card">
+    <h3>💾 History</h3>
+    <div id="historyBox"></div>
+  </div>
+
+  <p style="background: linear-gradient(90deg,#ff6a00,#6a00ff);-webkit-background-clip:text;color:transparent;">
+    Powered by Artical Neavy 🚀
+  </p>
+
+  <button onclick="logout()" style="background:red;">Logout</button>
+
+</div>
+
 <script>
 
 let currentMode = "image";
 let tikTokMode = false;
-let chatHistory = [];
-let history = JSON.parse(localStorage.getItem("history") || "[]");
+let savedHistory = JSON.parse(localStorage.getItem("history") || "[]");
 
 const ADMIN_EMAILS = ["neavyartical@gmail.com","arsesay89@gmail.com"];
 
@@ -12,13 +146,13 @@ let isPremium = false;
 
 // AUTH
 function signup(){
-  const emailVal = email.value;
+  const emailVal = document.getElementById("email").value;
 
   isPremium = ADMIN_EMAILS.includes(emailVal);
 
   localStorage.setItem("user", JSON.stringify({
     email: emailVal,
-    pass: password.value,
+    pass: document.getElementById("password").value,
     premium: isPremium
   }));
 
@@ -28,9 +162,12 @@ function signup(){
 function login(){
   const user = JSON.parse(localStorage.getItem("user"));
 
-  if(user && user.email === email.value && user.pass === password.value){
+  if(user && user.email === document.getElementById("email").value &&
+     user.pass === document.getElementById("password").value){
+
     isPremium = user.premium || ADMIN_EMAILS.includes(user.email);
     startApp();
+
   } else alert("Invalid login");
 }
 
@@ -40,18 +177,21 @@ function logout(){
 }
 
 function startApp(){
-  auth.classList.add("hidden");
-  app.classList.remove("hidden");
+  document.getElementById("auth").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
   loadHistory();
 }
 
 // SPLASH
-setTimeout(()=> splash.style.display="none",2000);
+setTimeout(()=> {
+  const splash = document.getElementById("splash");
+  if(splash) splash.style.display="none";
+},2000);
 
 // MODE
 function setMode(mode){
   currentMode = mode;
-  chatBox.classList.toggle("hidden", mode !== "chat");
+  document.getElementById("chatBox").classList.toggle("hidden", mode !== "chat");
 }
 
 // TEMPLATE
@@ -67,14 +207,16 @@ function toggleTikTok(){
 
 // SAVE HISTORY
 function saveHistory(item){
-  history.unshift(item);
-  localStorage.setItem("history", JSON.stringify(history));
+  savedHistory.unshift(item);
+  localStorage.setItem("history", JSON.stringify(savedHistory));
   loadHistory();
 }
 
 function loadHistory(){
   const box = document.getElementById("historyBox");
-  box.innerHTML = history.slice(0,10).map(h=>`<p>• ${h}</p>`).join("");
+  if(!box) return;
+
+  box.innerHTML = savedHistory.slice(0,10).map(h=>`<p>• ${h}</p>`).join("");
 }
 
 // DOWNLOAD
@@ -92,12 +234,12 @@ function share(text){
   } else alert(text);
 }
 
-// 🔥 PREMIUM CHECK
+// PREMIUM LIMIT
 function checkLimit(){
   if(isPremium) return true;
 
   if(usage >= 5){
-    alert("🔥 Free limit reached! Upgrade to Premium for unlimited access.");
+    alert("🔥 Free limit reached! Upgrade to Premium.");
     return false;
   }
 
@@ -106,7 +248,7 @@ function checkLimit(){
   return true;
 }
 
-// FAKE UPGRADE (FOR NOW)
+// FAKE UPGRADE
 function upgrade(){
   isPremium = true;
   alert("🎉 Premium Activated!");
@@ -126,6 +268,8 @@ async function generate(){
 
   // CHAT
   if(currentMode === "chat"){
+    const chatBox = document.getElementById("chatBox");
+
     chatBox.innerHTML += `<p><b>You:</b> ${prompt}</p>`;
     chatBox.innerHTML += `<p>🤖 Thinking...</p>`;
 
@@ -173,17 +317,20 @@ async function generate(){
         <img src="${data.url}">
         <button onclick="downloadFile('${data.url}')">Download</button>
         <button onclick="share('${prompt}')">Share</button>
-        <button onclick="upgrade()">⭐ Upgrade to Premium</button>
+        <button onclick="upgrade()">⭐ Upgrade</button>
       </div>
     `;
 
     saveHistory(prompt);
 
   } catch {
-    output.innerHTML = "Error";
+    output.innerHTML = "❌ Error generating";
   }
 
   loader.style.display = "none";
 }
 
 </script>
+
+</body>
+</html>
