@@ -19,7 +19,7 @@
       color:transparent;
     }
 
-    input {
+    input, select {
       width:85%;
       padding:12px;
       margin:8px;
@@ -31,7 +31,7 @@
 
     button {
       padding:12px;
-      margin:8px;
+      margin:6px;
       border:none;
       border-radius:10px;
       background: linear-gradient(90deg,#ff6a00,#6a00ff);
@@ -42,7 +42,7 @@
 
     .card {
       margin-top:20px;
-      padding:10px;
+      padding:15px;
       background:#111;
       border-radius:15px;
       box-shadow:0 0 20px rgba(255,106,0,0.3);
@@ -69,12 +69,50 @@
     }
 
     .hidden { display:none; }
+
+    #splash {
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background: radial-gradient(circle, #0a0a0a, #1a0033);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      z-index:9999;
+    }
+
+    #splash h1 {
+      font-size:28px;
+      background: linear-gradient(90deg,#ff6a00,#6a00ff);
+      -webkit-background-clip:text;
+      color:transparent;
+    }
+
+    #splash p {
+      color:#aaa;
+    }
   </style>
 </head>
 
 <body>
 
+<!-- SPLASH -->
+<div id="splash">
+  <h1>🎬 ReelMind AI</h1>
+  <p>Powered by Neavy</p>
+</div>
+
 <h2>🎬 ReelMind AI</h2>
+
+<div class="card">
+  <h3>🔥 Create Viral Content Instantly</h3>
+  <p>
+    Videos 🎬 • Anime 🎌 • Stories 🧠
+  </p>
+</div>
 
 <!-- AUTH -->
 <div id="auth">
@@ -87,8 +125,24 @@
 <!-- APP -->
 <div id="app" class="hidden">
 
-  <input id="prompt" placeholder="Create anything (safe only)">
+  <div class="card">
+    <h3>🎯 Choose Mode</h3>
+    <button onclick="setMode('story')">🧠 Story</button>
+    <button onclick="setMode('image')">🖼 Image</button>
+    <button onclick="setMode('video')">🎬 Video</button>
+
+    <h3>🎨 Choose Style</h3>
+    <select id="style">
+      <option value="realistic">Realistic</option>
+      <option value="anime">Anime</option>
+      <option value="cartoon">Cartoon</option>
+    </select>
+  </div>
+
+  <input id="prompt" placeholder="Describe what you want...">
   <button onclick="generate()">✨ Generate</button>
+
+  <button onclick="shareApp()">📤 Share App</button>
 
   <div id="output"></div>
 
@@ -105,7 +159,6 @@
     <p>No harmful or illegal content allowed</p>
   </div>
 
-  <!-- LOGOUT AT BOTTOM -->
   <button onclick="logout()" style="background:#ff4444;margin-top:30px;">
     Logout
   </button>
@@ -114,16 +167,16 @@
 
 <script>
 
-// ==========================
-// 🔐 LOGIN + ADMIN
-// ==========================
+// ADMIN
 const ADMIN_EMAILS = [
   "neavyartical@gmail.com",
   "arsesay89@gmail.com"
 ];
 
 let premium = false;
+let currentMode = "image";
 
+// AUTH
 function signup(){
   const email = emailInput();
   const pass = passInput();
@@ -134,23 +187,16 @@ function signup(){
   }
 
   const isAdmin = ADMIN_EMAILS.includes(email);
-
-  const user = {
-    email,
-    pass,
-    premium: isAdmin
-  };
+  const user = { email, pass, premium: isAdmin };
 
   localStorage.setItem("user", JSON.stringify(user));
   premium = user.premium;
-
   startApp();
 }
 
 function login(){
   const email = emailInput();
   const pass = passInput();
-
   const saved = JSON.parse(localStorage.getItem("user"));
 
   if(saved && saved.email === email && saved.pass === pass){
@@ -199,22 +245,37 @@ window.onload = function(){
   }
 }
 
-// ==========================
-// 💰 PREMIUM
-// ==========================
+// SPLASH
+setTimeout(()=>{
+  document.getElementById("splash").style.display = "none";
+}, 2500);
+
+// MODE
+function setMode(mode){
+  currentMode = mode;
+  alert("Mode: " + mode.toUpperCase());
+}
+
+// PREMIUM
 function subscribe(){
   premium = true;
-
   let saved = JSON.parse(localStorage.getItem("user"));
   saved.premium = true;
   localStorage.setItem("user", JSON.stringify(saved));
-
   document.getElementById("ads").style.display="none";
 }
 
-// ==========================
-// ⬇ DOWNLOAD FUNCTION
-// ==========================
+// SHARE
+function shareApp(){
+  const text = "🔥 Try ReelMind AI – create videos, anime & viral ideas instantly!";
+  if(navigator.share){
+    navigator.share({ title:"ReelMind AI", text, url:window.location.href });
+  } else {
+    alert("Copy this link:\n" + window.location.href);
+  }
+}
+
+// DOWNLOAD
 function downloadFile(url){
   const a = document.createElement("a");
   a.href = url;
@@ -224,12 +285,11 @@ function downloadFile(url){
   document.body.removeChild(a);
 }
 
-// ==========================
-// 🤖 AI ENGINE
-// ==========================
+// AI
 async function generate(){
   const promptInput = document.getElementById("prompt");
   const output = document.getElementById("output");
+  const style = document.getElementById("style").value;
 
   let prompt = promptInput.value.trim();
 
@@ -246,56 +306,23 @@ async function generate(){
 
   output.innerHTML = "🤖 Creating...";
 
-  const isText = /story|ideas|write|script|caption|explain/i.test(prompt);
-  const isVideo = /video|cinematic|movie/i.test(prompt);
-  const isAnime = /anime|naruto|dragon/i.test(prompt);
-
-  // TEXT MODE
-  if(isText){
-    let ideas = "";
-
-    const topics = [
-      "a hidden secret",
-      "a viral moment",
-      "a shocking twist",
-      "a mysterious stranger",
-      "a life-changing decision",
-      "a forbidden love",
-      "a dangerous mission",
-      "a futuristic world",
-      "a survival story",
-      "a revenge plot",
-      "a funny misunderstanding",
-      "a powerful transformation",
-      "a childhood memory",
-      "a lost treasure",
-      "a social media scandal",
-      "a dream turning real",
-      "a risky gamble",
-      "a secret identity",
-      "a betrayal",
-      "an unexpected hero"
-    ];
-
-    topics.forEach((t, i) => {
-      ideas += `${i+1}. A story about ${t}\n`;
-    });
-
-    output.innerHTML = `
-      <div class="card">
-        <pre>${ideas}\n...and many more 🔥</pre>
-      </div>
-    `;
+  // STORY
+  if(currentMode === "story"){
+    let story = "";
+    for(let i=1;i<=20;i++){
+      story += `${i}. A creative story about ${prompt}\n`;
+    }
+    output.innerHTML = `<div class="card"><pre>${story}\n...more 🔥</pre></div>`;
     return;
   }
 
-  // ENHANCE PROMPT
-  if(isVideo){
-    prompt += ", cinematic lighting, ultra realistic, 4k";
-  }
+  // STYLE
+  if(style === "anime") prompt += ", anime style, vibrant colors";
+  if(style === "cartoon") prompt += ", cartoon style, 3D animated";
+  if(style === "realistic") prompt += ", ultra realistic, 4k";
 
-  if(isAnime){
-    prompt += ", anime style, vibrant colors";
+  if(currentMode === "video"){
+    prompt += ", cinematic lighting, dramatic scene";
   }
 
   try{
@@ -307,11 +334,10 @@ async function generate(){
 
     const data = await res.json();
 
-    if(isVideo){
+    if(currentMode === "video"){
       output.innerHTML = `
         <div class="card">
           <video src="${data.url}" controls autoplay loop muted></video>
-          <br><br>
           <button onclick="downloadFile('${data.url}')">⬇ Download Video</button>
         </div>
       `;
@@ -319,7 +345,6 @@ async function generate(){
       output.innerHTML = `
         <div class="card">
           <img src="${data.url}">
-          <br><br>
           <button onclick="downloadFile('${data.url}')">⬇ Download Image</button>
         </div>
       `;
