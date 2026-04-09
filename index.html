@@ -8,222 +8,181 @@
     body {
       margin:0;
       font-family: Arial;
-      background: radial-gradient(circle at top, #6a00ff, #ff6a00);
+      background: linear-gradient(135deg,#6a00ff,#ff6a00);
       color:white;
       text-align:center;
     }
 
-    #splash {
-      position:fixed;
-      width:100%;
-      height:100%;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      flex-direction:column;
-      background:linear-gradient(135deg,#6a00ff,#ff6a00);
-      z-index:999;
-    }
+    .hidden { display:none; }
 
-    #app { display:none; padding:15px; }
-
-    input, select {
-      width:90%;
+    input {
+      width:85%;
       padding:12px;
-      border-radius:12px;
+      margin:8px;
+      border-radius:10px;
       border:none;
-      margin:8px 0;
     }
 
     button {
       padding:12px;
       margin:5px;
-      border-radius:12px;
       border:none;
+      border-radius:10px;
       background:rgba(255,255,255,0.2);
       color:white;
     }
 
-    .tabs button.active {
-      background:white;
-      color:black;
-    }
-
     .card {
       margin-top:20px;
-      background:rgba(0,0,0,0.3);
       padding:10px;
+      background:rgba(0,0,0,0.3);
       border-radius:15px;
     }
 
-    img {
-      width:100%;
+    img { width:100%; border-radius:10px; }
+
+    .ads {
+      margin-top:15px;
+      padding:10px;
+      background:#222;
       border-radius:10px;
-      animation: zoom 6s infinite alternate;
-    }
-
-    @keyframes zoom {
-      100% { transform:scale(1.2); }
-    }
-
-    video { width:100%; }
-
-    .caption {
-      font-size:14px;
-      margin-top:10px;
-    }
-
-    .terms {
       font-size:12px;
-      margin-top:20px;
-      opacity:0.8;
     }
   </style>
 </head>
 
 <body>
 
-<div id="splash">
-  <img src="logo.png" width="120">
-  <h1>ReelMind AI</h1>
-  <p>AI Content Creator</p>
+<!-- 🔐 LOGIN -->
+<div id="auth">
+  <h2>🔐 ReelMind AI</h2>
+
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="login()">Login</button>
+  <button onclick="signup()">Sign Up</button>
 </div>
 
-<div id="app">
+<!-- 🚀 APP -->
+<div id="app" class="hidden">
 
-<h2>ReelMind AI</h2>
+  <h2>🎬 ReelMind AI</h2>
 
-<div class="tabs">
-  <button onclick="setMode('image')" class="active">🖼 Image</button>
-  <button onclick="setMode('story')">🧠 Story</button>
-  <button onclick="setMode('video')">🎬 Video</button>
-</div>
+  <button onclick="logout()">Logout</button>
 
-<input id="prompt" placeholder="Enter idea..." />
+  <input id="prompt" placeholder="Ask anything (safe & legal only)">
 
-<select id="musicSelect">
-  <option value="">No Music</option>
-  <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Chill</option>
-  <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">Hype</option>
-</select>
+  <button onclick="generate()">✨ Generate</button>
 
-<input type="file" id="uploadMusic" accept="audio/*">
+  <div id="output"></div>
 
-<button onclick="generate()">✨ Generate</button>
+  <!-- 💰 SUBSCRIPTION -->
+  <div class="card">
+    <h3>💎 Go Premium</h3>
+    <p>$9/month or $99/year</p>
+    <button onclick="subscribe()">Upgrade</button>
+  </div>
 
-<div id="output"></div>
+  <!-- 📢 ADS (FREE USERS ONLY) -->
+  <div id="ads" class="ads">
+    📢 Ad: Your ad will appear here (AdMob later)
+  </div>
 
-<!-- 📜 TERMS & CONTACT -->
-<div class="terms">
-  <h3>📜 Terms & Contact</h3>
-  <p>
-    By using ReelMind AI, you agree that generated content is for creative purposes only.  
-    Users are responsible for how they use generated media.
-  </p>
-  <p>
-    📧 Contact Support:<br>
-    neavyartical@gmail.com<br>
-    arsesay89@gmail.com
-  </p>
-</div>
-
-<audio id="music" loop></audio>
+  <!-- 📜 POLICY -->
+  <div class="card">
+    <h4>Safety Policy</h4>
+    <p>
+      This app does NOT allow:
+      ❌ Nudity  
+      ❌ Illegal actions  
+      ❌ Harmful or violent content  
+      ✔ Safe, creative, and useful content only
+    </p>
+  </div>
 
 </div>
 
 <script>
-let mode="image";
+let user = null;
+let premium = false;
 
-setTimeout(()=>{
-  splash.style.display="none";
-  app.style.display="block";
-},2000);
+// 🔐 LOGIN SYSTEM (LOCAL FOR NOW)
+function signup(){
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
 
-function setMode(m){
-  mode=m;
-  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
-  event.target.classList.add("active");
+  localStorage.setItem("user", JSON.stringify({email, pass, premium:false}));
+  alert("Account created!");
 }
 
-function storyGen(p){
-  return "In a world where " + p + ", everything changed forever...";
+function login(){
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+
+  const saved = JSON.parse(localStorage.getItem("user"));
+
+  if(saved && saved.email===email && saved.pass===pass){
+    user = saved;
+    premium = saved.premium;
+    startApp();
+  } else {
+    alert("Invalid login");
+  }
 }
 
+function logout(){
+  location.reload();
+}
+
+function startApp(){
+  document.getElementById("auth").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+
+  if(premium){
+    document.getElementById("ads").style.display="none";
+  }
+}
+
+// 💰 SUBSCRIBE (SIMULATION)
+function subscribe(){
+  alert("Payment system coming next version 💳");
+  premium = true;
+
+  let saved = JSON.parse(localStorage.getItem("user"));
+  saved.premium = true;
+  localStorage.setItem("user", JSON.stringify(saved));
+
+  document.getElementById("ads").style.display="none";
+}
+
+// 🚀 GENERATE
 async function generate(){
   const prompt = document.getElementById("prompt").value;
-  const out = document.getElementById("output");
-  const music = document.getElementById("music");
+  const output = document.getElementById("output");
 
-  if(!prompt) return;
+  // 🛑 SAFETY FILTER
+  if(prompt.toLowerCase().includes("nude") || prompt.toLowerCase().includes("illegal")){
+    output.innerHTML = "❌ Request not allowed";
+    return;
+  }
 
-  out.innerHTML="Loading...";
+  output.innerHTML="Loading...";
 
   const res = await fetch("https://backend-ppyz.onrender.com/generate",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt:prompt})
+    body:JSON.stringify({prompt})
   });
 
   const data = await res.json();
 
-  // 🎧 MUSIC
-  const upload = document.getElementById("uploadMusic").files[0];
-  const selected = document.getElementById("musicSelect").value;
-
-  if(upload) music.src = URL.createObjectURL(upload);
-  else if(selected) music.src = selected;
-
-  if(music.src) music.play();
-
-  if(mode==="image"){
-    out.innerHTML=`
-      <div class="card">
-        <img src="${data.url}">
-        <div class="caption">${prompt}</div>
-      </div>
-    `;
-  }
-
-  if(mode==="story"){
-    out.innerHTML=`
-      <div class="card">
-        <img src="${data.url}">
-        <p>${storyGen(prompt)}</p>
-      </div>
-    `;
-  }
-
-  if(mode==="video"){
-    out.innerHTML=`
-      <div class="card">
-        <img id="vid" src="${data.url}">
-        <p class="caption">${prompt}</p>
-        <button onclick="record()">🎥 Export Video</button>
-      </div>
-    `;
-  }
-}
-
-function record(){
-  const img = document.getElementById("vid");
-  const stream = img.captureStream(30);
-  const rec = new MediaRecorder(stream);
-  let chunks=[];
-
-  rec.ondataavailable=e=>chunks.push(e.data);
-
-  rec.onstop=()=>{
-    const blob=new Blob(chunks);
-    const url=URL.createObjectURL(blob);
-
-    const a=document.createElement("a");
-    a.href=url;
-    a.download="reelmind.mp4";
-    a.click();
-  };
-
-  rec.start();
-  setTimeout(()=>rec.stop(),5000);
+  output.innerHTML = `
+    <div class="card">
+      <img src="${data.url}">
+      <p>${prompt}</p>
+    </div>
+  `;
 }
 </script>
 
