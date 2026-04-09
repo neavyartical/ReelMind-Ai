@@ -1,86 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ReelMind AI</title>
-
-<style>
-body {
-  margin: 0;
-  font-family: sans-serif;
-  background: linear-gradient(135deg,#2b1055,#ff6a00);
-  color: white;
-  text-align: center;
-}
-
-h2 {
-  margin-top: 20px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 15px;
-  padding: 20px;
-}
-
-.card {
-  background: rgba(255,255,255,0.1);
-  padding: 20px;
-  border-radius: 20px;
-  cursor: pointer;
-}
-
-#result {
-  padding: 20px;
-  white-space: pre-wrap;
-}
-</style>
+  <title>ReelMind AI</title>
 </head>
+<body style="background:black;color:white;text-align:center;font-family:sans-serif">
 
-<body>
+  <h1>🔥 ReelMind AI</h1>
 
-<h2>🚀 ReelMind AI</h2>
+  <button onclick="generate()">Generate</button>
 
-<div class="grid">
-  <div class="card" onclick="generate('chat')">💬 Chat</div>
-  <div class="card" onclick="generate('story')">📖 Story</div>
-  <div class="card" onclick="generate('image')">🖼 Image</div>
-  <div class="card" onclick="generate('video')">🎬 Video</div>
-  <div class="card" onclick="generate('funny')">😂 Funny</div>
-  <div class="card" onclick="generate('sad')">💔 Sad</div>
-  <div class="card" onclick="generate('anime')">🔥 Anime</div>
-  <div class="card" onclick="generate('money')">💰 Money</div>
-  <div class="card" onclick="generate('tiktok')">🚀 TikTok</div>
-</div>
+  <script>
+    const API_URL = "https://reelmindbackend-1.onrender.com/generate";
 
-<div id="result">Tap any feature 👆</div>
+    async function generate() {
+      const prompt = prompt("Enter your idea:");
 
-<script>
-// 🔥 PUT YOUR REAL BACKEND LINK HERE
-const API_URL = "https://backend-1.onrender.com/generate"; 
+      if (!prompt) return;
 
-async function generate(type){
-  let promptText = prompt("Enter your idea:");
-  if(!promptText) return;
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ prompt })
+        });
 
-  document.getElementById("result").innerText = "⏳ Loading...";
+        const data = await res.json();
 
-  try{
-    let res = await fetch(API_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ type: type, prompt: promptText })
-    });
+        alert(data.result);
 
-    let data = await res.json();
-
-    document.getElementById("result").innerText = data.result;
-  }catch(e){
-    document.getElementById("result").innerText = "❌ Error connecting to server";
-  }
-}
-</script>
+      } catch (err) {
+        alert("Error connecting to server ❌");
+        console.error(err);
+      }
+    }
+  </script>
 
 </body>
 </html>
