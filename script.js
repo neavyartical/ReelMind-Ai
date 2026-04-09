@@ -31,6 +31,10 @@ async function generate() {
     console.log("📡 Response status:", res.status);
 
     const data = await res.json();
+
+    // 🔥 THIS IS THE IMPORTANT DEBUG POPUP
+    alert("STATUS: " + res.status + " | DATA: " + JSON.stringify(data));
+
     console.log("📦 Response:", data);
 
     if (data.video) {
@@ -43,6 +47,7 @@ async function generate() {
 
   } catch (err) {
     console.error("❌ ERROR:", err);
+    alert("ERROR: " + err.message);
     status.innerText = "Server waking up... try again 🔁";
   }
 }
