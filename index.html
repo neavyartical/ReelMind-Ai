@@ -2,140 +2,88 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReelMind AI</title>
 
 <style>
 body{
   margin:0;
-  font-family:sans-serif;
   color:white;
+  font-family:sans-serif;
   text-align:center;
   background:linear-gradient(135deg,#0f2027,#2c5364,#1c92d2);
   background-size:400% 400%;
-  animation:water 12s infinite ease-in-out;
+  animation:bg 10s infinite;
+}
+@keyframes bg{
+  0%{background-position:0%}
+  50%{background-position:100%}
+  100%{background-position:0%}
 }
 
-@keyframes water{
-  0%{background-position:0% 50%;}
-  50%{background-position:100% 50%;}
-  100%{background-position:0% 50%;}
-}
+#app{display:none;}
 
-#loginBox{ margin-top:120px; }
-#app{ display:none; }
-
-/* GLASS CARD */
-.card{
-  background:rgba(255,255,255,0.08);
-  backdrop-filter:blur(15px);
-  border-radius:20px;
-  padding:15px;
-  margin:15px;
-}
-
-/* CUBE */
 .scene{
   width:250px;
   height:250px;
   margin:40px auto;
-  perspective:900px;
+  perspective:800px;
 }
-
 .cube{
   width:100%;
   height:100%;
   position:relative;
   transform-style:preserve-3d;
-  animation:spin 12s infinite linear;
+  animation:spin 10s linear infinite;
 }
-
 @keyframes spin{
-  from{transform:rotateX(0deg) rotateY(0deg);}
-  to{transform:rotateX(360deg) rotateY(360deg);}
+  from{transform:rotateX(0) rotateY(0)}
+  to{transform:rotateX(360deg) rotateY(360deg)}
 }
 
 .face{
   position:absolute;
-  width:250px;
-  height:250px;
-  border-radius:20px;
+  width:250px;height:250px;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:rgba(255,255,255,0.08);
-  backdrop-filter:blur(15px);
-  cursor:pointer;
-}
-
-/* POSITIONS */
-.front{ transform:rotateY(0deg) translateZ(125px);}
-.back{ transform:rotateY(180deg) translateZ(125px);}
-.right{ transform:rotateY(90deg) translateZ(125px);}
-.left{ transform:rotateY(-90deg) translateZ(125px);}
-.top{ transform:rotateX(90deg) translateZ(125px);}
-.bottom{ transform:rotateX(-90deg) translateZ(125px);}
-
-input{
-  padding:10px;
-  width:75%;
-  border-radius:10px;
-  border:none;
-}
-
-button{
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  background:#00c6ff;
-  color:white;
-  margin:5px;
-}
-
-#output{
-  margin:20px;
-  min-height:100px;
-}
-
-#status{
-  font-size:12px;
-}
-
-/* PREMIUM */
-.premium{
   background:rgba(255,255,255,0.1);
-  padding:10px;
-  border-radius:10px;
+  border-radius:20px;
 }
+
+.front{transform:translateZ(125px)}
+.back{transform:rotateY(180deg) translateZ(125px)}
+.right{transform:rotateY(90deg) translateZ(125px)}
+.left{transform:rotateY(-90deg) translateZ(125px)}
+.top{transform:rotateX(90deg) translateZ(125px)}
+.bottom{transform:rotateX(-90deg) translateZ(125px)}
+
+input{padding:10px;width:70%;border-radius:10px;border:none}
+button{padding:10px;border:none;border-radius:10px;background:#00c6ff;color:white}
+
+#output{margin:20px}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="loginBox" class="card">
-  <h2>🔐 Login</h2>
-  <input id="user" placeholder="Username"><br><br>
-  <input id="pass" type="password" placeholder="Password"><br><br>
-  <button onclick="login()">Enter</button>
+<div id="login">
+<h2>Login</h2>
+<input id="user" placeholder="Username"><br><br>
+<input id="pass" type="password" placeholder="Password"><br><br>
+<button onclick="login()">Enter</button>
 </div>
 
-<!-- APP -->
 <div id="app">
-
-<h2>🌊 ReelMind AI</h2>
-<p>Powered by Artical Neavy</p>
-
-<div id="status">🟢 Ready</div>
+<h2>ReelMind AI</h2>
 
 <div class="scene">
-  <div class="cube">
-    <div class="face front" onclick="select('chat')">Chat</div>
-    <div class="face back" onclick="select('story')">Story</div>
-    <div class="face right" onclick="select('image')">Image</div>
-    <div class="face left" onclick="select('video')">Video</div>
-    <div class="face top" onclick="select('music')">Music</div>
-    <div class="face bottom" onclick="select('money')">Money</div>
-  </div>
+<div class="cube">
+<div class="face front" onclick="mode='chat'">Chat</div>
+<div class="face back" onclick="mode='story'">Story</div>
+<div class="face right" onclick="mode='image'">Image</div>
+<div class="face left" onclick="mode='video'">Video</div>
+<div class="face top" onclick="mode='music'">Music</div>
+<div class="face bottom" onclick="mode='money'">Money</div>
+</div>
 </div>
 
 <input id="prompt" placeholder="Enter idea"><br><br>
@@ -145,110 +93,105 @@ button{
 
 <div id="output"></div>
 
-<div class="premium">
-  <p>💎 Premium</p>
-  <button onclick="subscribe()">Unlock</button>
-</div>
+<button onclick="buy()">Unlock Premium ($9)</button>
 
-<!-- ADS PLACEHOLDER -->
-<div class="card">
-  <p>📢 Ads will appear here</p>
+<!-- ADS -->
+<div>
+<script>
+/* AdMob will go in APK */
+</script>
 </div>
 
 </div>
 
 <script>
 let mode="chat";
+let user="";
 
-// LOGIN
-function login(){
-  let u=document.getElementById("user").value;
-  let p=document.getElementById("pass").value;
-
-  if(u && p){
-    localStorage.setItem("loggedIn","true");
-    document.getElementById("loginBox").style.display="none";
-    document.getElementById("app").style.display="block";
-  } else {
-    alert("Enter details");
-  }
-}
-
-// AUTO LOGIN
-window.onload=function(){
-  if(localStorage.getItem("loggedIn")==="true"){
-    document.getElementById("loginBox").style.display="none";
-    document.getElementById("app").style.display="block";
+// AUTO LOGIN (FIXED 🚀)
+window.onload=()=>{
+  let saved=localStorage.getItem("user");
+  if(saved){
+    user=saved;
+    showApp();
   }
 };
 
-// LOGOUT
+function login(){
+  user=document.getElementById("user").value;
+  let pass=document.getElementById("pass").value;
+
+  if(!user||!pass){alert("Enter details");return;}
+
+  fetch("https://reelmindbackend-1.onrender.com/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username:user,password:pass})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.success){
+      localStorage.setItem("user",user); // 🔥 NEVER LOGOUT AGAIN
+      showApp();
+    }else alert("Login failed");
+  });
+}
+
+function showApp(){
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+}
+
 function logout(){
-  localStorage.clear();
+  localStorage.removeItem("user");
   location.reload();
 }
 
-// SELECT MODE
-function select(m){
-  mode=m;
-}
-
-// GENERATE (WORKS ALWAYS)
+// GENERATE (FIXED)
 async function generate(){
   let prompt=document.getElementById("prompt").value;
 
   if(!prompt){
-    alert("Enter something!");
+    alert("Enter prompt");
     return;
   }
 
-  document.getElementById("status").innerText="⏳ Generating...";
+  document.getElementById("output").innerText="Loading...";
 
-  // IMAGE MODE
-  if(mode==="image"){
-    document.getElementById("output").innerHTML =
-      `<img src="https://image.pollinations.ai/prompt/${prompt}" width="250">`;
-    document.getElementById("status").innerText="🟢 Done";
-    return;
-  }
-
-  // PREMIUM LOCK
-  if(mode==="video" && localStorage.getItem("premium")!=="true"){
-    document.getElementById("output").innerText="🔒 Premium only feature";
-    document.getElementById("status").innerText="🔴 Locked";
-    return;
-  }
-
-  // TRY REAL AI (if backend exists)
   try{
-    let res = await fetch("https://YOUR-BACKEND-URL/generate",{
+    let res=await fetch("https://reelmindbackend-1.onrender.com/generate",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({prompt})
+      body:JSON.stringify({prompt,type:mode})
     });
 
-    let data = await res.json();
-    document.getElementById("output").innerText=data.result;
+    let data=await res.json();
+
+    if(mode==="image"){
+      document.getElementById("output").innerHTML=
+        `<img src="${data.result}" width="250">`;
+    }else{
+      document.getElementById("output").innerText=data.result;
+    }
 
   }catch(e){
-    // FALLBACK (ALWAYS WORKS)
-    document.getElementById("output").innerText =
-      "🤖 AI says: " + prompt + " is a powerful idea!";
+    document.getElementById("output").innerText="Offline mode";
   }
-
-  document.getElementById("status").innerText="🟢 Done";
 }
 
-// PREMIUM
-function subscribe(){
-  let code=prompt("Enter code:");
+// PAYPAL (SIMPLIFIED)
+function buy(){
+  window.open("https://www.paypal.com/paypalme/YOURNAME/9");
 
-  if(code==="PREMIUM2026"){
-    localStorage.setItem("premium","true");
+  // AFTER PAYMENT USER RETURNS → VERIFY
+  setTimeout(()=>{
+    fetch("https://reelmindbackend-1.onrender.com/verify-payment",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username:user})
+    });
     alert("Premium activated!");
-  } else {
-    alert("Wrong code");
-  }
+  },5000);
 }
 </script>
 
