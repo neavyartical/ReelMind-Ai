@@ -14,7 +14,7 @@ body{
   height:100vh;
 }
 
-/* GRID CUBES */
+/* GRID */
 #grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -30,77 +30,28 @@ body{
   box-shadow:5px 5px 15px #000,-5px -5px 15px #333;
 }
 
-.grid-btn span{
-  display:block;
-  font-size:12px;
-}
-
 /* CHAT */
-#chat{
-  flex:1;
-  overflow:auto;
-  padding:10px;
-}
-
-.msg{
-  margin:8px;
-  padding:12px;
-  border-radius:12px;
-  max-width:85%;
-}
-
+#chat{flex:1;overflow:auto;padding:10px;}
+.msg{margin:8px;padding:12px;border-radius:12px;max-width:85%;}
 .user{background:#ff6a00;margin-left:auto;}
 .ai{background:#222;}
 
-img,video{
-  width:100%;
-  border-radius:10px;
-  margin-top:5px;
-}
+img,video{width:100%;border-radius:10px;margin-top:5px;}
 
-/* INPUT */
-#bottom{
-  display:flex;
-  padding:10px;
-}
-
-#bottom input{
-  flex:1;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-}
-
-#bottom button{
-  margin-left:5px;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#ff6a00;
-  color:white;
-}
+#bottom{display:flex;padding:10px;}
+#bottom input{flex:1;padding:12px;border:none;border-radius:10px;}
+#bottom button{margin-left:5px;padding:12px;border:none;border-radius:10px;background:#ff6a00;color:white;}
 </style>
 </head>
 
 <body>
 
-<!-- GRID -->
 <div id="grid">
-  <!-- MODES -->
-  <div class="grid-btn" onclick="setMode('chat')">💬<span>Chat</span></div>
-  <div class="grid-btn" onclick="setMode('story')">📖<span>Story</span></div>
-  <div class="grid-btn" onclick="setMode('image')">🖼<span>Image</span></div>
-  <div class="grid-btn" onclick="setMode('video')">🎬<span>Video</span></div>
-
-  <!-- TEMPLATES -->
-  <div class="grid-btn" onclick="template('funny')">😂<span>Funny</span></div>
-  <div class="grid-btn" onclick="template('sad')">💔<span>Emotional</span></div>
-  <div class="grid-btn" onclick="template('anime')">🔥<span>Anime</span></div>
-  <div class="grid-btn" onclick="template('money')">💰<span>Money</span></div>
-
-  <!-- EXTRA -->
-  <div class="grid-btn" onclick="toggleTikTok()">🚀<span>TikTok</span></div>
-  <div class="grid-btn" onclick="viewProjects()">📂<span>Projects</span></div>
+  <div class="grid-btn" onclick="setMode('chat')">💬 Chat</div>
+  <div class="grid-btn" onclick="setMode('story')">📖 Story</div>
+  <div class="grid-btn" onclick="setMode('image')">🖼 Image</div>
+  <div class="grid-btn" onclick="setMode('video')">🎬 Video</div>
+  <div class="grid-btn" onclick="toggleTikTok()">🚀 TikTok</div>
 </div>
 
 <div id="chat"></div>
@@ -108,59 +59,31 @@ img,video{
 <div id="bottom">
   <input id="input" placeholder="Ask anything...">
   <button onclick="send()">➤</button>
+  <button onclick="startVoice()">🎤</button>
 </div>
 
 <script>
 
-// STATE
+// OWNER MODE (NEVER LOG OUT)
+const OWNER_EMAIL = "your@email.com"; 
+let currentUser = localStorage.getItem("currentUser") || OWNER_EMAIL;
+
+// USAGE LIMIT SYSTEM
+let usage = parseInt(localStorage.getItem("usage") || "0");
+let premium = localStorage.getItem("premium")==="true";
+
+// MODE
 let mode="chat";
 let tiktok=false;
 
-// MODE
 function setMode(m){
   mode=m;
   add("Mode: "+m,"ai");
 }
 
-// TEMPLATE SYSTEM
-function template(type){
-  if(type==="funny"){
-    input.value="Create a funny viral story with unexpected twist";
-    mode="story";
-  }
-  if(type==="sad"){
-    input.value="Write a deep emotional story that makes people cry";
-    mode="story";
-  }
-  if(type==="anime"){
-    input.value="Create an epic anime battle story with powers and transformation";
-    mode="story";
-  }
-  if(type==="money"){
-    input.value="Explain how to make money online step by step";
-    mode="chat";
-  }
-  add("Template loaded: "+type,"ai");
-}
-
-// TIKTOK MODE
 function toggleTikTok(){
   tiktok=!tiktok;
-  add("TikTok Mode: "+(tiktok?"ON 🔥":"OFF"),"ai");
-}
-
-// SMART PROMPT ENGINE
-function enhancePrompt(text){
-  if(mode==="story"){
-    return "Write a long cinematic, detailed, emotional story with plot twists about: "+text;
-  }
-  if(mode==="chat"){
-    return "Answer in a smart, helpful and powerful way: "+text;
-  }
-  if(mode==="image"){
-    return "high quality cinematic image of "+text;
-  }
-  return text;
+  add("TikTok: "+(tiktok?"ON 🔥":"OFF"),"ai");
 }
 
 // UI
@@ -172,6 +95,26 @@ function add(t,type){
   chat.scrollTop=chat.scrollHeight;
 }
 
+// VOICE INPUT
+function startVoice(){
+  let rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  rec.lang="en-US";
+
+  rec.onresult = e=>{
+    input.value = e.results[0][0].transcript;
+  };
+
+  rec.start();
+}
+
+// AI VOICE OUTPUT
+function speak(text){
+  let speech = new SpeechSynthesisUtterance(text);
+  speech.rate=1;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(speech);
+}
+
 // DOWNLOAD
 function download(url,type){
   let a=document.createElement("a");
@@ -180,41 +123,39 @@ function download(url,type){
   a.click();
 }
 
-// PROJECTS (simple)
-function saveProject(data){
-  let p=JSON.parse(localStorage.getItem("projects")||"[]");
-  p.unshift(data);
-  localStorage.setItem("projects",JSON.stringify(p));
-}
+// PREMIUM CHECK
+function checkLimit(){
+  if(currentUser===OWNER_EMAIL) return true;
 
-function viewProjects(){
-  let p=JSON.parse(localStorage.getItem("projects")||"[]");
-  if(!p.length){
-    add("No projects yet","ai");
-    return;
+  if(premium) return true;
+
+  usage++;
+  localStorage.setItem("usage",usage);
+
+  if(usage > 5){
+    add("💎 Upgrade to Premium ($9/month) to continue","ai");
+    return false;
   }
-  add("📂 Projects:<br><br>"+p.join("<br><br>"),"ai");
+
+  add("Free uses left: "+(5-usage),"ai");
+  return true;
 }
 
 // SEND
-async function send(){
+function send(){
   let txt=input.value.trim();
   if(!txt) return;
 
   add(txt,"user");
 
-  let prompt = enhancePrompt(txt);
+  if(!checkLimit()) return;
 
   // IMAGE
   if(mode==="image"){
-    let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(prompt);
-
-    add(`
-      <img src="${url}">
-      <button onclick="download('${url}','image')">⬇ Download</button>
-    `,"ai");
-
-    saveProject("Image: "+txt);
+    let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(txt);
+    add(`<img src="${url}">
+    <button onclick="download('${url}','image')">⬇</button>`,"ai");
+    speak("Image ready");
     return;
   }
 
@@ -222,61 +163,45 @@ async function send(){
   if(mode==="video"){
     let vid="https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
 
+    let music = "🔥 Suggested sound: Trending TikTok Beat";
+
     add(`
-      <video controls>
-        <source src="${vid}">
-      </video>
-      <button onclick="download('${vid}','video')">⬇ Download</button>
+      <video controls src="${vid}"></video>
+      <button onclick="download('${vid}','video')">⬇</button>
+      <br>${music}
     `,"ai");
 
-    saveProject("Video: "+txt);
+    speak("Video ready");
     return;
   }
 
   // STORY
   if(mode==="story"){
     let story = `
-🎬 Cinematic Story
+🎬 Story:
 
 ${txt}
 
-━━━━━━━━━━━━━━━
+A powerful emotional journey with twists and transformation.
 
-In a world where ${txt}, everything changed.
+🔥 Turning point changes everything.
 
-At first, it seemed normal. But soon, emotions, struggles, and powerful challenges began to rise.
-
-A moment came that changed everything forever.
-
-🔥 Transformation happened.
-
-✨ And this was only the beginning...
-
-━━━━━━━━━━━━━━━
+✨ Beginning of greatness.
 `;
 
     if(tiktok){
-      story += `
-🔥 Caption: This will shock everyone 😳
-#viral #fyp #trending #story
-`;
+      story += "\n🔥 Caption: This will go viral #fyp #viral";
     }
 
     add(story,"ai");
-    saveProject(story);
+    speak(story);
     return;
   }
 
   // CHAT
-  let reply = `
-🤖 AI:
-
-${txt}
-
-Think smart. Move smart. Build something powerful.
-`;
-
+  let reply = "🤖 " + txt + " — think bigger and execute smart.";
   add(reply,"ai");
+  speak(reply);
 }
 
 </script>
