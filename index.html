@@ -14,334 +14,209 @@ body{
   height:100vh;
 }
 
-/* MODES */
-#topBar{
-  display:flex;
-  gap:6px;
+/* GRID MENU */
+#grid{
+  display:grid;
+  grid-template-columns: repeat(4,1fr);
+  gap:10px;
   padding:10px;
 }
-.mode{
-  flex:1;
-  padding:10px;
-  border:none;
+
+.grid-btn{
+  text-align:center;
+  padding:12px;
   border-radius:12px;
   background:rgba(255,255,255,0.1);
-  color:white;
 }
-.active{
-  background:linear-gradient(90deg,#ff6a00,#ff00cc);
+
+.grid-btn span{
+  display:block;
+  font-size:12px;
+  margin-top:5px;
 }
 
 /* CHAT */
 #chat{
   flex:1;
   overflow:auto;
-  padding:12px;
+  padding:10px;
 }
+
 .msg{
-  margin:10px;
-  padding:14px;
-  border-radius:16px;
+  margin:8px;
+  padding:12px;
+  border-radius:14px;
   max-width:85%;
 }
-.user{
-  background:linear-gradient(135deg,#ff6a00,#ff00cc);
-  margin-left:auto;
-}
-.ai{
-  background:rgba(0,0,0,0.65);
-}
+
+.user{background:#ff6a00;margin-left:auto;}
+.ai{background:#222;}
 
 /* INPUT */
-#bottomBar{
+#bottom{
   display:flex;
   padding:10px;
-  background:rgba(0,0,0,0.5);
-}
-#bottomBar input{
-  flex:1;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  background:rgba(255,255,255,0.1);
-  color:white;
-}
-#bottomBar button{
-  margin-left:6px;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  background:linear-gradient(90deg,#ff6a00,#ff00cc);
-  color:white;
 }
 
-.small{
-  margin-top:6px;
-  padding:6px;
+#bottom input{
+  flex:1;
+  padding:12px;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
+}
+
+#bottom button{
+  margin-left:5px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
   background:#ff6a00;
   color:white;
-  font-size:12px;
 }
 
-#branding{
+/* ADS */
+#ad{
   text-align:center;
+  padding:8px;
   font-size:12px;
-  opacity:0.6;
-}
-
-/* thinking dots */
-#thinking span{
-  animation:blink 1s infinite;
-}
-#thinking span:nth-child(2){animation-delay:0.2s;}
-#thinking span:nth-child(3){animation-delay:0.4s;}
-@keyframes blink{
-  0%,100%{opacity:0;}
-  50%{opacity:1;}
+  background:#000;
 }
 </style>
 </head>
 
-<body onload="dailyReward()">
+<body>
 
-<div id="topBar">
-  <button class="mode active" onclick="setMode('chat',this)">💬</button>
-  <button class="mode" onclick="setMode('story',this)">📖</button>
-  <button class="mode" onclick="setMode('image',this)">🖼</button>
-  <button class="mode" onclick="setMode('video',this)">🎬</button>
-</div>
-
-<div style="padding:5px;">
-  <button onclick="quick('Give me 5 viral TikTok hooks')">Hooks</button>
-  <button onclick="quick('Create a viral story script')">Script</button>
-  <button onclick="quick('Generate business idea')">Ideas</button>
+<!-- GRID -->
+<div id="grid">
+  <div class="grid-btn" onclick="setMode('chat')">💬<span>Chat</span></div>
+  <div class="grid-btn" onclick="setMode('story')">📖<span>Story</span></div>
+  <div class="grid-btn" onclick="setMode('image')">🖼<span>Image</span></div>
+  <div class="grid-btn" onclick="setMode('video')">🎬<span>Video</span></div>
+  <div class="grid-btn" onclick="upgrade()">💎<span>Premium</span></div>
+  <div class="grid-btn" onclick="viewProjects()">📂<span>Projects</span></div>
 </div>
 
 <div id="chat"></div>
 
-<div id="branding">Powered by Artical Neavy</div>
+<div id="ad">🔥 Your Ad Here (AdMob later)</div>
 
-<div id="bottomBar">
-  <input id="input" placeholder="Create anything...">
+<div id="bottom">
+  <input id="input" placeholder="Ask or create...">
   <button onclick="send()">➤</button>
-  <button onclick="voice()">🎤</button>
 </div>
 
 <script>
 
-let mode="chat";
-let queue=[];
-let processing=false;
-let memory=[];
-
 // MODE
-function setMode(m,btn){
+let mode="chat";
+let premium=false;
+
+function setMode(m){
   mode=m;
-  document.querySelectorAll(".mode").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
+  add("Mode: "+m,"ai");
 }
 
-// MESSAGE
-function add(text,type){
+// ADD MESSAGE
+function add(t,type){
   let d=document.createElement("div");
   d.className="msg "+type;
-  d.innerHTML=text;
+  d.innerHTML=t;
   chat.appendChild(d);
   chat.scrollTop=chat.scrollHeight;
 }
 
-// TYPE
-function type(text){
-  return new Promise(r=>{
-    let i=0;
-    let d=document.createElement("div");
-    d.className="msg ai";
-    chat.appendChild(d);
-
-    function t(){
-      if(i<text.length){
-        d.innerHTML+=text[i++];
-        setTimeout(t,7);
-      }else r();
-    }
-    t();
-  });
-}
-
-// QUEUE
-async function run(){
-  if(processing) return;
-  processing=true;
-  while(queue.length) await queue.shift()();
-  processing=false;
-}
-
-// THINKING
-function think(){
-  let d=document.createElement("div");
-  d.id="thinking";
-  d.className="msg ai";
-  d.innerHTML="🤖 Generating<span>.</span><span>.</span><span>.</span>";
-  chat.appendChild(d);
-}
-function stop(){
-  let t=document.getElementById("thinking");
-  if(t) t.remove();
-}
-
-// MEMORY
-function remember(text){
-  memory.push(text);
-  if(memory.length>5) memory.shift();
-}
-
-// VOICE
-function voice(){
-  let r=new (window.SpeechRecognition||webkitSpeechRecognition)();
-  r.onresult=e=>{
-    input.value=e.results[0][0].transcript;
-  };
-  r.start();
-}
-
-// SPEAK
-function speak(text){
-  let s=new SpeechSynthesisUtterance(text);
-  speechSynthesis.speak(s);
-}
-
-// SHARE
-function shareText(text){
-  if(navigator.share){
-    navigator.share({text:text});
-  }
-}
-
-// COPY
-function copyAll(txt){
-  navigator.clipboard.writeText(txt);
-  alert("Copied");
-}
-
 // SAVE PROJECT
-function saveProject(type,data){
+function save(type,data){
   let p=JSON.parse(localStorage.getItem(type)||"[]");
   p.unshift(data);
   localStorage.setItem(type,JSON.stringify(p));
 }
 
-// QUICK
-function quick(t){
-  input.value=t;
+function viewProjects(){
+  let s=JSON.parse(localStorage.getItem("stories")||"[]");
+  add("Saved:<br>"+s.join("<br><br>"),"ai");
 }
 
-// DAILY REWARD
-function dailyReward(){
-  let last=localStorage.getItem("lastVisit");
-  let today=new Date().toDateString();
-  if(last!==today){
-    alert("🎁 Daily reward unlocked!");
-    localStorage.setItem("lastVisit",today);
+// PREMIUM LOCK
+function upgrade(){
+  premium=true;
+  alert("Premium unlocked 💎");
+}
+
+function checkPremium(){
+  if(!premium){
+    alert("Upgrade to Premium 💎");
+    return false;
+  }
+  return true;
+}
+
+// REAL AI CALL (IMPORTANT)
+async function realAI(prompt){
+  try{
+    let res = await fetch("https://YOUR-BACKEND-URL/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt})
+    });
+
+    let data = await res.json();
+    return data.reply;
+
+  }catch(e){
+    return "⚠️ AI not connected yet";
   }
 }
 
 // SEND
-function send(){
+async function send(){
   let txt=input.value.trim();
   if(!txt) return;
 
   add(txt,"user");
-  remember(txt);
 
-  let context=memory.join(" | ");
-
-  // IMAGE MODE
+  // IMAGE
   if(mode==="image"){
     let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(txt);
-
-    add(`
-      🖼 AI Image
-      <img src="${url}">
-      <button class="small" onclick="copyAll('${url}')">Copy</button>
-      <button class="small" onclick="shareText('${url}')">Share</button>
-    `,"ai");
-
-    saveProject("images",url);
+    add(`<img src="${url}">`,"ai");
+    save("images",url);
     return;
   }
 
-  // VIDEO MODE
+  // VIDEO (PREMIUM)
   if(mode==="video"){
-    let v=`
-      🎬 AI Video
+    if(!checkPremium()) return;
+
+    add(`
       <video controls>
       <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4">
       </video>
       🔥 Viral caption ready
-    `;
-    add(v,"ai");
-    saveProject("videos",v);
+    `,"ai");
+
     return;
   }
 
-  // STORY MODE
+  // STORY
   if(mode==="story"){
-    queue.push(async()=>{
-      think();
-      await new Promise(r=>setTimeout(r,800));
-      stop();
-
-      let s=`
-🎬 Cinematic Story
+    let story = `
+🎬 Story:
 
 ${txt}
 
-A powerful journey shaped by emotion, struggle and victory.
+A journey filled with emotion and power.
 
-🔥 This will go viral.
+🔥 Viral ending.
 `;
 
-      await type(s);
-
-      add(`
-        <button class="small" onclick="copyAll(\`${s}\`)">Copy</button>
-        <button class="small" onclick="shareText(\`${s}\`)">Share</button>
-      `,"ai");
-
-      saveProject("stories",s);
-    });
-
-    run();
+    add(story,"ai");
+    save("stories",story);
     return;
   }
 
-  // CHAT MODE
-  queue.push(async()=>{
-    think();
-    await new Promise(r=>setTimeout(r,500));
-    stop();
-
-    let reply=`
-🤖 Smart AI
-
-Based on context: ${context}
-
-"${txt}"
-
-Think bigger.
-Move smarter.
-Stay consistent.
-
-🔥 You're building something powerful.
-`;
-
-    await type(reply);
-    speak(reply);
-  });
-
-  run();
+  // CHAT (REAL AI)
+  let reply = await realAI(txt);
+  add("🤖 "+reply,"ai");
 }
 
 </script>
