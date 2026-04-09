@@ -1,41 +1,115 @@
- <script>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<style>
+body {
+  margin:0;
+  font-family:Arial;
+  background: linear-gradient(135deg,#2a003f,#ff6a00);
+  color:white;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+#topBar {
+  display:flex;
+  gap:8px;
+  padding:10px;
+  overflow-x:auto;
+}
+
+#topBar button {
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:rgba(255,255,255,0.1);
+  color:white;
+}
+
+#chat {
+  flex:1;
+  overflow:auto;
+  padding:10px;
+}
+
+.msg {
+  margin:8px;
+  padding:10px;
+  border-radius:10px;
+  max-width:80%;
+}
+
+.user {
+  background:#ff6a00;
+  margin-left:auto;
+}
+
+.ai {
+  background:#1f1f1f;
+}
+
+#bottomBar {
+  display:flex;
+  padding:10px;
+}
+
+#bottomBar input {
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+}
+
+#bottomBar button {
+  margin-left:5px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#ff6a00;
+  color:white;
+}
+
+img,video {
+  width:100%;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="topBar">
+  <button onclick="quick('Funny TikTok story')">😂</button>
+  <button onclick="quick('Sad emotional story')">💔</button>
+  <button onclick="quick('Anime battle')">🔥</button>
+  <button onclick="quick('Make money online')">💰</button>
+  <button onclick="quick('Create video')">🎬</button>
+</div>
+
+<div id="chat"></div>
+
+<input type="file" id="upload" onchange="handleUpload()">
+
+<div id="bottomBar">
+  <input id="input" placeholder="Ask anything...">
+  <button onclick="send()">Send</button>
+</div>
+
+<script>
+
+// SAFE VARIABLES
 let tiktok = false;
-
-// QUEUE SYSTEM
 let queue = [];
 let processing = false;
-
-// USER SYSTEM
-function saveUser(name){
-  localStorage.setItem("user", name);
-}
-
-function getUser(){
-  return localStorage.getItem("user") || "Guest";
-}
-
-// PROJECT STORAGE
-function saveProject(data){
-  let projects = JSON.parse(localStorage.getItem("projects") || "[]");
-  projects.unshift(data);
-  localStorage.setItem("projects", JSON.stringify(projects));
-}
-
-function viewProjects(){
-  let projects = JSON.parse(localStorage.getItem("projects") || "[]");
-
-  if(projects.length === 0){
-    addMessage("📂 No saved projects yet","ai");
-    return;
-  }
-
-  addMessage("📂 Your Projects:<br><br>" + projects.slice(0,10).join("<br><br>"),"ai");
-}
 
 // ADD MESSAGE
 function addMessage(text,type){
   let chat = document.getElementById("chat");
+  if(!chat) return;
+
   let div = document.createElement("div");
   div.className = "msg " + type;
   div.innerHTML = text;
@@ -43,7 +117,7 @@ function addMessage(text,type){
   chat.scrollTop = chat.scrollHeight;
 }
 
-// TYPE ENGINE (NO CUT)
+// TYPE (SAFE)
 function typeMessage(text){
   return new Promise(resolve => {
     let i = 0;
@@ -57,8 +131,7 @@ function typeMessage(text){
       if(i < text.length){
         div.innerHTML += text.charAt(i);
         i++;
-        chat.scrollTop = chat.scrollHeight;
-        setTimeout(typing, 12);
+        setTimeout(typing, 10);
       } else {
         resolve();
       }
@@ -68,12 +141,12 @@ function typeMessage(text){
   });
 }
 
-// QUEUE PROCESS
+// QUEUE
 async function processQueue(){
   if(processing) return;
   processing = true;
 
-  while(queue.length > 0){
+  while(queue.length){
     let job = queue.shift();
     await job();
   }
@@ -81,59 +154,12 @@ async function processQueue(){
   processing = false;
 }
 
-// VOICE
-function speak(text){
-  let speech = new SpeechSynthesisUtterance(text);
-  speech.rate = 1;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(speech);
-}
-
-// REAL AI (FREE)
-async function realAI(prompt){
-  try{
-    let res = await fetch("https://api-inference.huggingface.co/models/google/flan-t5-large",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body: JSON.stringify({inputs: prompt})
-    });
-
-    let data = await res.json();
-    return data[0]?.generated_text || "AI could not respond properly.";
-  }catch(e){
-    return "⚠️ AI connection failed. Try again.";
-  }
-}
-
 // QUICK
 function quick(text){
   document.getElementById("input").value = text;
 }
 
-// TIKTOK
-function toggleTikTok(){
-  tiktok = !tiktok;
-  alert("TikTok Mode: " + (tiktok ? "ON 🔥" : "OFF"));
-}
-
-// DOWNLOADS
-function downloadImage(url){
-  let a = document.createElement("a");
-  a.href = url;
-  a.download = "image.jpg";
-  a.click();
-}
-
-function downloadVideo(url){
-  let a = document.createElement("a");
-  a.href = url;
-  a.download = "video.mp4";
-  a.click();
-}
-
-// IMAGE UPLOAD → VIDEO
+// UPLOAD
 function handleUpload(){
   let file = document.getElementById("upload").files[0];
   if(!file) return;
@@ -141,24 +167,24 @@ function handleUpload(){
   let url = URL.createObjectURL(file);
 
   addMessage(`
-    🖼 Uploaded Image:
+    🖼 Uploaded:
     <img src="${url}">
-    🎬 Converted Video:
+    🎬 Video preview:
     <video controls>
       <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4">
     </video>
   `,"ai");
-
-  saveProject("Uploaded image turned into video");
 }
 
-// MAIN SEND
+// SEND
 function send(){
-  let input = document.getElementById("input").value.trim();
+  let inputEl = document.getElementById("input");
+  if(!inputEl) return;
+
+  let input = inputEl.value.trim();
   if(!input) return;
 
   addMessage(input,"user");
-  saveProject(input);
 
   let lower = input.toLowerCase();
 
@@ -166,75 +192,41 @@ function send(){
   if(lower.includes("image")){
     let url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(input);
 
-    addMessage(`
-      🖼 Image:
-      <img src="${url}">
-      <button onclick="downloadImage('${url}')">⬇ Download</button>
-    `,"ai");
-
+    addMessage(`<img src="${url}">`,"ai");
     return;
   }
 
   // VIDEO
   if(lower.includes("video")){
-    let videoUrl = "https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
-
     addMessage(`
-      🎬 Video:
       <video controls>
-        <source src="${videoUrl}">
+        <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4">
       </video>
-      <button onclick="downloadVideo('${videoUrl}')">⬇ Download</button>
     `,"ai");
-
-    speak("Your video is ready");
     return;
   }
 
-  // STORY (FIXED ENGINE)
+  // STORY
   if(lower.includes("story")){
-    queue.push(async () => {
-
-      let story = `
-📖 Story:
-
-Once upon a time, ${input}, in a world driven by ambition and hidden power.
-
-At first, everything seemed simple. But beneath the surface, something greater was unfolding. Every step forward revealed deeper meaning.
-
-Challenges came — fear, doubt, and unexpected twists. But strength grew stronger with each moment.
-
-Then came the turning point. A bold decision changed everything.
-
-In the end, what started as an idea became a legacy.
-
-✨ And this was only the beginning...
-`;
+    queue.push(async ()=>{
+      let story = "Once upon a time... " + input + " and it became something powerful.";
 
       await typeMessage(story);
-      speak(story);
-
-      if(tiktok){
-        addMessage("🔥 Caption: This will break the internet! #viral #fyp","ai");
-      }
-
     });
 
     processQueue();
     return;
   }
 
-  // REAL AI CHAT
-  queue.push(async () => {
-
-    let reply = await realAI(input);
-
-    await typeMessage("🤖 " + reply);
-    speak(reply);
-
+  // DEFAULT
+  queue.push(async ()=>{
+    await typeMessage("AI: I understand " + input);
   });
 
   processQueue();
 }
 
 </script>
+
+</body>
+</html>
