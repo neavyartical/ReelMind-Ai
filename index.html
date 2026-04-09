@@ -7,164 +7,204 @@
 <style>
 body {
   margin:0;
-  font-family: Arial;
-  background: linear-gradient(135deg,#ff7e5f,#feb47b);
-  text-align:center;
+  font-family:sans-serif;
   color:white;
+  text-align:center;
+
+  /* WATER BACKGROUND */
+  background: linear-gradient(135deg,#0f2027,#2c5364,#1c92d2);
+  background-size: 400% 400%;
+  animation: water 10s infinite ease-in-out;
 }
 
-h1 {
-  margin-top:20px;
+@keyframes water {
+  0% { background-position:0% 50%; }
+  50% { background-position:100% 50%; }
+  100% { background-position:0% 50%; }
 }
 
+h1 { margin-top:20px; }
+
+/* CUBE */
 .scene {
-  width:250px;
-  height:250px;
+  width:260px;
+  height:260px;
   margin:50px auto;
-  perspective:800px;
+  perspective:900px;
 }
 
 .cube {
   width:100%;
   height:100%;
   position:relative;
-  transform-style: preserve-3d;
-  animation: spin 10s infinite linear;
+  transform-style:preserve-3d;
+  transition:1s;
 }
 
 .face {
   position:absolute;
-  width:100%;
-  height:100%;
+  width:260px;
+  height:260px;
   border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
   display:flex;
   align-items:center;
   justify-content:center;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
+  font-size:18px;
+  border-radius:20px;
   cursor:pointer;
 }
 
-.face:hover {
-  background: rgba(255,255,255,0.2);
-}
+/* POSITIONS */
+.front  { transform: rotateY(0deg) translateZ(130px); }
+.back   { transform: rotateY(180deg) translateZ(130px); }
+.right  { transform: rotateY(90deg) translateZ(130px); }
+.left   { transform: rotateY(-90deg) translateZ(130px); }
+.top    { transform: rotateX(90deg) translateZ(130px); }
+.bottom { transform: rotateX(-90deg) translateZ(130px); }
 
-.front  { transform: rotateY(0deg) translateZ(125px); }
-.back   { transform: rotateY(180deg) translateZ(125px); }
-.right  { transform: rotateY(90deg) translateZ(125px); }
-.left   { transform: rotateY(-90deg) translateZ(125px); }
-.top    { transform: rotateX(90deg) translateZ(125px); }
-.bottom { transform: rotateX(-90deg) translateZ(125px); }
-
-@keyframes spin {
-  from { transform: rotateX(0) rotateY(0); }
-  to { transform: rotateX(360deg) rotateY(360deg); }
+input {
+  padding:10px;
+  width:75%;
+  border-radius:10px;
+  border:none;
 }
 
 button {
   padding:10px;
   border:none;
   border-radius:10px;
-  background:#fff;
-  color:#000;
-  cursor:pointer;
+  background:#00c6ff;
+  color:white;
+  margin:5px;
 }
 
+/* RESULT */
 #output {
   margin:20px;
+}
+
+/* PRICING */
+.pricing {
+  margin-top:30px;
+  background:rgba(255,255,255,0.1);
+  padding:15px;
+  border-radius:15px;
+}
+
+/* FOOTER */
+.footer {
+  margin-top:40px;
+  font-size:12px;
+  opacity:0.7;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🔥 ReelMind AI</h1>
+<h1>🌊 ReelMind AI</h1>
 <p>Powered by Artical Neavy</p>
 
 <div class="scene">
   <div class="cube" id="cube">
 
-    <div class="face front" onclick="selectFeature('chat')">Chat</div>
-    <div class="face back" onclick="selectFeature('story')">Story</div>
-    <div class="face right" onclick="selectFeature('image')">Image</div>
-    <div class="face left" onclick="selectFeature('video')">Video</div>
-    <div class="face top" onclick="selectFeature('funny')">Funny</div>
-    <div class="face bottom" onclick="selectFeature('money')">Money</div>
+    <div class="face front" onclick="select('chat')">Chat</div>
+    <div class="face back" onclick="select('story')">Story</div>
+    <div class="face right" onclick="select('image')">Image</div>
+    <div class="face left" onclick="select('video')">Video</div>
+    <div class="face top" onclick="select('funny')">Funny</div>
+    <div class="face bottom" onclick="select('money')">Money</div>
 
   </div>
 </div>
 
-<input id="prompt" placeholder="Enter your idea..." style="padding:10px;width:80%;">
-<br><br>
-
+<input id="prompt" placeholder="Enter your idea..."><br><br>
 <button onclick="generate()">Generate</button>
 
 <div id="output"></div>
 
+<!-- PRICING -->
+<div class="pricing">
+  <h3>💎 Premium Plans</h3>
+  <p>$9/month — Unlimited AI</p>
+  <p>$99 — Lifetime Access</p>
+  <button onclick="buy()">Upgrade</button>
+</div>
+
+<div class="footer">
+  <a href="#" onclick="terms()">Terms & Conditions</a>
+</div>
+
 <script>
+let mode="chat";
 
-let selected = "chat";
-let startX = 0;
-let cube = document.getElementById("cube");
-
-function selectFeature(f){
-  selected = f;
-  alert("Selected: " + f);
+// ROTATE
+function rotate(x,y){
+  document.getElementById("cube").style.transform =
+    `rotateX(${x}deg) rotateY(${y}deg)`;
 }
 
-// Swipe control
-document.addEventListener("touchstart", e=>{
-  startX = e.touches[0].clientX;
-});
+function select(m){
+  mode=m;
 
-document.addEventListener("touchend", e=>{
-  let endX = e.changedTouches[0].clientX;
-  let diff = endX - startX;
+  if(m==="chat") rotate(0,0);
+  if(m==="story") rotate(0,180);
+  if(m==="image") rotate(0,90);
+  if(m==="video") rotate(0,-90);
+  if(m==="funny") rotate(90,0);
+  if(m==="money") rotate(-90,0);
+}
 
-  if(diff > 50){
-    cube.style.transform = "rotateY(90deg)";
-  } else if(diff < -50){
-    cube.style.transform = "rotateY(-90deg)";
-  }
-});
-
-// MAIN GENERATE FUNCTION
+// GENERATE
 async function generate(){
-  let prompt = document.getElementById("prompt").value;
+  let prompt=document.getElementById("prompt").value;
 
   if(!prompt){
-    alert("Enter prompt!");
+    alert("Enter prompt");
     return;
   }
 
-  document.getElementById("output").innerHTML = "⏳ Generating...";
+  document.getElementById("output").innerText="⏳ Loading...";
 
   try{
-    let res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
+    let res = await fetch("https://reelmindbackend-1.onrender.com/generate",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        prompt: prompt,
-        type: selected
-      })
+      body:JSON.stringify({prompt, type:mode})
     });
 
     let data = await res.json();
 
-    if(selected === "image"){
+    if(mode==="image"){
       document.getElementById("output").innerHTML =
-        `<img src="${data.result}" width="300">`;
+        `<img src="${data.result}" width="280">`;
     } else {
-      document.getElementById("output").innerHTML =
-        `<p>${data.result}</p>`;
+      document.getElementById("output").innerText = data.result;
     }
 
-  }catch(err){
-    document.getElementById("output").innerHTML =
-      "❌ Error connecting to server";
+  }catch(e){
+    document.getElementById("output").innerText="❌ Server error";
   }
 }
 
+// PAYMENT (FAKE FOR NOW)
+function buy(){
+  alert("Payment system coming soon 🚀");
+}
+
+// TERMS
+function terms(){
+  alert(`Terms & Conditions:
+
+- Use responsibly
+- No illegal content
+- AI results may vary
+- Premium gives full access
+
+© Artical Neavy`);
+}
 </script>
 
 </body>
