@@ -7,156 +7,150 @@
 <style>
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(180deg, #0f0c29, #302b63, #24243e);
+  font-family: sans-serif;
+  background: radial-gradient(circle,#1a1a2e,#000);
   color: white;
-}
-
-/* HEADER */
-.header {
   text-align: center;
-  padding: 20px;
-  font-size: 24px;
-  font-weight: bold;
 }
 
-/* GRID */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 15px;
-  padding: 20px;
+/* ROTATING MENU */
+.circle {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 40px auto;
+  border-radius: 50%;
 }
 
-/* CARDS */
-.card {
-  background: rgba(255,255,255,0.08);
-  border-radius: 20px;
-  padding: 20px;
-  text-align: center;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+.item {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: 0.3s;
-  animation: float 3s ease-in-out infinite;
+  backdrop-filter: blur(10px);
 }
 
-.card:hover {
-  transform: scale(1.08);
+/* POSITION ITEMS IN CIRCLE */
+.item:nth-child(1){top:0;left:110px;}
+.item:nth-child(2){top:60px;right:0;}
+.item:nth-child(3){bottom:60px;right:0;}
+.item:nth-child(4){bottom:0;left:110px;}
+.item:nth-child(5){bottom:60px;left:0;}
+.item:nth-child(6){top:60px;left:0;}
+
+.center {
+  position: absolute;
+  top:110px;
+  left:110px;
+  width:80px;
+  height:80px;
+  background: linear-gradient(135deg,#ff4ecd,#7a5cff);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
 }
 
-/* FLOAT ANIMATION */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0px); }
-}
-
-/* RESULT BOX */
+/* RESULT */
 #result {
   margin: 20px;
-  padding: 20px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(10px);
-  min-height: 120px;
-  white-space: pre-wrap;
 }
 
-/* INPUT AREA */
-.input-box {
-  display: flex;
-  padding: 15px;
-  gap: 10px;
-}
-
+/* INPUT */
 input {
-  flex: 1;
-  padding: 12px;
+  width: 70%;
+  padding: 10px;
   border-radius: 20px;
   border: none;
-  outline: none;
 }
 
 button {
-  padding: 12px 16px;
+  padding: 10px 15px;
   border-radius: 20px;
   border: none;
-  background: linear-gradient(135deg,#ff4ecd,#7a5cff);
+  background: #ff4ecd;
   color: white;
-  font-weight: bold;
-  cursor: pointer;
 }
-
 </style>
 </head>
 
 <body>
 
-<div class="header">🚀 ReelMind AI</div>
+<h2>🚀 ReelMind AI</h2>
 
-<div class="grid">
-  <div class="card" onclick="setMode('chat')">💬 Chat</div>
-  <div class="card" onclick="setMode('story')">📖 Story</div>
-  <div class="card" onclick="setMode('image')">🖼 Image</div>
-  <div class="card" onclick="setMode('video')">🎬 Video</div>
-  <div class="card" onclick="setMode('funny')">😂 Funny</div>
-  <div class="card" onclick="setMode('sad')">💔 Sad</div>
-  <div class="card" onclick="setMode('anime')">🔥 Anime</div>
-  <div class="card" onclick="setMode('money')">💰 Money</div>
-  <div class="card" onclick="setMode('tiktok')">🚀 TikTok</div>
+<div class="circle">
+  <div class="item" onclick="setMode('chat')">💬</div>
+  <div class="item" onclick="setMode('image')">🖼</div>
+  <div class="item" onclick="setMode('video')">🎬</div>
+  <div class="item" onclick="setMode('story')">📖</div>
+  <div class="item" onclick="setMode('money')">💰</div>
+  <div class="item" onclick="setMode('tiktok')">🚀</div>
+
+  <div class="center">GO</div>
 </div>
 
-<div id="result">✨ Tap a feature, then type below 👇</div>
-
-<div class="input-box">
+<div>
   <input id="input" placeholder="Type your idea..." />
-  <button onclick="send()">➤</button>
+  <button onclick="send()">Send</button>
 </div>
+
+<div id="result">Select a mode 👆</div>
 
 <script>
-const API_URL = "https://reelmindbackend-1.onrender.com/generate";
+let mode = "chat";
 
-let currentMode = "chat";
-
-// select mode
-function setMode(mode){
-  currentMode = mode;
-  document.getElementById("result").innerText = "✏️ " + mode.toUpperCase() + " mode selected. Type below 👇";
+// FREE IMAGE API (no key)
+function getImage(prompt){
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 }
 
-// send request
+function setMode(m){
+  mode = m;
+  document.getElementById("result").innerText = "Mode: " + m;
+}
+
 async function send(){
   const text = document.getElementById("input").value;
   if(!text) return;
 
-  document.getElementById("result").innerText = "⏳ Thinking...";
+  document.getElementById("result").innerText = "⏳ Loading...";
 
+  // 🖼 IMAGE MODE (REAL IMAGE)
+  if(mode === "image"){
+    const img = getImage(text);
+
+    document.getElementById("result").innerHTML =
+      `<img src="${img}" width="300"/>`;
+    return;
+  }
+
+  // 🎬 VIDEO (SIMULATED)
+  if(mode === "video"){
+    document.getElementById("result").innerText =
+      "🎬 Video generation requires advanced API (coming soon)";
+    return;
+  }
+
+  // 💬 OTHER MODES (USE BACKEND)
   try{
-    let res = await fetch(API_URL,{
+    const res = await fetch("https://reelmindbackend-1.onrender.com/generate",{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ prompt: text })
     });
 
-    let data = await res.json();
+    const data = await res.json();
 
-    let output = "";
-
-    if(currentMode === "story") output = "📖 STORY:\n\n" + data.result;
-    else if(currentMode === "funny") output = "😂 FUNNY:\n\n" + data.result;
-    else if(currentMode === "sad") output = "💔 SAD:\n\n" + data.result;
-    else if(currentMode === "anime") output = "🔥 ANIME:\n\n" + data.result;
-    else if(currentMode === "money") output = "💰 MONEY:\n\n" + data.result;
-    else if(currentMode === "tiktok") output = "🚀 TIKTOK:\n\n" + data.result;
-    else if(currentMode === "video") output = "🎬 VIDEO:\n\n" + data.result;
-    else if(currentMode === "image") output = "🖼 IMAGE:\n\n" + data.result;
-    else output = "💬 CHAT:\n\n" + data.result;
-
-    document.getElementById("result").innerText = output;
+    document.getElementById("result").innerText = data.result;
 
   }catch(e){
-    document.getElementById("result").innerText = "❌ Error connecting to server";
+    document.getElementById("result").innerText = "❌ Error";
   }
 }
 </script>
