@@ -10,26 +10,24 @@ body {
   font-family:sans-serif;
   color:white;
   text-align:center;
-
-  /* WATER BACKGROUND */
   background: linear-gradient(135deg,#0f2027,#2c5364,#1c92d2);
-  background-size: 400% 400%;
+  background-size:400% 400%;
   animation: water 10s infinite ease-in-out;
 }
 
 @keyframes water {
-  0% { background-position:0% 50%; }
-  50% { background-position:100% 50%; }
-  100% { background-position:0% 50%; }
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
 }
 
-h1 { margin-top:20px; }
+h1 {margin-top:20px;}
 
 /* CUBE */
 .scene {
   width:260px;
   height:260px;
-  margin:50px auto;
+  margin:40px auto;
   perspective:900px;
 }
 
@@ -47,16 +45,15 @@ h1 { margin-top:20px; }
   height:260px;
   border:1px solid rgba(255,255,255,0.2);
   background:rgba(255,255,255,0.08);
-  backdrop-filter: blur(10px);
+  backdrop-filter:blur(10px);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:18px;
   border-radius:20px;
   cursor:pointer;
 }
 
-/* POSITIONS */
+/* SIDES */
 .front  { transform: rotateY(0deg) translateZ(130px); }
 .back   { transform: rotateY(180deg) translateZ(130px); }
 .right  { transform: rotateY(90deg) translateZ(130px); }
@@ -80,14 +77,13 @@ button {
   margin:5px;
 }
 
-/* RESULT */
 #output {
   margin:20px;
 }
 
 /* PRICING */
 .pricing {
-  margin-top:30px;
+  margin-top:20px;
   background:rgba(255,255,255,0.1);
   padding:15px;
   border-radius:15px;
@@ -95,7 +91,7 @@ button {
 
 /* FOOTER */
 .footer {
-  margin-top:40px;
+  margin-top:30px;
   font-size:12px;
   opacity:0.7;
 }
@@ -125,12 +121,16 @@ button {
 
 <div id="output"></div>
 
+<!-- ADS -->
+<div style="margin:20px;">
+  <p>🔸 Ads will appear here</p>
+</div>
+
 <!-- PRICING -->
 <div class="pricing">
-  <h3>💎 Premium Plans</h3>
-  <p>$9/month — Unlimited AI</p>
-  <p>$99 — Lifetime Access</p>
-  <button onclick="buy()">Upgrade</button>
+  <h3>💎 Premium</h3>
+  <button onclick="buyMonthly()">$9/month</button>
+  <button onclick="buyLifetime()">$99 lifetime</button>
 </div>
 
 <div class="footer">
@@ -139,23 +139,37 @@ button {
 
 <script>
 let mode="chat";
+let cube=document.getElementById("cube");
 
-// ROTATE
-function rotate(x,y){
-  document.getElementById("cube").style.transform =
-    `rotateX(${x}deg) rotateY(${y}deg)`;
-}
+// AUTO ROTATION
+let angleY=0;
+setInterval(()=>{
+  angleY += 1;
+  cube.style.transform = `rotateY(${angleY}deg)`;
+},50);
 
+// SELECT MODE (OVERRIDE ROTATION TEMP)
 function select(m){
   mode=m;
 
-  if(m==="chat") rotate(0,0);
-  if(m==="story") rotate(0,180);
-  if(m==="image") rotate(0,90);
-  if(m==="video") rotate(0,-90);
-  if(m==="funny") rotate(90,0);
-  if(m==="money") rotate(-90,0);
+  if(m==="chat") cube.style.transform="rotateY(0deg)";
+  if(m==="story") cube.style.transform="rotateY(180deg)";
+  if(m==="image") cube.style.transform="rotateY(90deg)";
+  if(m==="video") cube.style.transform="rotateY(-90deg)";
+  if(m==="funny") cube.style.transform="rotateX(90deg)";
+  if(m==="money") cube.style.transform="rotateX(-90deg)";
 }
+
+// SWIPE CONTROL
+let startX=0;
+document.addEventListener("touchstart",e=>{
+  startX=e.touches[0].clientX;
+});
+document.addEventListener("touchend",e=>{
+  let endX=e.changedTouches[0].clientX;
+  if(endX-startX>50) cube.style.transform="rotateY(90deg)";
+  if(startX-endX>50) cube.style.transform="rotateY(-90deg)";
+});
 
 // GENERATE
 async function generate(){
@@ -189,19 +203,22 @@ async function generate(){
   }
 }
 
-// PAYMENT (FAKE FOR NOW)
-function buy(){
-  alert("Payment system coming soon 🚀");
+// PAYPAL
+function buyMonthly(){
+  window.location.href="https://www.paypal.com/paypalme/YOURNAME/9";
+}
+
+function buyLifetime(){
+  window.location.href="https://www.paypal.com/paypalme/YOURNAME/99";
 }
 
 // TERMS
 function terms(){
-  alert(`Terms & Conditions:
-
-- Use responsibly
-- No illegal content
-- AI results may vary
-- Premium gives full access
+  alert(`Terms:
+Use responsibly.
+No illegal content.
+AI results may vary.
+Premium unlocks full features.
 
 © Artical Neavy`);
 }
