@@ -4,25 +4,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
+body{
   margin:0;
-  font-family:-apple-system, BlinkMacSystemFont;
-  background: linear-gradient(135deg,#0f0018,#ff6a00);
+  font-family:-apple-system;
+  background:linear-gradient(135deg,#0f0018,#ff6a00);
   color:white;
   display:flex;
   flex-direction:column;
   height:100vh;
 }
 
-/* HEADER */
-#topBar {
+/* MODES */
+#topBar{
   display:flex;
   gap:8px;
   padding:10px;
-  overflow-x:auto;
 }
 
-#topBar button {
+.mode{
+  flex:1;
   padding:10px;
   border:none;
   border-radius:12px;
@@ -30,37 +30,41 @@ body {
   color:white;
 }
 
+.active{
+  background:linear-gradient(90deg,#ff6a00,#ff00cc);
+}
+
 /* CHAT */
-#chat {
+#chat{
   flex:1;
   overflow:auto;
   padding:12px;
 }
 
-.msg {
+.msg{
   margin:10px;
   padding:14px;
   border-radius:16px;
   max-width:85%;
 }
 
-.user {
+.user{
   background:linear-gradient(135deg,#ff6a00,#ff00cc);
   margin-left:auto;
 }
 
-.ai {
+.ai{
   background:rgba(0,0,0,0.65);
 }
 
 /* INPUT */
-#bottomBar {
+#bottomBar{
   display:flex;
   padding:10px;
   background:rgba(0,0,0,0.5);
 }
 
-#bottomBar input {
+#bottomBar input{
   flex:1;
   padding:14px;
   border:none;
@@ -69,7 +73,7 @@ body {
   color:white;
 }
 
-#bottomBar button {
+#bottomBar button{
   margin-left:6px;
   padding:14px;
   border:none;
@@ -78,27 +82,19 @@ body {
   color:white;
 }
 
-img, video {
-  width:100%;
-  border-radius:12px;
-  margin-top:8px;
-}
-
-.small-btn{
+.small{
   margin-top:6px;
   padding:6px;
   border:none;
   border-radius:8px;
   background:#ff6a00;
   color:white;
-  font-size:12px;
 }
 
 #branding{
   text-align:center;
   font-size:12px;
   opacity:0.6;
-  padding:5px;
 }
 </style>
 </head>
@@ -106,11 +102,10 @@ img, video {
 <body>
 
 <div id="topBar">
-  <button onclick="quick('Funny viral story')">😂</button>
-  <button onclick="quick('Sad emotional story')">💔</button>
-  <button onclick="quick('Anime cinematic story')">🔥</button>
-  <button onclick="quick('Make money online')">💰</button>
-  <button onclick="clearChat()">🧹</button>
+  <button class="mode active" onclick="setMode('chat',this)">💬</button>
+  <button class="mode" onclick="setMode('story',this)">📖</button>
+  <button class="mode" onclick="setMode('image',this)">🖼</button>
+  <button class="mode" onclick="setMode('video',this)">🎬</button>
 </div>
 
 <div id="chat"></div>
@@ -118,191 +113,167 @@ img, video {
 <div id="branding">Powered by Artical Neavy</div>
 
 <div id="bottomBar">
-  <input id="input" placeholder="Ask, create, generate anything...">
+  <input id="input" placeholder="Create anything...">
   <button onclick="send()">➤</button>
-  <button onclick="startVoice()">🎤</button>
+  <button onclick="voice()">🎤</button>
 </div>
 
 <script>
 
-// CORE SYSTEM
-let queue = [];
-let processing = false;
+let mode="chat";
+let queue=[];
+let processing=false;
+
+// MODE SWITCH
+function setMode(m,btn){
+  mode=m;
+  document.querySelectorAll(".mode").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
 
 // MESSAGE
-function addMessage(text,type){
-  let chat = document.getElementById("chat");
-  let div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerHTML = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+function add(text,type){
+  let d=document.createElement("div");
+  d.className="msg "+type;
+  d.innerHTML=text;
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
 }
 
 // TYPE
-function typeMessage(text){
-  return new Promise(resolve=>{
+function type(text){
+  return new Promise(r=>{
     let i=0;
-    let div=document.createElement("div");
-    div.className="msg ai";
-    chat.appendChild(div);
+    let d=document.createElement("div");
+    d.className="msg ai";
+    chat.appendChild(d);
 
-    function typing(){
+    function t(){
       if(i<text.length){
-        div.innerHTML+=text.charAt(i);
-        i++;
-        setTimeout(typing,7);
-      } else resolve();
+        d.innerHTML+=text[i++];
+        setTimeout(t,7);
+      }else r();
     }
-
-    typing();
+    t();
   });
 }
 
 // QUEUE
-async function processQueue(){
+async function run(){
   if(processing) return;
   processing=true;
-
-  while(queue.length){
-    await queue.shift()();
-  }
-
+  while(queue.length) await queue.shift()();
   processing=false;
 }
 
 // THINKING
-function thinking(){
-  let div=document.createElement("div");
-  div.className="msg ai";
-  div.id="t";
-  div.innerHTML="🤖 Generating...";
-  chat.appendChild(div);
+function think(){
+  let d=document.createElement("div");
+  d.id="t";
+  d.className="msg ai";
+  d.innerHTML="🤖 Generating...";
+  chat.appendChild(d);
 }
-
-function stopThinking(){
+function stop(){
   let t=document.getElementById("t");
   if(t) t.remove();
 }
 
 // VOICE
-function startVoice(){
-  let rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  rec.onresult = e=>{
-    document.getElementById("input").value = e.results[0][0].transcript;
+function voice(){
+  let r=new (window.SpeechRecognition||webkitSpeechRecognition)();
+  r.onresult=e=>{
+    input.value=e.results[0][0].transcript;
   };
-  rec.start();
+  r.start();
 }
 
 // COPY
-function copyText(text){
-  navigator.clipboard.writeText(text);
-  alert("Copied!");
-}
-
-// DOWNLOAD IMAGE
-function downloadImage(url){
-  let a=document.createElement("a");
-  a.href=url;
-  a.download="image.jpg";
-  a.click();
-}
-
-// CLEAR
-function clearChat(){
-  document.getElementById("chat").innerHTML="";
-}
-
-// QUICK
-function quick(text){
-  document.getElementById("input").value=text;
+function copyAll(txt){
+  navigator.clipboard.writeText(txt);
+  alert("Copied");
 }
 
 // SEND
 function send(){
-  let input=document.getElementById("input").value.trim();
-  if(!input) return;
+  let txt=input.value.trim();
+  if(!txt) return;
 
-  addMessage(input,"user");
+  add(txt,"user");
 
-  let lower=input.toLowerCase();
+  // IMAGE MODE
+  if(mode==="image"){
+    let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(txt);
 
-  // IMAGE GENERATOR
-  if(lower.includes("image")){
-    let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(input);
-
-    addMessage(`
-      🖼 <b>AI Image</b>
+    add(`
+      🖼 AI Image
       <img src="${url}">
-      <button class="small-btn" onclick="downloadImage('${url}')">Download</button>
+      <button class="small" onclick="copyAll('${url}')">Copy Link</button>
     `,"ai");
     return;
   }
 
-  // VIDEO
-  if(lower.includes("video")){
-    addMessage(`
-      🎬 <b>AI Video Preview</b>
+  // VIDEO MODE
+  if(mode==="video"){
+    add(`
+      🎬 AI Video
       <video controls>
-        <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4">
+      <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4">
       </video>
-      <div>🔥 Caption: This will go viral #fyp</div>
+      🔥 Viral caption ready
     `,"ai");
     return;
   }
 
-  // STORY (PREMIUM)
-  if(lower.includes("story")){
-    queue.push(async ()=>{
-      thinking();
+  // STORY MODE
+  if(mode==="story"){
+    queue.push(async()=>{
+      think();
       await new Promise(r=>setTimeout(r,800));
-      stopThinking();
+      stop();
 
-      let story=`
-🎬 <b>Cinematic Story</b>
+      let s=`
+🎬 Cinematic Story
 
-${input} begins in a world full of mystery and tension.
+${txt}
 
-Every moment builds suspense… every action carries weight.
+A powerful journey begins...
 
-Then comes the turning point — everything changes.
+Everything changes in one moment.
 
-🔥 This is not just a story… it’s a viral moment.
+🔥 This will go viral.
 `;
 
-      await typeMessage(story);
-
-      addMessage(`<button class="small-btn" onclick="copyText(\`${story}\`)">Copy</button>`,"ai");
-
+      await type(s);
+      add(`<button class="small" onclick="copyAll(\`${s}\`)">Copy</button>`,"ai");
     });
 
-    processQueue();
+    run();
     return;
   }
 
-  // SMART CHAT
-  queue.push(async ()=>{
-    thinking();
+  // CHAT MODE
+  queue.push(async()=>{
+    think();
     await new Promise(r=>setTimeout(r,500));
-    stopThinking();
+    stop();
 
-    let reply=`
-🤖 <b>AI Response</b>
+    let rply=`
+🤖 Smart AI
 
-"${input}"
+"${txt}"
 
-Here’s the smart breakdown:
-• Idea → Execution  
-• Strategy → Growth  
-• Consistency → Success  
+Think bigger.
+Move smarter.
+Stay consistent.
 
-🔥 You’re building something powerful.
+🔥 You're building something powerful.
 `;
 
-    await typeMessage(reply);
+    await type(rply);
   });
 
-  processQueue();
+  run();
 }
 
 </script>
