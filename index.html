@@ -73,12 +73,12 @@ body{
   color:white;
 }
 
-/* PAYMENT POPUP */
+/* PAYMENT */
 #pay{
   position:fixed;
   top:0;left:0;
   width:100%;height:100%;
-  background:rgba(0,0,0,0.8);
+  background:rgba(0,0,0,0.85);
   display:none;
   align-items:center;
   justify-content:center;
@@ -102,7 +102,7 @@ body{
 
 <body>
 
-<!-- GRID -->
+<!-- GRID MENU -->
 <div id="grid">
   <div class="grid-btn" onclick="setMode('chat')">💬<span>Chat</span></div>
   <div class="grid-btn" onclick="setMode('story')">📖<span>Story</span></div>
@@ -119,78 +119,47 @@ body{
   <button onclick="send()">➤</button>
 </div>
 
-<!-- PAYMENT -->
+<!-- PAYMENT POPUP -->
 <div id="pay">
   <div id="payBox">
     <h3>Upgrade to Premium 💎</h3>
 
     <div class="plan">
       $9 / month  
-      <br><button onclick="buy()">Subscribe</button>
+      <br><button onclick="buyMonthly()">Subscribe</button>
     </div>
 
     <div class="plan">
       $99 / year  
-      <br><button onclick="buy()">Subscribe</button>
+      <br><button onclick="buyYearly()">Subscribe</button>
     </div>
 
-    <br><button onclick="closePay()">Cancel</button>
+    <br>
+    <button onclick="unlockAfterPay()">I have paid</button>
+    <br><br>
+    <button onclick="closePay()">Cancel</button>
   </div>
 </div>
 
 <script>
 
+// STATE
 let mode="chat";
 let premium=false;
 
-// MODE
+// MODE SWITCH
 function setMode(m){
   mode=m;
   add("Mode: "+m,"ai");
 }
 
-// MESSAGE
-function add(t,type){
+// ADD MESSAGE
+function add(text,type){
   let d=document.createElement("div");
   d.className="msg "+type;
-  d.innerHTML=t;
+  d.innerHTML=text;
   chat.appendChild(d);
   chat.scrollTop=chat.scrollHeight;
-}
-
-// SAVE
-function save(type,data){
-  let p=JSON.parse(localStorage.getItem(type)||"[]");
-  p.unshift(data);
-  localStorage.setItem(type,JSON.stringify(p));
-}
-
-// VIEW PROJECTS
-function viewProjects(){
-  let s=JSON.parse(localStorage.getItem("stories")||"[]");
-  add("Saved Stories:<br>"+s.join("<br><br>"),"ai");
-}
-
-// PAYMENT
-function openPay(){
-  document.getElementById("pay").style.display="flex";
-}
-function closePay(){
-  document.getElementById("pay").style.display="none";
-}
-function buy(){
-  premium=true;
-  alert("Payment successful 💎 (demo)");
-  closePay();
-}
-
-// CHECK PREMIUM
-function checkPremium(){
-  if(!premium){
-    openPay();
-    return false;
-  }
-  return true;
 }
 
 // TYPE EFFECT
@@ -204,14 +173,64 @@ function typeText(text){
     function typing(){
       if(i<text.length){
         div.innerHTML+=text[i++];
-        setTimeout(typing,6);
+        setTimeout(typing,5);
       }else resolve();
     }
     typing();
   });
 }
 
-// SEND
+// SAVE PROJECTS
+function save(type,data){
+  let p=JSON.parse(localStorage.getItem(type)||"[]");
+  p.unshift(data);
+  localStorage.setItem(type,JSON.stringify(p));
+}
+
+// VIEW SAVED
+function viewProjects(){
+  let s=JSON.parse(localStorage.getItem("stories")||"[]");
+  if(s.length===0){
+    add("No saved stories yet","ai");
+    return;
+  }
+  add("Saved Stories:<br><br>"+s.join("<br><br>"),"ai");
+}
+
+// PAYMENT POPUP
+function openPay(){
+  document.getElementById("pay").style.display="flex";
+}
+function closePay(){
+  document.getElementById("pay").style.display="none";
+}
+
+// REAL STRIPE LINKS (PASTE YOURS)
+function buyMonthly(){
+  window.location.href = "https://buy.stripe.com/YOUR_MONTHLY_LINK";
+}
+
+function buyYearly(){
+  window.location.href = "https://buy.stripe.com/YOUR_YEARLY_LINK";
+}
+
+// TEMP UNLOCK
+function unlockAfterPay(){
+  premium = true;
+  alert("Premium unlocked 💎");
+  closePay();
+}
+
+// CHECK PREMIUM
+function checkPremium(){
+  if(!premium){
+    openPay();
+    return false;
+  }
+  return true;
+}
+
+// MAIN SEND
 async function send(){
   let txt=input.value.trim();
   if(!txt) return;
@@ -232,14 +251,15 @@ async function send(){
 
     add(`
       <video controls>
-      <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4">
+        <source src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4">
       </video>
       🔥 Viral caption ready
     `,"ai");
+
     return;
   }
 
-  // STORY (CHATGPT STYLE LONG)
+  // STORY (FULL LENGTH)
   if(mode==="story"){
     let story = `
 🎬 Cinematic Story
@@ -248,20 +268,23 @@ ${txt}
 
 ━━━━━━━━━━━━━━━
 
-It began in a world where everything seemed ordinary. But beneath the surface, something was shifting. The atmosphere carried a quiet tension, like the calm before a storm.
+🌍 Beginning:
+In a world where ${txt}, everything felt ordinary. But something beneath the surface was changing.
 
-As time moved forward, small changes turned into powerful moments. Decisions became harder. Emotions grew deeper. Every step forward felt uncertain, yet necessary.
+⚡ Rising Action:
+Challenges began to appear. Emotions grew stronger. Every decision carried weight.
 
-Then came the moment that changed everything. A single action triggered a chain of events no one could stop. Fear, courage, doubt, and determination collided in one defining instant.
+🔥 Climax:
+Then came the moment that changed everything. A decision that could either destroy everything… or create something legendary.
 
-From that point, nothing was the same. What once felt impossible slowly became reality. Strength was discovered in the darkest moments, and clarity emerged from chaos.
+🌅 Resolution:
+From that moment, nothing remained the same. Growth, power, and transformation took over.
 
-In the end, what started as a simple idea became something far greater — a story of transformation, resilience, and purpose.
-
-✨ And this was only the beginning…
+✨ Final Line:
+And this was only the beginning...
 
 ━━━━━━━━━━━━━━━
-🔥 Caption: This will break the internet #viral #fyp
+🔥 Caption: This will go viral #fyp #viral
 `;
 
     await typeText(story);
@@ -269,17 +292,15 @@ In the end, what started as a simple idea became something far greater — a sto
     return;
   }
 
-  // CHAT (SMART SIMULATED)
+  // CHAT
   let reply = `
 🤖 AI Response
 
 "${txt}"
 
-Here’s a smarter way to look at it:
-
-• Understand the goal  
-• Break it into steps  
-• Execute consistently  
+Think bigger.
+Act smarter.
+Stay consistent.
 
 🔥 You’re building something powerful.
 `;
