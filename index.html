@@ -1,8 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:-apple-system;
+  background:linear-gradient(135deg,#0f0018,#ff6a00);
+  color:white;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+/* GRID */
+#grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  padding:10px;
+}
+
+.grid-btn{
+  text-align:center;
+  padding:14px;
+  border-radius:14px;
+  background:linear-gradient(145deg,#1a1a1a,#2a2a2a);
+  box-shadow:5px 5px 15px #000,-5px -5px 15px #333;
+}
+
+/* CHAT */
+#chat{flex:1;overflow:auto;padding:10px;}
+.msg{margin:8px;padding:12px;border-radius:12px;max-width:85%;}
+.user{background:#ff6a00;margin-left:auto;}
+.ai{background:#222;}
+
+img,video{width:100%;border-radius:10px;margin-top:5px;}
+
+/* INPUT */
+#bottom{display:flex;padding:10px;}
+#bottom input{flex:1;padding:12px;border:none;border-radius:10px;}
+#bottom button{margin-left:5px;padding:12px;border:none;border-radius:10px;background:#ff6a00;color:white;}
+</style>
+</head>
+
+<body>
+
+<div id="grid">
+  <div class="grid-btn" onclick="setMode('chat')">💬 Chat</div>
+  <div class="grid-btn" onclick="setMode('story')">📖 Story</div>
+  <div class="grid-btn" onclick="setMode('image')">🖼 Image</div>
+  <div class="grid-btn" onclick="setMode('video')">🎬 Video</div>
+
+  <div class="grid-btn" onclick="template('funny')">😂 Funny</div>
+  <div class="grid-btn" onclick="template('sad')">💔 Sad</div>
+  <div class="grid-btn" onclick="template('anime')">🔥 Anime</div>
+  <div class="grid-btn" onclick="template('money')">💰 Money</div>
+
+  <div class="grid-btn" onclick="toggleTikTok()">🚀 TikTok</div>
+</div>
+
+<div id="chat"></div>
+
+<div id="bottom">
+  <input id="input" placeholder="Ask anything...">
+  <button onclick="send()">➤</button>
+  <button onclick="startVoice()">🎤</button>
+</div>
+
 <script>
 
 // STATE
 let mode="chat";
 let tiktok=false;
+
+// UI SAFE
+function add(text,type){
+  let chat=document.getElementById("chat");
+  let div=document.createElement("div");
+  div.className="msg "+type;
+  div.innerHTML=text;
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+}
 
 // MODE
 function setMode(m){
@@ -10,128 +91,96 @@ function setMode(m){
   add("Mode: "+m,"ai");
 }
 
-// TEMPLATE (AUTO RUN FIXED)
+// TEMPLATE AUTO RUN
 function template(type){
   if(type==="funny"){
-    input.value="A funny story about a guy whose cat says she's pregnant";
+    input.value="Funny story about a guy whose cat says she's pregnant";
     mode="story";
   }
   if(type==="sad"){
-    input.value="A heartbreaking emotional story about betrayal and loss";
+    input.value="Sad emotional story about betrayal and heartbreak";
     mode="story";
   }
   if(type==="anime"){
-    input.value="An intense anime battle with transformation and powers";
+    input.value="Epic anime battle with transformation and powers";
     mode="story";
   }
   if(type==="money"){
-    input.value="How to make money online step by step as a beginner";
+    input.value="How to make money online step by step";
     mode="chat";
   }
 
-  add("🔥 Generating " + type + "...","ai");
-
-  setTimeout(send,300); // AUTO RUN
+  add("Generating "+type+"...","ai");
+  setTimeout(send,300);
 }
 
 // TIKTOK
 function toggleTikTok(){
   tiktok=!tiktok;
-  add("TikTok Mode: "+(tiktok?"ON 🔥":"OFF"),"ai");
+  add("TikTok: "+(tiktok?"ON 🔥":"OFF"),"ai");
 }
 
-// UI
-function add(t,type){
-  let d=document.createElement("div");
-  d.className="msg "+type;
-  d.innerHTML=t;
-  chat.appendChild(d);
-  chat.scrollTop=chat.scrollHeight;
-}
-
-// VOICE INPUT (AUTO SEND)
+// VOICE
 function startVoice(){
-  let rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  let rec=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
   rec.lang="en-US";
 
-  rec.onstart = ()=> add("🎤 Listening...","ai");
-
-  rec.onresult = e=>{
-    let text = e.results[0][0].transcript;
-    input.value = text;
-    add("🎤 You said: " + text,"user");
-
-    setTimeout(send,300); // AUTO SEND
+  rec.onresult=e=>{
+    input.value=e.results[0][0].transcript;
+    setTimeout(send,300);
   };
 
   rec.start();
 }
 
-// VOICE OUTPUT
+// SPEAK
 function speak(text){
-  let speech = new SpeechSynthesisUtterance(text);
-  speech.rate=1;
+  let s=new SpeechSynthesisUtterance(text);
   window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(speech);
+  window.speechSynthesis.speak(s);
 }
 
 // DOWNLOAD
-function download(url,type){
+function download(url,name){
   let a=document.createElement("a");
   a.href=url;
-  a.download= type==="video"?"video.mp4":"image.jpg";
+  a.download=name;
   a.click();
 }
 
-// LONG STORY ENGINE 🔥
-function generateStory(topic){
+// LONG STORY
+function longStory(topic){
   return `
-🎬 CINEMATIC STORY
+🎬 STORY
 
-━━━━━━━━━━━━━━━
+In a world where ${topic}, everything began to change.
 
-In a world where ${topic}, everything changed overnight.
+At first, things looked normal. But slowly, hidden truths began to appear.
 
-At first, it seemed like nothing unusual was happening. People went about their daily lives, unaware of the storm that was quietly building beneath the surface.
+People started noticing something was wrong.
 
-Then came the first sign.
+Fear spread. Confusion grew.
 
-A moment so small, yet so powerful, that it triggered a chain reaction no one could stop.
+But one person chose to stand strong.
 
-Fear spread.
-
-Confusion grew.
-
-But in the middle of it all, one person stood different… stronger… ready.
-
-They faced betrayal, loss, and overwhelming odds. Every step forward came with pain, but also growth.
+Through pain, struggle, and sacrifice, they kept moving forward.
 
 🔥 Then came the turning point.
 
-A decision that would either destroy everything… or create something legendary.
+A decision that would change everything forever.
 
-And they chose courage.
+They chose courage.
 
-What followed was nothing short of transformation.
+And from that moment, everything transformed.
 
-Power awakened.
-
-Limits shattered.
-
-Destiny rewritten.
-
-━━━━━━━━━━━━━━━
-
-✨ In the end, it wasn’t just a story…
-
-…it was the beginning of something unforgettable.
-
+✨ This was only the beginning of something legendary.
 `;
 }
 
 // SEND
 function send(){
-  let txt=input.value.trim();
+  let inputEl=document.getElementById("input");
+  let txt=inputEl.value.trim();
   if(!txt) return;
 
   add(txt,"user");
@@ -140,48 +189,32 @@ function send(){
   if(mode==="image"){
     let url="https://image.pollinations.ai/prompt/"+encodeURIComponent(txt);
 
-    add(`
-      🖼 AI Image:
-      <img src="${url}">
-      <button onclick="download('${url}','image')">⬇ Download</button>
-    `,"ai");
+    add(`<img src="${url}">
+    <button onclick="download('${url}','image.jpg')">⬇ Download</button>`,"ai");
 
-    speak("Image generated");
+    speak("Image ready");
     return;
   }
 
-  // VIDEO (UPGRADED FEEL)
+  // VIDEO
   if(mode==="video"){
     let vid="https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
 
-    add(`
-      🎬 AI Video Generated:
-      <video controls>
-        <source src="${vid}">
-      </video>
-
-      🔥 Viral Pack:
-      Caption: This will break the internet 😳  
-      #fyp #viral #trend  
-
-      🎵 Suggested Sound: Trending TikTok Beat  
-
-      <button onclick="download('${vid}','video')">⬇ Download</button>
-    `,"ai");
+    add(`<video controls src="${vid}"></video>
+    <button onclick="download('${vid}','video.mp4')">⬇ Download</button>
+    <br>🔥 Caption: This will go viral
+    <br>#fyp #viral #trend`,"ai");
 
     speak("Video ready");
     return;
   }
 
-  // STORY (LONG FIX)
+  // STORY
   if(mode==="story"){
-    let story = generateStory(txt);
+    let story=longStory(txt);
 
     if(tiktok){
-      story += `
-🔥 Caption: This story hits different 😳  
-#viral #fyp #storytime  
-`;
+      story += "\n🔥 Caption: This is crazy 😳 #viral #fyp";
     }
 
     add(story,"ai");
@@ -190,16 +223,12 @@ function send(){
   }
 
   // CHAT
-  let reply = `
-🤖 AI RESPONSE:
-
-${txt}
-
-Think bigger. Move smarter. Build something powerful.
-`;
-
+  let reply="🤖 "+txt+" — Think bigger and act smart.";
   add(reply,"ai");
   speak(reply);
 }
 
 </script>
+
+</body>
+</html>
