@@ -1,265 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReelMind AI</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00ffcc">
 
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#00ffcc">
+  <style>
+    body {
+      background: black;
+      color: white;
+      text-align: center;
+      font-family: Arial;
+    }
 
-<title>ReelMind AI</title>
+    .cube {
+      width: 150px;
+      height: 150px;
+      margin: 50px auto;
+      background: rgba(0,255,255,0.2);
+      border-radius: 20px;
+      animation: rotate 5s infinite linear;
+    }
 
-<style>
-body{
-margin:0;
-font-family:-apple-system;
-color:white;
-background:url('https://i.imgur.com/Zk6TR5k.jpeg') no-repeat center/cover;
-}
+    @keyframes rotate {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
+    }
 
-/* GLASS PANEL */
-.glass{
-background:rgba(0,0,0,0.6);
-backdrop-filter:blur(20px);
-padding:15px;
-margin:10px;
-border-radius:20px;
-text-align:center;
-}
+    button {
+      padding: 10px;
+      margin: 10px;
+      background: #00ffcc;
+      border: none;
+      border-radius: 10px;
+      color: black;
+      font-weight: bold;
+    }
 
-/* 🧊 ROTATING ICE CUBE */
-.cube{
-width:240px;
-height:240px;
-margin:30px auto;
-background:rgba(255,255,255,0.08);
-border-radius:25px;
-backdrop-filter:blur(25px);
-box-shadow:0 0 40px cyan;
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-align-items:center;
-gap:10px;
-animation:spin 10s linear infinite;
-}
-
-@keyframes spin{
-0%{transform:rotate(0deg);}
-100%{transform:rotate(360deg);}
-}
-
-/* BUTTON */
-button{
-background:rgba(0,255,255,0.2);
-border:none;
-color:white;
-padding:10px;
-border-radius:12px;
-cursor:pointer;
-font-size:14px;
-}
-
-/* INPUT */
-input{
-width:90%;
-padding:12px;
-border-radius:12px;
-border:none;
-background:rgba(255,255,255,0.1);
-color:white;
-margin-top:10px;
-}
-
-/* LOADING */
-#loading{
-display:none;
-color:#00ffcc;
-font-weight:bold;
-}
-
-/* AVATAR */
-#avatar{
-width:100px;
-border-radius:50%;
-margin:10px auto;
-display:block;
-box-shadow:0 0 25px cyan;
-}
-
-/* SHOP */
-#shop{
-display:none;
-}
-
-/* FOOTER */
-.powered{
-opacity:0.7;
-margin-top:10px;
-font-size:14px;
-}
-</style>
+    input {
+      padding: 10px;
+      width: 80%;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="glass">
+<h1>🧠 ReelMind AI</h1>
 
-<h2>🧠 ReelMind AI</h2>
+<div class="cube"></div>
 
-<div>💰 Credits: <span id="credits">0</span></div>
+<input id="prompt" placeholder="Enter prompt..." />
 
-<input id="prompt" placeholder="Create something viral...">
+<br>
 
-<img id="avatar" src="https://i.imgur.com/6VBx3io.png">
+<button onclick="generate()">Generate</button>
 
-<div id="loading">⏳ Generating...</div>
-
-<!-- 🧊 ICE CUBE -->
-<div class="cube">
-
-<button onclick="generate()">🧠 Generate</button>
-<button onclick="textToVideo()">🎬 Video</button>
-<button onclick="textToImage()">🎨 Image</button>
-<button onclick="talk()">🤖 Avatar</button>
-<button onclick="toggleShop()">💰 Upgrade</button>
-<button onclick="downloadVideo()">⬇️ Download</button>
-
-</div>
-
-<canvas id="canvas" width="360" height="640"></canvas>
-<video id="preview" controls style="width:100%;"></video>
-
-<pre id="output"></pre>
-
-<!-- 💰 SHOP -->
-<div id="shop" class="glass">
-<h3>Upgrade Plan</h3>
-
-<button onclick="buy('basic')">Basic (100 credits)</button><br><br>
-<button onclick="buy('pro')">Pro (300 credits)</button><br><br>
-<button onclick="buy('ultimate')">Ultimate (1000 credits)</button>
-
-</div>
-
-<div class="powered">
-Powered by Artical Neavy 🚀
-</div>
-
-</div>
-
-<audio id="bg"></audio>
+<p id="result"></p>
 
 <script>
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
 
-/* ================= LOAD ================= */
-window.onload = ()=>{
-credits.innerText = localStorage.getItem("credits") || 0;
-};
+  const res = await fetch("/generate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ prompt })
+  });
 
-/* ================= AI ================= */
-async function generate(){
-loading.style.display="block";
-
-try{
-const r = await fetch("/generate", {
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ prompt:prompt.value })
-});
-
-const d = await r.json();
-output.innerText = d.result || "AI failed";
-
-}catch(err){
-output.innerText="Server error";
+  const data = await res.json();
+  document.getElementById("result").innerText = data.result;
 }
-
-loading.style.display="none";
-}
-
-/* ================= TEXT → VIDEO ================= */
-function textToVideo(){
-
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-
-const stream = canvas.captureStream();
-const rec = new MediaRecorder(stream);
-
-let chunks = [];
-rec.ondataavailable = e => chunks.push(e.data);
-
-rec.onstop = ()=>{
-window.videoBlob = new Blob(chunks);
-preview.src = URL.createObjectURL(videoBlob);
-};
-
-rec.start();
-
-let words = prompt.value.split(" ");
-let i = 0;
-
-let interval = setInterval(()=>{
-ctx.fillStyle = "black";
-ctx.fillRect(0,0,360,640);
-
-ctx.fillStyle = "cyan";
-ctx.font = "bold 28px Arial";
-ctx.fillText(words[i] || "",40,320);
-
-i++;
-
-if(i >= words.length){
-clearInterval(interval);
-setTimeout(()=>rec.stop(),1000);
-}
-},300);
-}
-
-/* ================= TEXT → IMAGE ================= */
-function textToImage(){
-preview.src = "https://image.pollinations.ai/prompt/"+encodeURIComponent(prompt.value);
-}
-
-/* ================= DOWNLOAD ================= */
-function downloadVideo(){
-if(!window.videoBlob){
-alert("Generate video first");
-return;
-}
-const a = document.createElement("a");
-a.href = URL.createObjectURL(window.videoBlob);
-a.download = "reelmind.mp4";
-a.click();
-}
-
-/* ================= AVATAR ================= */
-function talk(){
-const speech = new SpeechSynthesisUtterance(prompt.value);
-avatar.style.transform="scale(1.2)";
-speech.onend = ()=>avatar.style.transform="scale(1)";
-speechSynthesis.speak(speech);
-}
-
-/* ================= SHOP ================= */
-function toggleShop(){
-shop.style.display = shop.style.display==="none"?"block":"none";
-}
-
-function buy(plan){
-let creditsVal = 0;
-
-if(plan==="basic") creditsVal = 100;
-if(plan==="pro") creditsVal = 300;
-if(plan==="ultimate") creditsVal = 1000;
-
-localStorage.setItem("credits",creditsVal);
-credits.innerText = creditsVal;
-
-alert("Plan activated (demo)");
-}
-
 </script>
 
 </body>
