@@ -1,113 +1,143 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{
 margin:0;
-font-family:Arial;
+font-family:-apple-system, BlinkMacSystemFont;
 color:white;
-background:radial-gradient(circle,#001f3f,#000);
+background:radial-gradient(circle at top,#001f3f,#000);
 overflow:hidden;
 }
 
-/* 🧠 BACKGROUND */
+/* 🌌 DYNAMIC BACKGROUND */
 body::before{
 content:"";
 position:fixed;
 width:100%;
 height:100%;
-background:radial-gradient(circle,#00ffcc22,#000);
-animation:pulse 5s infinite;
+background:
+radial-gradient(circle at 30% 30%, #00ffcc22, transparent),
+radial-gradient(circle at 70% 70%, #00aaff22, transparent);
+animation:moveBg 8s infinite alternate;
 z-index:-1;
 }
 
-@keyframes pulse{
-0%{opacity:0.3;}
-50%{opacity:0.8;}
-100%{opacity:0.3;}
+@keyframes moveBg{
+0%{transform:scale(1);}
+100%{transform:scale(1.2);}
 }
 
-/* 🌐 GLOBE */
-.globe{
-width:200px;
-height:200px;
-margin:20px auto;
-border-radius:50%;
+/* 🍏 GLASS PANEL */
+.glass{
 background:rgba(255,255,255,0.05);
 backdrop-filter:blur(20px);
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-align-items:center;
-animation:spin 12s linear infinite;
+border-radius:20px;
+padding:15px;
+margin:10px;
+box-shadow:0 8px 30px rgba(0,0,0,0.5);
 }
 
-.globe button{
-margin:5px;
-border:none;
-background:rgba(0,255,204,0.2);
-color:white;
-padding:10px;
+/* 🌍 GLASS GLOBE */
+.globe{
+width:220px;
+height:220px;
+margin:30px auto;
 border-radius:50%;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(25px);
+box-shadow:
+inset 0 0 40px rgba(255,255,255,0.1),
+0 0 30px rgba(0,255,204,0.3);
+position:relative;
+animation:rotate 20s linear infinite;
 }
 
-@keyframes spin{
-0%{transform:rotate(0);}
+/* BUTTONS INSIDE GLOBE */
+.globe button{
+position:absolute;
+background:rgba(0,255,204,0.2);
+border:none;
+color:white;
+padding:12px;
+border-radius:50%;
+backdrop-filter:blur(10px);
+}
+
+/* POSITIONING BUTTONS */
+.globe button:nth-child(1){top:20%;left:40%;}
+.globe button:nth-child(2){top:50%;left:10%;}
+.globe button:nth-child(3){top:50%;right:10%;}
+.globe button:nth-child(4){bottom:20%;left:40%;}
+.globe button:nth-child(5){top:35%;right:20%;}
+.globe button:nth-child(6){bottom:35%;left:20%;}
+
+@keyframes rotate{
+0%{transform:rotate(0deg);}
 100%{transform:rotate(360deg);}
 }
 
-/* 🔐 AUTH */
-#authBox{
-position:fixed;
-top:0;
-left:0;
+/* 💰 PLANS */
+.plan{
+background:rgba(255,255,255,0.05);
+padding:10px;
+border-radius:15px;
+margin:5px;
+text-align:center;
+}
+
+.plan button{
+margin-top:5px;
+background:#00ffcc;
+border:none;
+padding:5px 10px;
+border-radius:10px;
+}
+
+/* 🧠 AVATAR */
+#avatar{
+width:90px;
+border-radius:50%;
+display:block;
+margin:auto;
+box-shadow:0 0 20px #00ffcc;
+}
+
+/* INPUT */
+input{
 width:100%;
-height:100%;
-background:black;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-z-index:1000;
+padding:12px;
+border:none;
+border-radius:12px;
+margin-top:10px;
+background:rgba(255,255,255,0.1);
+color:white;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 🚀 ONBOARDING -->
-<div id="onboarding">
-  <h1>🧠 ReelMind AI</h1>
-  <button onclick="startApp()">Enter</button>
-</div>
-
-<!-- 🔐 AUTH -->
-<div id="authBox">
-  <h2>Login / Register</h2>
-  <input id="email" placeholder="Email"><br>
-  <input id="password" type="password" placeholder="Password"><br>
-  <button onclick="register()">Register</button>
-  <button onclick="login()">Login</button>
-</div>
-
-<div style="max-width:500px;margin:auto;padding:20px;">
+<div class="glass">
 
 <h2>🧠 ReelMind AI</h2>
 
-<input id="prompt" placeholder="Enter idea..." style="width:100%;padding:10px;">
+<div>💰 Credits: <span id="credits">0</span></div>
 
-<!-- 🤖 AVATAR -->
-<img id="avatar" src="https://i.imgur.com/6VBx3io.png"
-style="width:100px;border-radius:50%;display:block;margin:auto;">
+<input id="prompt" placeholder="Create something viral...">
 
+<img id="avatar" src="https://i.imgur.com/6VBx3io.png">
+
+<!-- 🌍 GLASS GLOBE -->
 <div class="globe">
 <button onclick="generate()">🧠</button>
 <button onclick="renderVideo()">🎬</button>
 <button onclick="talk()">🤖</button>
 <button onclick="music()">🎵</button>
 <button onclick="saveProject()">💾</button>
+<button onclick="buyUI()">💰</button>
 </div>
 
 <canvas id="canvas" width="360" height="640"></canvas>
@@ -115,9 +145,26 @@ style="width:100px;border-radius:50%;display:block;margin:auto;">
 
 <pre id="output"></pre>
 
-<h3>Projects</h3>
-<div id="projects"></div>
+</div>
 
+<!-- 💰 MONETIZATION -->
+<div class="glass" id="shop" style="display:none;">
+<h3>Upgrade</h3>
+
+<div class="plan">
+Basic (100 credits)
+<button onclick="buy('basic')">Buy</button>
+</div>
+
+<div class="plan">
+Pro (300 credits)
+<button onclick="buy('pro')">Buy</button>
+</div>
+
+<div class="plan">
+Ultimate (1000 credits)
+<button onclick="buy('ultimate')">Buy</button>
+</div>
 </div>
 
 <audio id="bg"></audio>
@@ -125,141 +172,105 @@ style="width:100px;border-radius:50%;display:block;margin:auto;">
 <script>
 const API="YOUR_BACKEND_URL";
 
-/* ONBOARD */
-function startApp(){
-  onboarding.style.display="none";
-}
-
-/* AUTH */
-async function register(){
-  await fetch(API+"/register",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({email:email.value,password:password.value})
-  });
-  alert("Registered");
-}
-
-async function login(){
-  const r=await fetch(API+"/login",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({email:email.value,password:password.value})
-  });
-
-  const d=await r.json();
-
-  localStorage.setItem("token",d.token);
-  authBox.style.display="none";
-  renderProjects(d.projects);
-}
+/* LOAD USER */
+window.onload=()=>{
+credits.innerText=localStorage.getItem("credits")||0;
+};
 
 /* AI */
 async function generate(){
-  const r=await fetch(API+"/generate",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":localStorage.getItem("token")
-    },
-    body:JSON.stringify({prompt:prompt.value})
-  });
-
-  const d=await r.json();
-  output.innerText=d.result;
+const r=await fetch(API+"/generate",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":localStorage.getItem("token")
+},
+body:JSON.stringify({prompt:prompt.value})
+});
+const d=await r.json();
+output.innerText=d.result;
 }
 
 /* VIDEO */
 async function renderVideo(){
-  const canvas=document.getElementById("canvas");
-  const ctx=canvas.getContext("2d");
+const canvas=canvasEl=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
 
-  const stream=canvas.captureStream();
-  const rec=new MediaRecorder(stream);
+const stream=canvas.captureStream();
+const rec=new MediaRecorder(stream);
 
-  let chunks=[];
-  rec.ondataavailable=e=>chunks.push(e.data);
+let chunks=[];
+rec.ondataavailable=e=>chunks.push(e.data);
 
-  rec.onstop=()=>{
-    preview.src=URL.createObjectURL(new Blob(chunks));
-    window.lastVideo=preview.src;
-  };
+rec.onstop=()=>{
+preview.src=URL.createObjectURL(new Blob(chunks));
+};
 
-  rec.start();
+rec.start();
 
-  const words=prompt.value.split(" ");
-  let i=0;
+let words=prompt.value.split(" ");
+let i=0;
 
-  const interval=setInterval(()=>{
-    ctx.fillStyle="black";
-    ctx.fillRect(0,0,360,640);
+let interval=setInterval(()=>{
+ctx.fillStyle="black";
+ctx.fillRect(0,0,360,640);
 
-    ctx.fillStyle="#00ffcc";
-    ctx.font="bold 30px Arial";
-    ctx.fillText(words[i]||"",30,320);
+ctx.fillStyle="#00ffcc";
+ctx.font="bold 30px Arial";
+ctx.fillText(words[i]||"",40,320);
 
-    i++;
-
-    if(i>=words.length){
-      clearInterval(interval);
-      setTimeout(()=>rec.stop(),1000);
-    }
-  },300);
+i++;
+if(i>=words.length){
+clearInterval(interval);
+setTimeout(()=>rec.stop(),1000);
+}
+},300);
 }
 
-/* AVATAR TALK */
+/* AVATAR */
 function talk(){
-  const text=output.innerText||prompt.value;
-  const speech=new SpeechSynthesisUtterance(text);
-
-  const avatar=document.getElementById("avatar");
-
-  speech.onstart=()=>{
-    avatar.style.transform="scale(1.2)";
-  };
-
-  speech.onend=()=>{
-    avatar.style.transform="scale(1)";
-  };
-
-  speechSynthesis.speak(speech);
+const speech=new SpeechSynthesisUtterance(prompt.value);
+avatar.style.transform="scale(1.2)";
+speech.onend=()=>avatar.style.transform="scale(1)";
+speechSynthesis.speak(speech);
 }
 
 /* MUSIC */
 function music(){
-  bg.src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-  bg.play();
+bg.src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+bg.play();
+}
+
+/* SHOP */
+function buyUI(){
+shop.style.display = shop.style.display==="none"?"block":"none";
+}
+
+async function buy(plan){
+const r=await fetch(API+"/buy-plan",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":localStorage.getItem("token")
+},
+body:JSON.stringify({plan})
+});
+
+const d=await r.json();
+credits.innerText=d.credits;
+localStorage.setItem("credits",d.credits);
 }
 
 /* SAVE */
 async function saveProject(){
-  const r=await fetch(API+"/save-project",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":localStorage.getItem("token")
-    },
-    body:JSON.stringify({
-      title:prompt.value,
-      content:output.innerText,
-      video:window.lastVideo
-    })
-  });
-
-  const d=await r.json();
-  renderProjects(d.projects);
-}
-
-/* LOAD */
-function renderProjects(list){
-  projects.innerHTML="";
-  list.forEach(p=>{
-    projects.innerHTML+=`
-    <div style="background:#111;margin:5px;padding:10px;">
-      ${p.title}
-      <video src="${p.video}" width="100%" controls></video>
-    </div>`;
-  });
+await fetch(API+"/save-project",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":localStorage.getItem("token")
+},
+body:JSON.stringify({title:prompt.value})
+});
 }
 </script>
 
