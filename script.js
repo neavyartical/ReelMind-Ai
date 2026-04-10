@@ -1,14 +1,16 @@
 async function generate() {
   const prompt = document.getElementById("prompt").value;
-
-  const status = document.getElementById("status");
   const result = document.getElementById("result");
 
-  status.innerText = "Generating...";
-  result.innerHTML = "";
+  if (!prompt) {
+    result.innerText = "Enter a prompt first";
+    return;
+  }
+
+  result.innerText = "Generating...";
 
   try {
-    const res = await fetch("https://backend-ppyz.onrender.com/generate", {
+    const res = await fetch("https://YOUR-APP.onrender.com/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -17,21 +19,11 @@ async function generate() {
     });
 
     const data = await res.json();
-    console.log(data);
 
-    if (data.url) {
-      status.innerText = "Done ✅";
-
-      result.innerHTML = `
-        <img src="${data.url}" style="max-width:100%; border-radius:10px;" />
-      `;
-    } else {
-      status.innerText = "Error ❌";
-      result.innerText = JSON.stringify(data);
-    }
+    result.innerText = data.result || "No response";
 
   } catch (err) {
-    status.innerText = "Failed ❌";
     console.error(err);
+    result.innerText = "Connection error ❌";
   }
 }
