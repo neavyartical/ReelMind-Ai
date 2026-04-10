@@ -6,29 +6,42 @@
     body {
       font-family: Arial;
       padding: 20px;
-      background: #0f172a;
+      background: linear-gradient(135deg, #0f172a, #020617);
       color: white;
       text-align: center;
     }
 
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
     input, button {
-      padding: 10px;
-      margin: 5px;
-      border-radius: 8px;
+      padding: 12px;
+      margin: 6px;
+      border-radius: 10px;
       border: none;
+      width: 80%;
+      max-width: 300px;
     }
 
     button {
       background: #22c55e;
       color: white;
       cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #16a34a;
     }
 
     #output {
       margin-top: 20px;
       padding: 15px;
       background: #1e293b;
-      border-radius: 10px;
+      border-radius: 12px;
+      min-height: 50px;
     }
   </style>
 </head>
@@ -46,7 +59,7 @@
   <button onclick="login()">Login</button>
   <button onclick="logout()">Logout</button>
 
-  <hr>
+  <hr style="margin: 30px 0;">
 
   <!-- GENERATE -->
   <h3>Generate Content</h3>
@@ -56,7 +69,7 @@
   <div id="output">Result will appear here...</div>
 
   <script>
-    const API = "https://YOUR-RENDER-URL.onrender.com"; // 🔁 CHANGE THIS
+    const API = "https://reelmindbackend-1.onrender.com";
 
     // REGISTER
     async function register() {
@@ -72,7 +85,7 @@
       });
 
       const data = await res.json();
-      alert(data.message || data.error);
+      alert(data.message || "Registered ✅ Now login");
     }
 
     // LOGIN
@@ -94,7 +107,7 @@
         localStorage.setItem("token", data.token);
         alert("Login successful 🚀");
       } else {
-        alert(data.message || "Login failed");
+        alert("Login failed ❌");
       }
     }
 
@@ -122,7 +135,7 @@
       if (data.result) {
         document.getElementById("output").innerText = data.result;
       } else {
-        document.getElementById("output").innerText = data.message || "Error";
+        document.getElementById("output").innerText = "Error generating ❌";
       }
     }
 
