@@ -1,125 +1,105 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>ReelMind AI</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
+<body style="background:#0a0a0a;color:white;font-family:Arial;">
 
-    input, textarea, button {
-      margin: 10px;
-      padding: 10px;
-      width: 80%;
-      border-radius: 8px;
-      border: none;
-    }
+<div style="max-width:500px;margin:auto;padding:20px;background:#111;border-radius:20px;">
 
-    button {
-      background: #22c55e;
-      color: white;
-      cursor: pointer;
-    }
+<h2>🎬 ReelMind AI</h2>
 
-    #result {
-      margin-top: 20px;
-      white-space: pre-wrap;
-      background: #1e293b;
-      padding: 15px;
-      border-radius: 10px;
-    }
-  </style>
-</head>
+<div id="creditsBox">Credits: 0</div>
 
-<body>
+<input id="prompt" placeholder="Enter idea..." style="width:100%;padding:10px;margin-top:10px;">
 
-<h1>🎬 ReelMind AI</h1>
+<button onclick="generate()">Generate Script</button>
+<button onclick="generateImage()">Generate Image</button>
+<button onclick="generateVideo()">Generate Video</button>
 
-<h3>Register / Login</h3>
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
+<pre id="output"></pre>
 
-<button onclick="register()">Register</button>
-<button onclick="login()">Login</button>
+<h3>🔥 Viral Templates</h3>
+<button onclick="template('breakup revenge story')">Breakup Story</button>
+<button onclick="template('rags to riches')">Motivation</button>
+<button onclick="template('crazy plot twist')">Plot Twist</button>
 
-<h3>Generate Reel Script</h3>
-<textarea id="prompt" placeholder="Enter your idea..."></textarea>
+<h3>Plans</h3>
+<button onclick="buyPlan('basic')">100 Credits</button>
+<button onclick="buyPlan('pro')">300 Credits</button>
+<button onclick="buyPlan('ultimate')">1000 Credits</button>
 
-<button onclick="generate()">Generate</button>
-
-<div id="result"></div>
+</div>
 
 <script>
-const BASE_URL = "https://reelmindbackend-1.onrender.com";
+const API = "YOUR_BACKEND_URL";
 
-/* REGISTER */
-async function register() {
-  const res = await fetch(BASE_URL + "/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: document.getElementById("email").value,
-      password: document.getElementById("password").value
-    })
-  });
-
-  const data = await res.json();
-  alert(data.message || data.error);
-}
-
-/* LOGIN */
-async function login() {
-  const res = await fetch(BASE_URL + "/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: document.getElementById("email").value,
-      password: document.getElementById("password").value
-    })
-  });
-
-  const data = await res.json();
-
-  if (data.token) {
-    localStorage.setItem("token", data.token);
-    alert("Login success ✅");
-  } else {
-    alert(data.error);
+/* PERMANENT LOGIN */
+window.onload = () => {
+  if (!localStorage.getItem("token")) {
+    alert("Login first");
   }
+
+  document.getElementById("creditsBox").innerText =
+    "Credits: " + localStorage.getItem("credits");
+};
+
+function template(text) {
+  document.getElementById("prompt").value = text;
 }
 
-/* GENERATE */
 async function generate() {
-  const prompt = document.getElementById("prompt").value;
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    alert("Please login first ❌");
-    return;
-  }
-
-  document.getElementById("result").innerText = "Generating... ⏳";
-
-  const res = await fetch(BASE_URL + "/generate", {
+  const res = await fetch(API + "/generate", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": token
+      "Authorization": localStorage.getItem("token")
     },
-    body: JSON.stringify({ prompt })
+    body: JSON.stringify({ prompt: prompt.value })
   });
 
   const data = await res.json();
+  output.innerText = data.result;
+  creditsBox.innerText = "Credits: " + data.credits;
+  localStorage.setItem("credits", data.credits);
+}
 
-  if (data.result) {
-    document.getElementById("result").innerText = data.result;
-  } else {
-    document.getElementById("result").innerText = data.error;
-  }
+async function generateImage() {
+  const res = await fetch(API + "/generate-image", {
+    method: "POST",
+    headers: {
+      "Authorization": localStorage.getItem("token")
+    },
+    body: JSON.stringify({ prompt: prompt.value })
+  });
+
+  const data = await res.json();
+  output.innerHTML = `<img src="${data.image}" width="100%">`;
+}
+
+async function generateVideo() {
+  const res = await fetch(API + "/generate-video", {
+    method: "POST",
+    headers: {
+      "Authorization": localStorage.getItem("token")
+    },
+    body: JSON.stringify({ prompt: prompt.value })
+  });
+
+  const data = await res.json();
+  output.innerText = data.video;
+}
+
+async function buyPlan(plan) {
+  const res = await fetch(API + "/buy-plan", {
+    method: "POST",
+    headers: {
+      "Authorization": localStorage.getItem("token"),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ plan })
+  });
+
+  const data = await res.json();
+  creditsBox.innerText = "Credits: " + data.credits;
+  localStorage.setItem("credits", data.credits);
 }
 </script>
 
