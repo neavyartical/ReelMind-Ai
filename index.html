@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>ReelMind AI</title>
+
   <style>
     body {
       font-family: Arial;
@@ -12,15 +13,20 @@
       padding: 20px;
     }
 
+    h1 {
+      color: #ff0050;
+    }
+
     input, button {
-      padding: 10px;
-      margin: 5px;
+      padding: 12px;
+      margin: 8px;
       border-radius: 8px;
       border: none;
+      font-size: 14px;
     }
 
     input {
-      width: 250px;
+      width: 260px;
     }
 
     button {
@@ -30,41 +36,62 @@
     }
 
     button:hover {
-      opacity: 0.8;
+      opacity: 0.85;
     }
 
     #output {
-      margin-top: 20px;
-      padding: 15px;
+      margin-top: 25px;
+      padding: 20px;
       background: #1c1c1c;
       border-radius: 10px;
       text-align: left;
       white-space: pre-wrap;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .section {
+      margin-top: 30px;
     }
   </style>
 </head>
+
 <body>
 
   <h1>🎬 ReelMind AI</h1>
 
-  <h3>🔐 Login / Register</h3>
-  <input id="email" placeholder="Email"><br>
-  <input id="password" type="password" placeholder="Password"><br>
+  <!-- AUTH -->
+  <div class="section">
+    <h3>🔐 Login / Register</h3>
+    <input id="email" placeholder="Email"><br>
+    <input id="password" type="password" placeholder="Password"><br>
 
-  <button onclick="register()">Register</button>
-  <button onclick="login()">Login</button>
+    <button onclick="register()">Register</button>
+    <button onclick="login()">Login</button>
+  </div>
 
-  <hr>
+  <!-- GENERATOR -->
+  <div class="section">
+    <h3>🤖 Create Viral Content</h3>
+    <input id="prompt" placeholder="Describe your idea..."><br>
 
-  <h3>🤖 Create Viral Content</h3>
-  <input id="prompt" placeholder="Describe your idea..."><br>
-  <button onclick="generate()">✨ Generate</button>
+    <button onclick="generate()">✨ Generate</button>
+    <button onclick="copyText()">📋 Copy</button>
+  </div>
 
+  <!-- OUTPUT -->
   <div id="output">Your AI result will appear here...</div>
 
   <script>
     const API = "https://reelmindbackend-1.onrender.com";
 
+    const emailEl = document.getElementById("email");
+    const passwordEl = document.getElementById("password");
+    const promptEl = document.getElementById("prompt");
+    const output = document.getElementById("output");
+
+    // REGISTER
     async function register() {
       const email = emailEl.value;
       const password = passwordEl.value;
@@ -79,6 +106,7 @@
       alert(data.message || data.error);
     }
 
+    // LOGIN
     async function login() {
       const email = emailEl.value;
       const password = passwordEl.value;
@@ -93,40 +121,52 @@
 
       if (data.token) {
         localStorage.setItem("token", data.token);
-        alert("Logged in ✅");
+        alert("Login success ✅");
       } else {
         alert(data.error);
       }
     }
 
+    // GENERATE AI CONTENT
     async function generate() {
       const prompt = promptEl.value;
       const token = localStorage.getItem("token");
 
-      if (!token) return alert("Login first ❌");
+      if (!token) {
+        alert("Login first ❌");
+        return;
+      }
 
-      output.innerText = "⏳ Generating...";
+      output.innerHTML = "⏳ Generating cinematic content...";
 
-      const res = await fetch(API + "/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": token
-        },
-        body: JSON.stringify({ prompt })
-      });
+      try {
+        const res = await fetch(API + "/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": token
+          },
+          body: JSON.stringify({ prompt })
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      output.innerText =
-        data.result ||
-        JSON.stringify(data, null, 2);
+        const text = data.result || data.error || "No response";
+
+        output.innerHTML = `
+          <h2>🎬 Your Viral Script</h2>
+          <p>${text}</p>
+        `;
+      } catch (err) {
+        output.innerHTML = "❌ Server error. Try again.";
+      }
     }
 
-    const emailEl = document.getElementById("email");
-    const passwordEl = document.getElementById("password");
-    const promptEl = document.getElementById("prompt");
-    const output = document.getElementById("output");
+    // COPY RESULT
+    function copyText() {
+      navigator.clipboard.writeText(output.innerText);
+      alert("Copied ✅");
+    }
   </script>
 
 </body>
