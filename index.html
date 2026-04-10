@@ -3,171 +3,131 @@
 <head>
   <meta charset="UTF-8">
   <title>ReelMind AI</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f0f0f;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
-
-    h1 {
-      color: #ff0050;
-    }
-
-    input, button {
-      padding: 12px;
-      margin: 8px;
-      border-radius: 8px;
-      border: none;
-      font-size: 14px;
-    }
-
-    input {
-      width: 260px;
-    }
-
-    button {
-      background: #ff0050;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.85;
-    }
-
-    #output {
-      margin-top: 25px;
-      padding: 20px;
-      background: #1c1c1c;
-      border-radius: 10px;
-      text-align: left;
-      white-space: pre-wrap;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .section {
-      margin-top: 30px;
-    }
-  </style>
 </head>
 
-<body>
+<body style="font-family: Arial; text-align:center; padding:20px;">
 
   <h1>🎬 ReelMind AI</h1>
 
   <!-- AUTH -->
-  <div class="section">
-    <h3>🔐 Login / Register</h3>
-    <input id="email" placeholder="Email"><br>
-    <input id="password" type="password" placeholder="Password"><br>
+  <div>
+    <input id="email" placeholder="Email"><br><br>
+    <input id="password" type="password" placeholder="Password"><br><br>
 
     <button onclick="register()">Register</button>
     <button onclick="login()">Login</button>
+    <button onclick="logout()">Logout</button>
   </div>
 
-  <!-- GENERATOR -->
-  <div class="section">
-    <h3>🤖 Create Viral Content</h3>
-    <input id="prompt" placeholder="Describe your idea..."><br>
+  <hr>
 
-    <button onclick="generate()">✨ Generate</button>
-    <button onclick="copyText()">📋 Copy</button>
+  <!-- GENERATE -->
+  <div>
+    <textarea id="prompt" placeholder="Enter your idea..." rows="5" cols="30"></textarea><br><br>
+    <button onclick="generate()">Generate</button>
   </div>
 
-  <!-- OUTPUT -->
-  <div id="output">Your AI result will appear here...</div>
+  <h3 id="status"></h3>
+  <p id="output"></p>
 
-  <script>
-    const API = "https://reelmindbackend-1.onrender.com";
+<script>
+const API = "https://reelmindbackend-1.onrender.com";
 
-    const emailEl = document.getElementById("email");
-    const passwordEl = document.getElementById("password");
-    const promptEl = document.getElementById("prompt");
-    const output = document.getElementById("output");
+/* =========================
+   REGISTER
+========================= */
+async function register() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-    // REGISTER
-    async function register() {
-      const email = emailEl.value;
-      const password = passwordEl.value;
+  document.getElementById("status").innerText = "Registering...";
 
-      const res = await fetch(API + "/register", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password })
-      });
+  const res = await fetch(API + "/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, password })
+  });
 
-      const data = await res.json();
-      alert(data.message || data.error);
+  const data = await res.json();
+  document.getElementById("status").innerText = data.message || data.error;
+}
+
+/* =========================
+   LOGIN
+========================= */
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  document.getElementById("status").innerText = "Logging in...";
+
+  const res = await fetch(API + "/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+    document.getElementById("status").innerText = "Login success ✅";
+  } else {
+    document.getElementById("status").innerText = data.error;
+  }
+}
+
+/* =========================
+   LOGOUT
+========================= */
+function logout() {
+  localStorage.removeItem("token");
+  document.getElementById("status").innerText = "Logged out ✅";
+}
+
+/* =========================
+   GENERATE
+========================= */
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    document.getElementById("status").innerText = "Login first ❌";
+    return;
+  }
+
+  document.getElementById("status").innerText = "⏳ Generating...";
+  document.getElementById("output").innerText = "";
+
+  try {
+    const res = await fetch(API + "/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+
+    if (data.result) {
+      document.getElementById("status").innerText = "Done ✅";
+      document.getElementById("output").innerText = data.result;
+    } else {
+      document.getElementById("status").innerText = data.error || "Error ❌";
     }
 
-    // LOGIN
-    async function login() {
-      const email = emailEl.value;
-      const password = passwordEl.value;
-
-      const res = await fetch(API + "/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await res.json();
-
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        alert("Login success ✅");
-      } else {
-        alert(data.error);
-      }
-    }
-
-    // GENERATE AI CONTENT
-    async function generate() {
-      const prompt = promptEl.value;
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        alert("Login first ❌");
-        return;
-      }
-
-      output.innerHTML = "⏳ Generating cinematic content...";
-
-      try {
-        const res = await fetch(API + "/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": token
-          },
-          body: JSON.stringify({ prompt })
-        });
-
-        const data = await res.json();
-
-        const text = data.result || data.error || "No response";
-
-        output.innerHTML = `
-          <h2>🎬 Your Viral Script</h2>
-          <p>${text}</p>
-        `;
-      } catch (err) {
-        output.innerHTML = "❌ Server error. Try again.";
-      }
-    }
-
-    // COPY RESULT
-    function copyText() {
-      navigator.clipboard.writeText(output.innerText);
-      alert("Copied ✅");
-    }
-  </script>
+  } catch (err) {
+    document.getElementById("status").innerText = "Server error ❌";
+  }
+}
+</script>
 
 </body>
 </html>
