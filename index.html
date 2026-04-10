@@ -3,104 +3,87 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00ffcc">
+
+<title>ReelMind AI</title>
+
 <style>
 body{
 margin:0;
 font-family:-apple-system;
 color:white;
-background:radial-gradient(circle,#001f3f,#000);
-overflow:hidden;
+background:url('https://i.imgur.com/Zk6TR5k.jpeg') no-repeat center/cover;
 }
 
-/* BACKGROUND */
-body::before{
-content:"";
-position:fixed;
-width:100%;
-height:100%;
-background:
-radial-gradient(circle at 30% 30%, #00ffcc22, transparent),
-radial-gradient(circle at 70% 70%, #00aaff22, transparent);
-animation:move 8s infinite alternate;
-z-index:-1;
-}
-@keyframes move{
-0%{transform:scale(1);}
-100%{transform:scale(1.2);}
-}
-
-/* GLASS */
+/* GLASS PANEL */
 .glass{
-background:rgba(255,255,255,0.05);
+background:rgba(0,0,0,0.6);
 backdrop-filter:blur(20px);
-border-radius:20px;
 padding:15px;
 margin:10px;
+border-radius:20px;
+text-align:center;
 }
 
-/* GLOBE */
-.globe{
-width:220px;
-height:220px;
+/* 🧊 ICE CUBE */
+.cube{
+width:240px;
+height:240px;
 margin:30px auto;
-border-radius:50%;
-background:rgba(255,255,255,0.05);
+background:rgba(255,255,255,0.08);
+border-radius:25px;
 backdrop-filter:blur(25px);
-box-shadow:0 0 30px rgba(0,255,204,0.3);
-position:relative;
-animation:spin 20s linear infinite;
-}
-@keyframes spin{
-0%{transform:rotate(0);}
-100%{transform:rotate(360deg);}
+box-shadow:0 0 40px rgba(0,255,255,0.6);
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+align-items:center;
+gap:10px;
 }
 
-.globe button{
-position:absolute;
-background:rgba(0,255,204,0.3);
+/* BUTTON */
+button{
+background:rgba(0,255,255,0.2);
 border:none;
 color:white;
 padding:10px;
-border-radius:50%;
+border-radius:12px;
 cursor:pointer;
-}
-
-/* BUTTON POSITIONS */
-.btn1{top:20%;left:40%;}
-.btn2{top:50%;left:5%;}
-.btn3{top:50%;right:5%;}
-.btn4{bottom:20%;left:40%;}
-.btn5{top:35%;right:20%;}
-.btn6{bottom:35%;left:20%;}
-.btn7{top:10%;left:10%;}
-
-/* AVATAR */
-#avatar{
-width:90px;
-border-radius:50%;
-display:block;
-margin:auto;
-box-shadow:0 0 20px #00ffcc;
+font-size:14px;
 }
 
 /* INPUT */
 input{
-width:100%;
+width:90%;
 padding:12px;
-border:none;
 border-radius:12px;
-margin-top:10px;
+border:none;
 background:rgba(255,255,255,0.1);
 color:white;
+margin-top:10px;
+}
+
+/* AVATAR */
+#avatar{
+width:100px;
+border-radius:50%;
+margin:10px auto;
+display:block;
+box-shadow:0 0 25px cyan;
 }
 
 /* SHOP */
-.plan{
-background:#111;
-padding:10px;
-margin:5px;
-border-radius:10px;
-text-align:center;
+#shop{
+display:none;
+}
+
+/* FOOTER */
+.powered{
+opacity:0.7;
+margin-top:10px;
+font-size:14px;
 }
 </style>
 </head>
@@ -117,16 +100,15 @@ text-align:center;
 
 <img id="avatar" src="https://i.imgur.com/6VBx3io.png">
 
-<!-- 🌍 GLOBE -->
-<div class="globe">
+<!-- 🧊 ICE CUBE -->
+<div class="cube">
 
-<button class="btn1" onclick="generate()">🧠</button>
-<button class="btn2" onclick="renderVideo()">🎬</button>
-<button class="btn3" onclick="talk()">🤖</button>
-<button class="btn4" onclick="music()">🎵</button>
-<button class="btn5" onclick="saveProject()">💾</button>
-<button class="btn6" onclick="toggleShop()">💰</button>
-<button class="btn7" onclick="downloadVideo()">⬇️</button>
+<button onclick="generate()">🧠 Generate</button>
+<button onclick="textToVideo()">🎬 Text→Video</button>
+<button onclick="textToImage()">🎨 Text→Image</button>
+<button onclick="talk()">🤖 Avatar</button>
+<button onclick="toggleShop()">💰 Upgrade</button>
+<button onclick="downloadVideo()">⬇️ Download</button>
 
 </div>
 
@@ -135,146 +117,128 @@ text-align:center;
 
 <pre id="output"></pre>
 
-</div>
-
 <!-- SHOP -->
-<div id="shop" class="glass" style="display:none;">
-<h3>Upgrade</h3>
+<div id="shop" class="glass">
+<h3>Upgrade Plan</h3>
 
-<div class="plan">
-Basic (100 credits)
-<button onclick="buy('basic')">Buy</button>
+<button onclick="buy('basic')">Basic (100 credits)</button><br><br>
+<button onclick="buy('pro')">Pro (300 credits)</button><br><br>
+<button onclick="buy('ultimate')">Ultimate (1000 credits)</button>
+
 </div>
 
-<div class="plan">
-Pro (300 credits)
-<button onclick="buy('pro')">Buy</button>
+<div class="powered">
+Powered by Artical Neavy 🚀
 </div>
 
-<div class="plan">
-Ultimate (1000 credits)
-<button onclick="buy('ultimate')">Buy</button>
-</div>
 </div>
 
 <audio id="bg"></audio>
 
 <script>
-const API="YOUR_BACKEND_URL";
+
+/* ================= CONFIG ================= */
+const API = "";
 
 /* LOAD */
-window.onload=()=>{
-credits.innerText=localStorage.getItem("credits")||0;
+window.onload = ()=>{
+credits.innerText = localStorage.getItem("credits") || 0;
 };
 
-/* AI */
+/* ================= AI ================= */
 async function generate(){
-const r=await fetch(API+"/generate",{
+const r = await fetch("/generate", {
 method:"POST",
-headers:{
-"Content-Type":"application/json",
-"Authorization":localStorage.getItem("token")
-},
-body:JSON.stringify({prompt:prompt.value})
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({ prompt:prompt.value })
 });
-const d=await r.json();
-output.innerText=d.result || "AI failed";
+
+const d = await r.json();
+output.innerText = d.result || "AI failed";
 }
 
-/* VIDEO */
-async function renderVideo(){
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
+/* ================= TEXT → VIDEO ================= */
+function textToVideo(){
 
-const stream=canvas.captureStream();
-const rec=new MediaRecorder(stream);
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-let chunks=[];
-rec.ondataavailable=e=>chunks.push(e.data);
+const stream = canvas.captureStream();
+const rec = new MediaRecorder(stream);
 
-rec.onstop=()=>{
-const blob=new Blob(chunks);
-preview.src=URL.createObjectURL(blob);
-window.videoBlob=blob;
+let chunks = [];
+rec.ondataavailable = e => chunks.push(e.data);
+
+rec.onstop = ()=>{
+window.videoBlob = new Blob(chunks);
+preview.src = URL.createObjectURL(videoBlob);
 };
 
 rec.start();
 
-let words=prompt.value.split(" ");
-let i=0;
+let words = prompt.value.split(" ");
+let i = 0;
 
-let interval=setInterval(()=>{
-ctx.fillStyle="black";
+let interval = setInterval(()=>{
+ctx.fillStyle = "black";
 ctx.fillRect(0,0,360,640);
 
-ctx.fillStyle="#00ffcc";
-ctx.font="bold 28px Arial";
-ctx.fillText(words[i]||"",40,320);
+ctx.fillStyle = "cyan";
+ctx.font = "bold 28px Arial";
+ctx.fillText(words[i] || "",40,320);
 
 i++;
 
-if(i>=words.length){
+if(i >= words.length){
 clearInterval(interval);
 setTimeout(()=>rec.stop(),1000);
 }
 },300);
 }
 
-/* DOWNLOAD */
+/* ================= TEXT → IMAGE ================= */
+function textToImage(){
+preview.src = "https://image.pollinations.ai/prompt/"+encodeURIComponent(prompt.value);
+}
+
+/* ================= DOWNLOAD ================= */
 function downloadVideo(){
 if(!window.videoBlob){
 alert("Generate video first");
 return;
 }
-const a=document.createElement("a");
-a.href=URL.createObjectURL(window.videoBlob);
-a.download="reelmind.mp4";
+const a = document.createElement("a");
+a.href = URL.createObjectURL(window.videoBlob);
+a.download = "reelmind.mp4";
 a.click();
 }
 
-/* AVATAR */
+/* ================= AVATAR ================= */
 function talk(){
-const speech=new SpeechSynthesisUtterance(prompt.value);
+const speech = new SpeechSynthesisUtterance(prompt.value);
 avatar.style.transform="scale(1.2)";
-speech.onend=()=>avatar.style.transform="scale(1)";
+speech.onend = ()=>avatar.style.transform="scale(1)";
 speechSynthesis.speak(speech);
 }
 
-/* MUSIC */
-function music(){
-bg.src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-bg.play();
-}
-
-/* SAVE */
-async function saveProject(){
-await fetch(API+"/save-project",{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-"Authorization":localStorage.getItem("token")
-},
-body:JSON.stringify({title:prompt.value})
-});
-}
-
-/* SHOP */
+/* ================= SHOP ================= */
 function toggleShop(){
 shop.style.display = shop.style.display==="none"?"block":"none";
 }
 
-async function buy(plan){
-let creditsVal=0;
+function buy(plan){
+let creditsVal = 0;
 
-if(plan==="basic") creditsVal=100;
-if(plan==="pro") creditsVal=300;
-if(plan==="ultimate") creditsVal=1000;
+if(plan==="basic") creditsVal = 100;
+if(plan==="pro") creditsVal = 300;
+if(plan==="ultimate") creditsVal = 1000;
 
 localStorage.setItem("credits",creditsVal);
-credits.innerText=creditsVal;
+credits.innerText = creditsVal;
 
 alert("Plan activated (demo)");
 }
+
 </script>
 
 </body>
