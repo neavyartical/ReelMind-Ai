@@ -12,7 +12,7 @@ background:radial-gradient(circle,#001f3f,#000);
 overflow:hidden;
 }
 
-/* 🧠 FUTURISTIC BACKGROUND */
+/* 🧠 BACKGROUND */
 body::before{
 content:"";
 position:fixed;
@@ -58,28 +58,39 @@ border-radius:50%;
 100%{transform:rotate(360deg);}
 }
 
-/* 🤖 AVATAR */
-#avatarBox{
-text-align:center;
-margin-top:20px;
-}
-
-#avatar{
-width:120px;
-border-radius:50%;
-box-shadow:0 0 20px #00ffcc;
-animation:idle 3s infinite;
-}
-
-@keyframes idle{
-0%{transform:scale(1);}
-50%{transform:scale(1.05);}
-100%{transform:scale(1);}
+/* 🔐 AUTH */
+#authBox{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:black;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+z-index:1000;
 }
 </style>
 </head>
 
 <body>
+
+<!-- 🚀 ONBOARDING -->
+<div id="onboarding">
+  <h1>🧠 ReelMind AI</h1>
+  <button onclick="startApp()">Enter</button>
+</div>
+
+<!-- 🔐 AUTH -->
+<div id="authBox">
+  <h2>Login / Register</h2>
+  <input id="email" placeholder="Email"><br>
+  <input id="password" type="password" placeholder="Password"><br>
+  <button onclick="register()">Register</button>
+  <button onclick="login()">Login</button>
+</div>
 
 <div style="max-width:500px;margin:auto;padding:20px;">
 
@@ -88,14 +99,13 @@ animation:idle 3s infinite;
 <input id="prompt" placeholder="Enter idea..." style="width:100%;padding:10px;">
 
 <!-- 🤖 AVATAR -->
-<div id="avatarBox">
-<img id="avatar" src="https://i.imgur.com/6VBx3io.png">
-</div>
+<img id="avatar" src="https://i.imgur.com/6VBx3io.png"
+style="width:100px;border-radius:50%;display:block;margin:auto;">
 
 <div class="globe">
 <button onclick="generate()">🧠</button>
 <button onclick="renderVideo()">🎬</button>
-<button onclick="talkAvatar()">🤖</button>
+<button onclick="talk()">🤖</button>
 <button onclick="music()">🎵</button>
 <button onclick="saveProject()">💾</button>
 </div>
@@ -105,7 +115,7 @@ animation:idle 3s infinite;
 
 <pre id="output"></pre>
 
-<h3>📂 Projects</h3>
+<h3>Projects</h3>
 <div id="projects"></div>
 
 </div>
@@ -115,7 +125,36 @@ animation:idle 3s infinite;
 <script>
 const API="YOUR_BACKEND_URL";
 
-/* ================= AI ================= */
+/* ONBOARD */
+function startApp(){
+  onboarding.style.display="none";
+}
+
+/* AUTH */
+async function register(){
+  await fetch(API+"/register",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({email:email.value,password:password.value})
+  });
+  alert("Registered");
+}
+
+async function login(){
+  const r=await fetch(API+"/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({email:email.value,password:password.value})
+  });
+
+  const d=await r.json();
+
+  localStorage.setItem("token",d.token);
+  authBox.style.display="none";
+  renderProjects(d.projects);
+}
+
+/* AI */
 async function generate(){
   const r=await fetch(API+"/generate",{
     method:"POST",
@@ -130,7 +169,7 @@ async function generate(){
   output.innerText=d.result;
 }
 
-/* ================= VIDEO ================= */
+/* VIDEO */
 async function renderVideo(){
   const canvas=document.getElementById("canvas");
   const ctx=canvas.getContext("2d");
@@ -142,8 +181,8 @@ async function renderVideo(){
   rec.ondataavailable=e=>chunks.push(e.data);
 
   rec.onstop=()=>{
-    const blob=new Blob(chunks);
-    preview.src=URL.createObjectURL(blob);
+    preview.src=URL.createObjectURL(new Blob(chunks));
+    window.lastVideo=preview.src;
   };
 
   rec.start();
@@ -168,38 +207,31 @@ async function renderVideo(){
   },300);
 }
 
-/* ================= 🤖 AVATAR TALK ================= */
-function talkAvatar(){
+/* AVATAR TALK */
+function talk(){
+  const text=output.innerText||prompt.value;
+  const speech=new SpeechSynthesisUtterance(text);
 
-  const text = output.innerText || prompt.value;
+  const avatar=document.getElementById("avatar");
 
-  const speech = new SpeechSynthesisUtterance(text);
-  speech.rate = 1;
-
-  const avatar = document.getElementById("avatar");
-
-  speech.onstart = () => {
-    avatar.style.animation = "none";
-    avatar.style.transform = "scale(1.2)";
-    avatar.style.boxShadow = "0 0 40px #00ffcc";
+  speech.onstart=()=>{
+    avatar.style.transform="scale(1.2)";
   };
 
-  speech.onend = () => {
-    avatar.style.animation = "idle 3s infinite";
-    avatar.style.transform = "scale(1)";
+  speech.onend=()=>{
+    avatar.style.transform="scale(1)";
   };
 
   speechSynthesis.speak(speech);
 }
 
-/* ================= MUSIC ================= */
+/* MUSIC */
 function music(){
-  const m=document.getElementById("bg");
-  m.src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-  m.play();
+  bg.src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+  bg.play();
 }
 
-/* ================= SAVE ================= */
+/* SAVE */
 async function saveProject(){
   const r=await fetch(API+"/save-project",{
     method:"POST",
@@ -209,7 +241,8 @@ async function saveProject(){
     },
     body:JSON.stringify({
       title:prompt.value,
-      content:output.innerText
+      content:output.innerText,
+      video:window.lastVideo
     })
   });
 
@@ -217,12 +250,15 @@ async function saveProject(){
   renderProjects(d.projects);
 }
 
+/* LOAD */
 function renderProjects(list){
-  const div=document.getElementById("projects");
-  div.innerHTML="";
+  projects.innerHTML="";
   list.forEach(p=>{
-    div.innerHTML+=`<div style="background:#111;margin:5px;padding:10px;">
-    ${p.title}</div>`;
+    projects.innerHTML+=`
+    <div style="background:#111;margin:5px;padding:10px;">
+      ${p.title}
+      <video src="${p.video}" width="100%" controls></video>
+    </div>`;
   });
 }
 </script>
