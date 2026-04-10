@@ -1,188 +1,96 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
-
-    input, textarea {
-      width: 90%;
-      padding: 10px;
-      margin: 10px;
-      border-radius: 10px;
-      border: none;
-    }
-
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      border: none;
-      border-radius: 10px;
-      background: #22c55e;
-      color: white;
-      font-weight: bold;
-    }
-
-    #result {
-      margin-top: 20px;
-      background: #1e293b;
-      padding: 15px;
-      border-radius: 10px;
-    }
-  </style>
-</head>
-
-<body>
-
-<h2>🔥 ReelMind AI (Admin)</h2>
-
-<!-- 🔐 AUTH SECTION -->
-<div id="authSection">
-  <input id="email" placeholder="Email"><br>
-  <input id="password" type="password" placeholder="Password"><br>
-
-  <button onclick="register()">Register</button>
-  <button onclick="login()">Login</button>
-</div>
-
-<!-- 🤖 AI SECTION -->
-<div id="aiSection" style="display:none;">
-  <hr>
-
-  <textarea id="prompt" placeholder="Enter your idea (viral TikTok, story, etc)"></textarea><br>
-
-  <button onclick="generate()">Generate</button>
-  <button onclick="logout()">Logout</button>
-
-  <div id="result"></div>
-</div>
-
 <script>
 const API = "https://backend-ppyz.onrender.com";
 
-// 🔥 ADMIN ACCOUNT (CHANGE IF YOU WANT)
-const ADMIN_EMAIL = "admin@reelmind.ai";
-const ADMIN_PASSWORD = "admin123";
+function showAI() {
+  document.getElementById("authSection").style.display = "none";
+  document.getElementById("aiSection").style.display = "block";
+}
 
-// 🔁 AUTO LOGIN
-window.onload = async function () {
-  let token = localStorage.getItem("token");
+// TEST BUTTON CLICK FIRST
+function testClick() {
+  alert("Button working ✅");
+}
 
-  // Already logged in
-  if (token) {
-    showAI();
-    return;
+// ✅ REGISTER
+async function register() {
+  alert("Register clicked"); // DEBUG
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    const res = await fetch(API + "/register", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    alert(data.message || data.error);
+  } catch (err) {
+    alert("Error connecting to server ❌");
   }
+}
 
-  // 🔥 Auto login as admin
+// ✅ LOGIN
+async function login() {
+  alert("Login clicked"); // DEBUG
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
   try {
     const res = await fetch(API + "/login", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        email: ADMIN_EMAIL,
-        password: ADMIN_PASSWORD
-      })
+      body: JSON.stringify({ email, password })
     });
 
     const data = await res.json();
 
     if (data.token) {
       localStorage.setItem("token", data.token);
+      alert("Login successful ✅");
       showAI();
+    } else {
+      alert(data.error);
     }
   } catch (err) {
-    console.log("Auto login failed");
-  }
-};
-
-// 👁 SHOW AI PANEL
-function showAI() {
-  document.getElementById("authSection").style.display = "none";
-  document.getElementById("aiSection").style.display = "block";
-}
-
-// ✅ REGISTER
-async function register() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const res = await fetch(API + "/register", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email, password })
-  });
-
-  const data = await res.json();
-  alert(data.message || data.error);
-}
-
-// ✅ LOGIN
-async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const res = await fetch(API + "/login", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email, password })
-  });
-
-  const data = await res.json();
-
-  if (data.token) {
-    localStorage.setItem("token", data.token);
-    alert("Login successful ✅");
-    showAI();
-  } else {
-    alert(data.error);
+    alert("Server error ❌");
   }
 }
 
-// 🔐 GENERATE (PROTECTED)
+// 🔐 GENERATE
 async function generate() {
   const token = localStorage.getItem("token");
 
   if (!token) {
-    alert("Please login first 🔒");
+    alert("Login first 🔒");
     return;
   }
 
   const prompt = document.getElementById("prompt").value;
 
-  const res = await fetch(API + "/generate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": token
-    },
-    body: JSON.stringify({ prompt })
-  });
+  try {
+    const res = await fetch(API + "/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token
+      },
+      body: JSON.stringify({ prompt })
+    });
 
-  const data = await res.json();
-
-  document.getElementById("result").innerText =
-    data.result || data.error;
+    const data = await res.json();
+    document.getElementById("result").innerText = data.result || data.error;
+  } catch (err) {
+    alert("AI error ❌");
+  }
 }
 
 // 🚪 LOGOUT
 function logout() {
   localStorage.removeItem("token");
-
-  document.getElementById("authSection").style.display = "block";
-  document.getElementById("aiSection").style.display = "none";
-
-  alert("Logged out 👋");
+  location.reload();
 }
 </script>
-
-</body>
-</html>
