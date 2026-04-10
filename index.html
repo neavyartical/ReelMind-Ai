@@ -6,13 +6,13 @@
 <style>
 body{
 margin:0;
-font-family:-apple-system, BlinkMacSystemFont;
+font-family:-apple-system;
 color:white;
-background:radial-gradient(circle at top,#001f3f,#000);
+background:radial-gradient(circle,#001f3f,#000);
 overflow:hidden;
 }
 
-/* 🌌 DYNAMIC BACKGROUND */
+/* BACKGROUND */
 body::before{
 content:"";
 position:fixed;
@@ -21,26 +21,24 @@ height:100%;
 background:
 radial-gradient(circle at 30% 30%, #00ffcc22, transparent),
 radial-gradient(circle at 70% 70%, #00aaff22, transparent);
-animation:moveBg 8s infinite alternate;
+animation:move 8s infinite alternate;
 z-index:-1;
 }
-
-@keyframes moveBg{
+@keyframes move{
 0%{transform:scale(1);}
 100%{transform:scale(1.2);}
 }
 
-/* 🍏 GLASS PANEL */
+/* GLASS */
 .glass{
 background:rgba(255,255,255,0.05);
 backdrop-filter:blur(20px);
 border-radius:20px;
 padding:15px;
 margin:10px;
-box-shadow:0 8px 30px rgba(0,0,0,0.5);
 }
 
-/* 🌍 GLASS GLOBE */
+/* GLOBE */
 .globe{
 width:220px;
 height:220px;
@@ -48,55 +46,35 @@ margin:30px auto;
 border-radius:50%;
 background:rgba(255,255,255,0.05);
 backdrop-filter:blur(25px);
-box-shadow:
-inset 0 0 40px rgba(255,255,255,0.1),
-0 0 30px rgba(0,255,204,0.3);
+box-shadow:0 0 30px rgba(0,255,204,0.3);
 position:relative;
-animation:rotate 20s linear infinite;
+animation:spin 20s linear infinite;
 }
-
-/* BUTTONS INSIDE GLOBE */
-.globe button{
-position:absolute;
-background:rgba(0,255,204,0.2);
-border:none;
-color:white;
-padding:12px;
-border-radius:50%;
-backdrop-filter:blur(10px);
-}
-
-/* POSITIONING BUTTONS */
-.globe button:nth-child(1){top:20%;left:40%;}
-.globe button:nth-child(2){top:50%;left:10%;}
-.globe button:nth-child(3){top:50%;right:10%;}
-.globe button:nth-child(4){bottom:20%;left:40%;}
-.globe button:nth-child(5){top:35%;right:20%;}
-.globe button:nth-child(6){bottom:35%;left:20%;}
-
-@keyframes rotate{
-0%{transform:rotate(0deg);}
+@keyframes spin{
+0%{transform:rotate(0);}
 100%{transform:rotate(360deg);}
 }
 
-/* 💰 PLANS */
-.plan{
-background:rgba(255,255,255,0.05);
-padding:10px;
-border-radius:15px;
-margin:5px;
-text-align:center;
-}
-
-.plan button{
-margin-top:5px;
-background:#00ffcc;
+.globe button{
+position:absolute;
+background:rgba(0,255,204,0.3);
 border:none;
-padding:5px 10px;
-border-radius:10px;
+color:white;
+padding:10px;
+border-radius:50%;
+cursor:pointer;
 }
 
-/* 🧠 AVATAR */
+/* BUTTON POSITIONS */
+.btn1{top:20%;left:40%;}
+.btn2{top:50%;left:5%;}
+.btn3{top:50%;right:5%;}
+.btn4{bottom:20%;left:40%;}
+.btn5{top:35%;right:20%;}
+.btn6{bottom:35%;left:20%;}
+.btn7{top:10%;left:10%;}
+
+/* AVATAR */
 #avatar{
 width:90px;
 border-radius:50%;
@@ -115,6 +93,15 @@ margin-top:10px;
 background:rgba(255,255,255,0.1);
 color:white;
 }
+
+/* SHOP */
+.plan{
+background:#111;
+padding:10px;
+margin:5px;
+border-radius:10px;
+text-align:center;
+}
 </style>
 </head>
 
@@ -130,14 +117,17 @@ color:white;
 
 <img id="avatar" src="https://i.imgur.com/6VBx3io.png">
 
-<!-- 🌍 GLASS GLOBE -->
+<!-- 🌍 GLOBE -->
 <div class="globe">
-<button onclick="generate()">🧠</button>
-<button onclick="renderVideo()">🎬</button>
-<button onclick="talk()">🤖</button>
-<button onclick="music()">🎵</button>
-<button onclick="saveProject()">💾</button>
-<button onclick="buyUI()">💰</button>
+
+<button class="btn1" onclick="generate()">🧠</button>
+<button class="btn2" onclick="renderVideo()">🎬</button>
+<button class="btn3" onclick="talk()">🤖</button>
+<button class="btn4" onclick="music()">🎵</button>
+<button class="btn5" onclick="saveProject()">💾</button>
+<button class="btn6" onclick="toggleShop()">💰</button>
+<button class="btn7" onclick="downloadVideo()">⬇️</button>
+
 </div>
 
 <canvas id="canvas" width="360" height="640"></canvas>
@@ -147,8 +137,8 @@ color:white;
 
 </div>
 
-<!-- 💰 MONETIZATION -->
-<div class="glass" id="shop" style="display:none;">
+<!-- SHOP -->
+<div id="shop" class="glass" style="display:none;">
 <h3>Upgrade</h3>
 
 <div class="plan">
@@ -172,7 +162,7 @@ Ultimate (1000 credits)
 <script>
 const API="YOUR_BACKEND_URL";
 
-/* LOAD USER */
+/* LOAD */
 window.onload=()=>{
 credits.innerText=localStorage.getItem("credits")||0;
 };
@@ -188,12 +178,12 @@ headers:{
 body:JSON.stringify({prompt:prompt.value})
 });
 const d=await r.json();
-output.innerText=d.result;
+output.innerText=d.result || "AI failed";
 }
 
 /* VIDEO */
 async function renderVideo(){
-const canvas=canvasEl=document.getElementById("canvas");
+const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
 const stream=canvas.captureStream();
@@ -203,7 +193,9 @@ let chunks=[];
 rec.ondataavailable=e=>chunks.push(e.data);
 
 rec.onstop=()=>{
-preview.src=URL.createObjectURL(new Blob(chunks));
+const blob=new Blob(chunks);
+preview.src=URL.createObjectURL(blob);
+window.videoBlob=blob;
 };
 
 rec.start();
@@ -216,15 +208,28 @@ ctx.fillStyle="black";
 ctx.fillRect(0,0,360,640);
 
 ctx.fillStyle="#00ffcc";
-ctx.font="bold 30px Arial";
+ctx.font="bold 28px Arial";
 ctx.fillText(words[i]||"",40,320);
 
 i++;
+
 if(i>=words.length){
 clearInterval(interval);
 setTimeout(()=>rec.stop(),1000);
 }
 },300);
+}
+
+/* DOWNLOAD */
+function downloadVideo(){
+if(!window.videoBlob){
+alert("Generate video first");
+return;
+}
+const a=document.createElement("a");
+a.href=URL.createObjectURL(window.videoBlob);
+a.download="reelmind.mp4";
+a.click();
 }
 
 /* AVATAR */
@@ -241,26 +246,6 @@ bg.src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
 bg.play();
 }
 
-/* SHOP */
-function buyUI(){
-shop.style.display = shop.style.display==="none"?"block":"none";
-}
-
-async function buy(plan){
-const r=await fetch(API+"/buy-plan",{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-"Authorization":localStorage.getItem("token")
-},
-body:JSON.stringify({plan})
-});
-
-const d=await r.json();
-credits.innerText=d.credits;
-localStorage.setItem("credits",d.credits);
-}
-
 /* SAVE */
 async function saveProject(){
 await fetch(API+"/save-project",{
@@ -271,6 +256,24 @@ headers:{
 },
 body:JSON.stringify({title:prompt.value})
 });
+}
+
+/* SHOP */
+function toggleShop(){
+shop.style.display = shop.style.display==="none"?"block":"none";
+}
+
+async function buy(plan){
+let creditsVal=0;
+
+if(plan==="basic") creditsVal=100;
+if(plan==="pro") creditsVal=300;
+if(plan==="ultimate") creditsVal=1000;
+
+localStorage.setItem("credits",creditsVal);
+credits.innerText=creditsVal;
+
+alert("Plan activated (demo)");
 }
 </script>
 
