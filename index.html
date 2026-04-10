@@ -27,7 +27,7 @@ border-radius:20px;
 text-align:center;
 }
 
-/* 🧊 ICE CUBE */
+/* 🧊 ROTATING ICE CUBE */
 .cube{
 width:240px;
 height:240px;
@@ -35,12 +35,18 @@ margin:30px auto;
 background:rgba(255,255,255,0.08);
 border-radius:25px;
 backdrop-filter:blur(25px);
-box-shadow:0 0 40px rgba(0,255,255,0.6);
+box-shadow:0 0 40px cyan;
 display:flex;
 flex-wrap:wrap;
 justify-content:center;
 align-items:center;
 gap:10px;
+animation:spin 10s linear infinite;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
 }
 
 /* BUTTON */
@@ -63,6 +69,13 @@ border:none;
 background:rgba(255,255,255,0.1);
 color:white;
 margin-top:10px;
+}
+
+/* LOADING */
+#loading{
+display:none;
+color:#00ffcc;
+font-weight:bold;
 }
 
 /* AVATAR */
@@ -100,12 +113,14 @@ font-size:14px;
 
 <img id="avatar" src="https://i.imgur.com/6VBx3io.png">
 
+<div id="loading">⏳ Generating...</div>
+
 <!-- 🧊 ICE CUBE -->
 <div class="cube">
 
 <button onclick="generate()">🧠 Generate</button>
-<button onclick="textToVideo()">🎬 Text→Video</button>
-<button onclick="textToImage()">🎨 Text→Image</button>
+<button onclick="textToVideo()">🎬 Video</button>
+<button onclick="textToImage()">🎨 Image</button>
 <button onclick="talk()">🤖 Avatar</button>
 <button onclick="toggleShop()">💰 Upgrade</button>
 <button onclick="downloadVideo()">⬇️ Download</button>
@@ -117,7 +132,7 @@ font-size:14px;
 
 <pre id="output"></pre>
 
-<!-- SHOP -->
+<!-- 💰 SHOP -->
 <div id="shop" class="glass">
 <h3>Upgrade Plan</h3>
 
@@ -137,16 +152,16 @@ Powered by Artical Neavy 🚀
 
 <script>
 
-/* ================= CONFIG ================= */
-const API = "";
-
-/* LOAD */
+/* ================= LOAD ================= */
 window.onload = ()=>{
 credits.innerText = localStorage.getItem("credits") || 0;
 };
 
 /* ================= AI ================= */
 async function generate(){
+loading.style.display="block";
+
+try{
 const r = await fetch("/generate", {
 method:"POST",
 headers:{ "Content-Type":"application/json" },
@@ -155,6 +170,12 @@ body:JSON.stringify({ prompt:prompt.value })
 
 const d = await r.json();
 output.innerText = d.result || "AI failed";
+
+}catch(err){
+output.innerText="Server error";
+}
+
+loading.style.display="none";
 }
 
 /* ================= TEXT → VIDEO ================= */
