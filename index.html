@@ -77,11 +77,11 @@ async function generate() {
   const result = document.getElementById("result");
 
   if (!prompt) {
-    result.innerText = "Enter a prompt first";
+    result.innerText = "Enter a prompt first ❌";
     return;
   }
 
-  result.innerText = "Generating...";
+  result.innerText = "⏳ Generating...";
 
   try {
     const res = await fetch("/generate", {
