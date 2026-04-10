@@ -1,27 +1,49 @@
 <!DOCTYPE html>
 <html>
-<body style="background:#0a0a0a;color:white;font-family:Arial;">
+<head>
+  <title>ReelMind AI</title>
+</head>
 
-<div style="max-width:500px;margin:auto;padding:20px;background:#111;border-radius:20px;">
+<body style="
+margin:0;
+background: linear-gradient(135deg,#0a0a0a,#001f3f,#000);
+color:white;
+font-family:Arial;
+">
+
+<div style="
+max-width:500px;
+margin:auto;
+padding:20px;
+background:#111;
+border-radius:20px;
+">
 
 <h2>🎬 ReelMind AI</h2>
 
 <div id="creditsBox">Credits: 0</div>
 
-<input id="prompt" placeholder="Enter idea..." style="width:100%;padding:10px;margin-top:10px;">
+<input id="prompt" placeholder="Enter idea..."
+style="width:100%;padding:12px;border-radius:10px;margin-top:10px;">
 
 <button onclick="generate()">Generate Script</button>
 <button onclick="generateImage()">Generate Image</button>
-<button onclick="generateVideo()">Generate Video</button>
+<button onclick="generateVideo()">Generate Storyboard</button>
+
+<button onclick="renderVideo()">🎬 Render Video (REAL)</button>
+
+<canvas id="canvas" width="360" height="640" style="display:none;"></canvas>
+
+<video id="videoPreview" controls style="width:100%;margin-top:10px;"></video>
 
 <pre id="output"></pre>
 
 <h3>🔥 Viral Templates</h3>
-<button onclick="template('breakup revenge story')">Breakup Story</button>
-<button onclick="template('rags to riches')">Motivation</button>
-<button onclick="template('crazy plot twist')">Plot Twist</button>
+<button onclick="setTemplate('crazy plot twist')">Plot Twist</button>
+<button onclick="setTemplate('breakup revenge story')">Breakup</button>
+<button onclick="setTemplate('rags to riches')">Motivation</button>
 
-<h3>Plans</h3>
+<h3>💎 Plans</h3>
 <button onclick="buyPlan('basic')">100 Credits</button>
 <button onclick="buyPlan('pro')">300 Credits</button>
 <button onclick="buyPlan('ultimate')">1000 Credits</button>
@@ -31,75 +53,120 @@
 <script>
 const API = "YOUR_BACKEND_URL";
 
-/* PERMANENT LOGIN */
+/* ================= LOGIN PERSIST ================= */
 window.onload = () => {
-  if (!localStorage.getItem("token")) {
-    alert("Login first");
-  }
-
-  document.getElementById("creditsBox").innerText =
-    "Credits: " + localStorage.getItem("credits");
+  const credits = localStorage.getItem("credits") || 0;
+  creditsBox.innerText = "Credits: " + credits;
 };
 
-function template(text) {
-  document.getElementById("prompt").value = text;
+/* ================= TEMPLATE ================= */
+function setTemplate(text){
+  prompt.value = text;
 }
 
-async function generate() {
-  const res = await fetch(API + "/generate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": localStorage.getItem("token")
+/* ================= GENERATE ================= */
+async function generate(){
+  const res = await fetch(API+"/generate",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":localStorage.getItem("token")
     },
-    body: JSON.stringify({ prompt: prompt.value })
+    body:JSON.stringify({prompt:prompt.value})
   });
 
   const data = await res.json();
   output.innerText = data.result;
-  creditsBox.innerText = "Credits: " + data.credits;
-  localStorage.setItem("credits", data.credits);
+  creditsBox.innerText = "Credits: "+data.credits;
+  localStorage.setItem("credits",data.credits);
 }
 
-async function generateImage() {
-  const res = await fetch(API + "/generate-image", {
-    method: "POST",
-    headers: {
-      "Authorization": localStorage.getItem("token")
+/* ================= IMAGE ================= */
+async function generateImage(){
+  const res = await fetch(API+"/generate-image",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":localStorage.getItem("token")
     },
-    body: JSON.stringify({ prompt: prompt.value })
+    body:JSON.stringify({prompt:prompt.value})
   });
 
   const data = await res.json();
   output.innerHTML = `<img src="${data.image}" width="100%">`;
 }
 
-async function generateVideo() {
-  const res = await fetch(API + "/generate-video", {
-    method: "POST",
-    headers: {
-      "Authorization": localStorage.getItem("token")
+/* ================= STORYBOARD ================= */
+async function generateVideo(){
+  const res = await fetch(API+"/generate-video",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":localStorage.getItem("token")
     },
-    body: JSON.stringify({ prompt: prompt.value })
+    body:JSON.stringify({prompt:prompt.value})
   });
 
   const data = await res.json();
   output.innerText = data.video;
 }
 
-async function buyPlan(plan) {
-  const res = await fetch(API + "/buy-plan", {
-    method: "POST",
-    headers: {
-      "Authorization": localStorage.getItem("token"),
-      "Content-Type": "application/json"
+/* ================= REAL VIDEO RENDER ================= */
+async function renderVideo(){
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const stream = canvas.captureStream(30);
+  const recorder = new MediaRecorder(stream);
+
+  let chunks = [];
+
+  recorder.ondataavailable = e => chunks.push(e.data);
+
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: "video/webm" });
+    const url = URL.createObjectURL(blob);
+    videoPreview.src = url;
+  };
+
+  recorder.start();
+
+  const scenes = [
+    "🔥 Hook: "+prompt.value,
+    "Scene 1",
+    "Scene 2",
+    "Final Twist 🚀"
+  ];
+
+  for(let i=0;i<scenes.length;i++){
+    ctx.fillStyle = "black";
+    ctx.fillRect(0,0,360,640);
+
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    ctx.fillText(scenes[i],20,300);
+
+    await new Promise(r=>setTimeout(r,1500));
+  }
+
+  recorder.stop();
+}
+
+/* ================= BUY ================= */
+async function buyPlan(plan){
+  const res = await fetch(API+"/buy-plan",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":localStorage.getItem("token")
     },
-    body: JSON.stringify({ plan })
+    body:JSON.stringify({plan})
   });
 
   const data = await res.json();
-  creditsBox.innerText = "Credits: " + data.credits;
-  localStorage.setItem("credits", data.credits);
+  creditsBox.innerText = "Credits: "+data.credits;
+  localStorage.setItem("credits",data.credits);
 }
 </script>
 
