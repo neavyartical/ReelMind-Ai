@@ -1,96 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ReelMind Test</title>
+</head>
+<body style="background:black; color:white; text-align:center;">
+
+<h1>🔥 It Works</h1>
+
+<button onclick="test()">Click Me</button>
+
 <script>
-const API = "https://backend-ppyz.onrender.com";
-
-function showAI() {
-  document.getElementById("authSection").style.display = "none";
-  document.getElementById("aiSection").style.display = "block";
-}
-
-// TEST BUTTON CLICK FIRST
-function testClick() {
-  alert("Button working ✅");
-}
-
-// ✅ REGISTER
-async function register() {
-  alert("Register clicked"); // DEBUG
-
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  try {
-    const res = await fetch(API + "/register", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ email, password })
-    });
-
-    const data = await res.json();
-    alert(data.message || data.error);
-  } catch (err) {
-    alert("Error connecting to server ❌");
-  }
-}
-
-// ✅ LOGIN
-async function login() {
-  alert("Login clicked"); // DEBUG
-
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  try {
-    const res = await fetch(API + "/login", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ email, password })
-    });
-
-    const data = await res.json();
-
-    if (data.token) {
-      localStorage.setItem("token", data.token);
-      alert("Login successful ✅");
-      showAI();
-    } else {
-      alert(data.error);
-    }
-  } catch (err) {
-    alert("Server error ❌");
-  }
-}
-
-// 🔐 GENERATE
-async function generate() {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    alert("Login first 🔒");
-    return;
-  }
-
-  const prompt = document.getElementById("prompt").value;
-
-  try {
-    const res = await fetch(API + "/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": token
-      },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await res.json();
-    document.getElementById("result").innerText = data.result || data.error;
-  } catch (err) {
-    alert("AI error ❌");
-  }
-}
-
-// 🚪 LOGOUT
-function logout() {
-  localStorage.removeItem("token");
-  location.reload();
+function test() {
+  alert("JS working ✅");
 }
 </script>
+
+</body>
+</html>
