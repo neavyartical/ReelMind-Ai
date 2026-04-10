@@ -1,32 +1,112 @@
 <!DOCTYPE html>
 <html>
-<body style="
+<head>
+<link rel="manifest" href="manifest.json">
+
+<style>
+body{
 margin:0;
-background:linear-gradient(135deg,#0a0a0a,#001f3f,#000);
-color:white;
 font-family:Arial;
-">
+color:white;
+background:radial-gradient(circle,#001f3f,#000);
+overflow:hidden;
+}
 
-<div style="max-width:500px;margin:auto;padding:20px;background:#111;border-radius:20px;">
+/* 🧠 FUTURISTIC BACKGROUND */
+body::before{
+content:"";
+position:fixed;
+width:100%;
+height:100%;
+background:radial-gradient(circle,#00ffcc22,#000);
+animation:pulse 5s infinite;
+z-index:-1;
+}
 
-<h2>🎬 ReelMind AI Studio</h2>
+@keyframes pulse{
+0%{opacity:0.3;}
+50%{opacity:0.8;}
+100%{opacity:0.3;}
+}
 
-<div id="creditsBox">Credits: 0</div>
+/* 🌐 GLOBE */
+.globe{
+width:200px;
+height:200px;
+margin:20px auto;
+border-radius:50%;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(20px);
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+align-items:center;
+animation:spin 12s linear infinite;
+}
+
+.globe button{
+margin:5px;
+border:none;
+background:rgba(0,255,204,0.2);
+color:white;
+padding:10px;
+border-radius:50%;
+}
+
+@keyframes spin{
+0%{transform:rotate(0);}
+100%{transform:rotate(360deg);}
+}
+
+/* 🤖 AVATAR */
+#avatarBox{
+text-align:center;
+margin-top:20px;
+}
+
+#avatar{
+width:120px;
+border-radius:50%;
+box-shadow:0 0 20px #00ffcc;
+animation:idle 3s infinite;
+}
+
+@keyframes idle{
+0%{transform:scale(1);}
+50%{transform:scale(1.05);}
+100%{transform:scale(1);}
+}
+</style>
+</head>
+
+<body>
+
+<div style="max-width:500px;margin:auto;padding:20px;">
+
+<h2>🧠 ReelMind AI</h2>
 
 <input id="prompt" placeholder="Enter idea..." style="width:100%;padding:10px;">
 
-<button onclick="generate()">Script</button>
-<button onclick="generateImage()">Image</button>
-<button onclick="generateVideo()">Storyboard</button>
-<button onclick="renderVideo()">🎬 Render Video</button>
+<!-- 🤖 AVATAR -->
+<div id="avatarBox">
+<img id="avatar" src="https://i.imgur.com/6VBx3io.png">
+</div>
 
-<button onclick="speak()">🎤 Voice</button>
-<button onclick="music()">🎵 Music</button>
+<div class="globe">
+<button onclick="generate()">🧠</button>
+<button onclick="renderVideo()">🎬</button>
+<button onclick="talkAvatar()">🤖</button>
+<button onclick="music()">🎵</button>
+<button onclick="saveProject()">💾</button>
+</div>
 
 <canvas id="canvas" width="360" height="640"></canvas>
 <video id="preview" controls style="width:100%;"></video>
 
 <pre id="output"></pre>
+
+<h3>📂 Projects</h3>
+<div id="projects"></div>
 
 </div>
 
@@ -35,11 +115,7 @@ font-family:Arial;
 <script>
 const API="YOUR_BACKEND_URL";
 
-window.onload=()=>{
-  creditsBox.innerText="Credits: "+(localStorage.getItem("credits")||0);
-};
-
-/* ================= SCRIPT ================= */
+/* ================= AI ================= */
 async function generate(){
   const r=await fetch(API+"/generate",{
     method:"POST",
@@ -52,90 +128,67 @@ async function generate(){
 
   const d=await r.json();
   output.innerText=d.result;
-  creditsBox.innerText="Credits: "+d.credits;
-  localStorage.setItem("credits",d.credits);
 }
 
-/* ================= IMAGE ================= */
-async function generateImage(){
-  const r=await fetch(API+"/generate-image",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":localStorage.getItem("token")
-    },
-    body:JSON.stringify({prompt:prompt.value})
-  });
-
-  const d=await r.json();
-  output.innerHTML=`<img src="${d.image}" width="100%">`;
-}
-
-/* ================= STORY ================= */
-async function generateVideo(){
-  const r=await fetch(API+"/generate-video",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":localStorage.getItem("token")
-    },
-    body:JSON.stringify({prompt:prompt.value})
-  });
-
-  const d=await r.json();
-  output.innerText=d.video;
-}
-
-/* ================= VIDEO ENGINE ================= */
+/* ================= VIDEO ================= */
 async function renderVideo(){
-
   const canvas=document.getElementById("canvas");
   const ctx=canvas.getContext("2d");
 
-  const stream=canvas.captureStream(30);
-  const recorder=new MediaRecorder(stream);
+  const stream=canvas.captureStream();
+  const rec=new MediaRecorder(stream);
 
   let chunks=[];
-  recorder.ondataavailable=e=>chunks.push(e.data);
+  rec.ondataavailable=e=>chunks.push(e.data);
 
-  recorder.onstop=()=>{
-    preview.src=URL.createObjectURL(new Blob(chunks));
+  rec.onstop=()=>{
+    const blob=new Blob(chunks);
+    preview.src=URL.createObjectURL(blob);
   };
 
-  recorder.start();
+  rec.start();
 
   const words=prompt.value.split(" ");
-
   let i=0;
 
   const interval=setInterval(()=>{
-    ctx.fillStyle="rgba(0,0,0,0.4)";
+    ctx.fillStyle="black";
     ctx.fillRect(0,0,360,640);
 
-    ctx.shadowColor="#00ffcc";
-    ctx.shadowBlur=20;
-
-    ctx.fillStyle="white";
+    ctx.fillStyle="#00ffcc";
     ctx.font="bold 30px Arial";
-    ctx.fillText(words[i]||"",40,320);
-
-    ctx.setTransform(1+i*0.01,0,0,1+i*0.01,0,0);
+    ctx.fillText(words[i]||"",30,320);
 
     i++;
 
     if(i>=words.length){
       clearInterval(interval);
-      setTimeout(()=>recorder.stop(),1000);
+      setTimeout(()=>rec.stop(),1000);
     }
-
   },300);
 }
 
-/* ================= VOICE ================= */
-function speak(){
-  const speech=new SpeechSynthesisUtterance(output.innerText||prompt.value);
-  speech.rate=1;
-  speech.pitch=1.1;
+/* ================= 🤖 AVATAR TALK ================= */
+function talkAvatar(){
+
+  const text = output.innerText || prompt.value;
+
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.rate = 1;
+
+  const avatar = document.getElementById("avatar");
+
+  speech.onstart = () => {
+    avatar.style.animation = "none";
+    avatar.style.transform = "scale(1.2)";
+    avatar.style.boxShadow = "0 0 40px #00ffcc";
+  };
+
+  speech.onend = () => {
+    avatar.style.animation = "idle 3s infinite";
+    avatar.style.transform = "scale(1)";
+  };
+
   speechSynthesis.speak(speech);
 }
 
@@ -144,6 +197,33 @@ function music(){
   const m=document.getElementById("bg");
   m.src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
   m.play();
+}
+
+/* ================= SAVE ================= */
+async function saveProject(){
+  const r=await fetch(API+"/save-project",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":localStorage.getItem("token")
+    },
+    body:JSON.stringify({
+      title:prompt.value,
+      content:output.innerText
+    })
+  });
+
+  const d=await r.json();
+  renderProjects(d.projects);
+}
+
+function renderProjects(list){
+  const div=document.getElementById("projects");
+  div.innerHTML="";
+  list.forEach(p=>{
+    div.innerHTML+=`<div style="background:#111;margin:5px;padding:10px;">
+    ${p.title}</div>`;
+  });
 }
 </script>
 
