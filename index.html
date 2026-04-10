@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ReelMind AI</title>
+  <title>ReelMind AI PRO</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
     body {
       margin: 0;
-      background: linear-gradient(135deg, #020617, #000);
+      background: radial-gradient(circle, #000, #020617);
       color: white;
-      font-family: Arial;
       text-align: center;
+      font-family: Arial;
     }
 
     h1 {
       margin-top: 20px;
       font-size: 28px;
-      letter-spacing: 1px;
     }
 
     input {
@@ -28,24 +27,23 @@
       font-size: 16px;
     }
 
-    .glass-box {
-      width: 220px;
-      height: 220px;
-      margin: 40px auto;
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(15px);
-      border-radius: 30px;
+    /* 🔥 ROTATING CUBE */
+    .cube {
+      width: 200px;
+      height: 200px;
+      margin: 50px auto;
+      background: rgba(0,255,200,0.1);
+      border-radius: 25px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 30px rgba(0,255,200,0.2);
-      animation: pulse 2s infinite;
+      animation: rotate 6s infinite linear;
+      box-shadow: 0 0 40px rgba(0,255,200,0.4);
     }
 
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
+    @keyframes rotate {
+      0% { transform: rotateY(0deg) rotateX(0deg); }
+      100% { transform: rotateY(360deg) rotateX(360deg); }
     }
 
     button {
@@ -55,8 +53,8 @@
       background: linear-gradient(45deg, #00ffcc, #00ffaa);
       color: black;
       font-weight: bold;
-      font-size: 15px;
       cursor: pointer;
+      font-size: 15px;
     }
 
     #result {
@@ -69,7 +67,6 @@
     }
 
     .loading {
-      font-size: 18px;
       animation: blink 1s infinite;
     }
 
@@ -83,17 +80,21 @@
 
 <body>
 
-<h1>🧠 ReelMind AI • LEVEL 3</h1>
+<h1>🧠 ReelMind AI • PRO</h1>
 
 <input id="prompt" placeholder="Enter your viral idea..." />
 
-<div class="glass-box">
+<div class="cube">
   <button onclick="generate()">Generate ⚡</button>
 </div>
+
+<button onclick="download()">⬇ Download</button>
 
 <div id="result"></div>
 
 <script>
+let lastResult = "";
+
 async function generate() {
   const prompt = document.getElementById("prompt").value;
   const result = document.getElementById("result");
@@ -103,7 +104,7 @@ async function generate() {
     return;
   }
 
-  result.innerHTML = "<div class='loading'>⚡ Generating...</div>";
+  result.innerHTML = "<div class='loading'>🚀 Generating cinematic ideas...</div>";
 
   try {
     const res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
@@ -116,11 +117,23 @@ async function generate() {
 
     const data = await res.json();
 
-    result.innerText = data.result || "No response";
+    lastResult = data.result;
+    result.innerText = lastResult;
 
   } catch (err) {
     result.innerText = "Connection error ❌";
   }
+}
+
+function download() {
+  if (!lastResult) return;
+
+  const blob = new Blob([lastResult], { type: "text/plain" });
+  const a = document.createElement("a");
+
+  a.href = URL.createObjectURL(blob);
+  a.download = "reelmind-pro.txt";
+  a.click();
 }
 </script>
 
