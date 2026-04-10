@@ -2,44 +2,71 @@
 <html>
 <head>
   <title>ReelMind AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#00ffcc">
 
   <style>
     body {
-      background: black;
+      margin: 0;
+      background: radial-gradient(circle, #000, #020617);
       color: white;
-      text-align: center;
       font-family: Arial;
+      text-align: center;
     }
 
+    h1 {
+      margin-top: 20px;
+      font-size: 28px;
+    }
+
+    /* 🔥 ROTATING ICE CUBE */
     .cube {
-      width: 150px;
-      height: 150px;
-      margin: 50px auto;
-      background: rgba(0,255,255,0.2);
-      border-radius: 20px;
-      animation: rotate 5s infinite linear;
+      width: 180px;
+      height: 180px;
+      margin: 40px auto;
+      background: rgba(0,255,255,0.1);
+      border: 2px solid rgba(0,255,255,0.4);
+      border-radius: 25px;
+      backdrop-filter: blur(15px);
+      animation: rotate 6s infinite linear;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px;
     }
 
     @keyframes rotate {
-      0% { transform: rotateY(0deg); }
-      100% { transform: rotateY(360deg); }
+      0% { transform: rotateY(0deg) rotateX(10deg); }
+      100% { transform: rotateY(360deg) rotateX(10deg); }
     }
 
     button {
       padding: 10px;
-      margin: 10px;
-      background: #00ffcc;
-      border: none;
       border-radius: 10px;
+      border: none;
+      background: #00ffcc;
       color: black;
       font-weight: bold;
+      cursor: pointer;
     }
 
     input {
+      padding: 12px;
+      width: 85%;
+      border-radius: 10px;
+      border: none;
+      margin-top: 10px;
+    }
+
+    .loading {
+      color: #00ffcc;
+      margin-top: 10px;
+    }
+
+    .result {
+      margin-top: 15px;
       padding: 10px;
-      width: 80%;
     }
   </style>
 </head>
@@ -48,30 +75,57 @@
 
 <h1>🧠 ReelMind AI</h1>
 
-<div class="cube"></div>
+<input id="prompt" placeholder="Enter your idea..." />
 
-<input id="prompt" placeholder="Enter prompt..." />
+<!-- 🧊 GLASS CUBE WITH FEATURES -->
+<div class="cube">
+  <button onclick="generate('text')">Text → AI</button>
+  <button onclick="generate('image')">Text → Image</button>
+  <button onclick="generate('video')">Text → Video</button>
+</div>
 
-<br>
-
-<button onclick="generate()">Generate</button>
-
-<p id="result"></p>
+<div class="loading" id="loading"></div>
+<div class="result" id="result"></div>
 
 <script>
-async function generate() {
+async function generate(type) {
   const prompt = document.getElementById("prompt").value;
+  const resultBox = document.getElementById("result");
+  const loading = document.getElementById("loading");
 
-  const res = await fetch("/generate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ prompt })
-  });
+  if (!prompt) {
+    alert("Enter something first");
+    return;
+  }
 
-  const data = await res.json();
-  document.getElementById("result").innerText = data.result;
+  // 🔥 SHOW LOADING
+  loading.innerText = "Generating...";
+  resultBox.innerText = "";
+
+  try {
+    const res = await fetch("/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+
+    if (!data.result) {
+      resultBox.innerText = "No response from AI ❌";
+    } else {
+      resultBox.innerText = data.result;
+    }
+
+  } catch (err) {
+    console.error(err);
+    resultBox.innerText = "Error occurred ❌";
+  }
+
+  // 🔥 REMOVE LOADING
+  loading.innerText = "";
 }
 </script>
 
