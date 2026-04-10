@@ -47,8 +47,9 @@
     }
 
     #result {
-      margin-top: 20px;
-      padding: 20px;
+      margin: 20px;
+      padding: 15px;
+      text-align: left;
       white-space: pre-wrap;
     }
   </style>
@@ -58,7 +59,7 @@
 
 <h1>🧠 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Enter your idea..." />
+<input id="prompt" placeholder="Enter viral idea (e.g. sad story, magic, anime...)" />
 
 <div class="cube">
   <button onclick="generate()">Generate</button>
@@ -72,11 +73,11 @@ async function generate() {
   const result = document.getElementById("result");
 
   if (!prompt) {
-    result.innerText = "Enter a prompt ❌";
+    result.innerText = "Enter a prompt first ❌";
     return;
   }
 
-  result.innerText = "Generating... ⏳";
+  result.innerText = "Generating viral ideas... 🚀";
 
   try {
     const res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
