@@ -2,102 +2,28 @@
 <html>
 <head>
   <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <style>
-    body {
-      margin: 0;
-      background: radial-gradient(circle, #000, #020617);
-      color: white;
-      text-align: center;
-      font-family: Arial;
-    }
-
-    h1 {
-      margin-top: 20px;
-    }
-
-    input {
-      padding: 12px;
-      width: 85%;
-      border-radius: 10px;
-      border: none;
-      margin-top: 10px;
-    }
-
-    .cube {
-      width: 180px;
-      height: 180px;
-      margin: 40px auto;
-      background: rgba(0,255,255,0.1);
-      border-radius: 25px;
-      animation: rotate 6s infinite linear;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    @keyframes rotate {
-      0% { transform: rotateY(0deg); }
-      100% { transform: rotateY(360deg); }
-    }
-
-    button {
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      background: #00ffcc;
-      color: black;
-      font-weight: bold;
-    }
-
-    #loading {
-      margin-top: 10px;
-      color: #00ffcc;
-    }
-  </style>
 </head>
+<body style="background:black;color:white;text-align:center">
 
-<body>
+<h1>ReelMind AI</h1>
 
-<h1>🧠 ReelMind AI</h1>
+<input id="prompt" placeholder="Enter idea..." />
+<button onclick="generate()">Generate</button>
 
-<input id="prompt" placeholder="Enter your idea..." />
-
-<div class="cube">
-  <button onclick="generate()">Generate</button>
-</div>
-
-<div id="loading"></div>
-<div id="result"></div>
+<p id="result"></p>
 
 <script>
 async function generate() {
   const prompt = document.getElementById("prompt").value;
-  const result = document.getElementById("result");
-  const loading = document.getElementById("loading");
 
-  loading.innerText = "Generating...";
-  result.innerText = "";
+  const res = await fetch("/generate", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ prompt })
+  });
 
-  try {
-    const res = await fetch("/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await res.json();
-    result.innerText = data.result;
-
-  } catch (err) {
-    result.innerText = "Error occurred ❌";
-  }
-
-  loading.innerText = "";
+  const data = await res.json();
+  document.getElementById("result").innerText = data.result;
 }
 </script>
 
