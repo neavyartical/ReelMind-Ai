@@ -1,128 +1,13 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>ReelMind AI</title>
-</head>
+<body>
 
-<body style="text-align:center;font-family:Arial;padding:20px;">
-
-<h1>🎬 ReelMind AI</h1>
-
-<input id="email" placeholder="Email"><br><br>
-<input id="password" type="password" placeholder="Password"><br><br>
-
-<button onclick="register()">Register</button>
-<button onclick="login()">Login</button>
-<button onclick="logout()">Logout</button>
-
-<hr>
-
-<textarea id="prompt" placeholder="Enter idea..." rows="5" cols="30"></textarea><br><br>
-<button onclick="generate()">Generate</button>
-
-<h3 id="status"></h3>
-<p id="output"></p>
+<button onclick="test()">CLICK ME</button>
 
 <script>
-const API = "https://reelmindbackend-1.onrender.com";
-
-// FIX: wait until page loads
-window.onload = () => {
-
-  window.register = async function () {
-    try {
-      status.innerText = "Registering...";
-
-      const res = await fetch(API + "/register", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          email: email.value,
-          password: password.value
-        })
-      });
-
-      const data = await res.json();
-      status.innerText = data.message || data.error;
-
-    } catch (e) {
-      status.innerText = "Error ❌";
-      console.log(e);
-    }
-  };
-
-  window.login = async function () {
-    try {
-      status.innerText = "Logging in...";
-
-      const res = await fetch(API + "/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          email: email.value,
-          password: password.value
-        })
-      });
-
-      const data = await res.json();
-
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        status.innerText = "Login success ✅";
-      } else {
-        status.innerText = data.error;
-      }
-
-    } catch (e) {
-      status.innerText = "Error ❌";
-      console.log(e);
-    }
-  };
-
-  window.logout = function () {
-    localStorage.removeItem("token");
-    status.innerText = "Logged out ✅";
-  };
-
-  window.generate = async function () {
-    try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        status.innerText = "Login first ❌";
-        return;
-      }
-
-      status.innerText = "Generating...";
-      output.innerText = "";
-
-      const res = await fetch(API + "/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": token
-        },
-        body: JSON.stringify({
-          prompt: prompt.value
-        })
-      });
-
-      const data = await res.json();
-
-      if (data.result) {
-        status.innerText = "Done ✅";
-        output.innerText = data.result;
-      } else {
-        status.innerText = data.error;
-      }
-
-    } catch (e) {
-      status.innerText = "Server error ❌";
-      console.log(e);
-    }
-  };
-
-};
+function test() {
+  alert("JS WORKING ✅");
+}
 </script>
 
 </body>
