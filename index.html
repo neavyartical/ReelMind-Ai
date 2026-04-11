@@ -11,10 +11,9 @@ body {
   font-family:Arial;
   color:white;
   text-align:center;
-  overflow-x:hidden;
 }
 
-/* 🔥 BACKGROUND WITH YOUR LOGO */
+/* BACKGROUND */
 body::before {
   content:"";
   position:fixed;
@@ -25,7 +24,7 @@ body::before {
   z-index:-2;
 }
 
-/* Glow effect */
+/* GLOW */
 body::after {
   content:"";
   position:fixed;
@@ -35,22 +34,15 @@ body::after {
   z-index:-1;
 }
 
-h1 {
-  margin-top:30px;
-  font-size:28px;
-}
-
-/* INPUT */
 input {
   width:80%;
   padding:15px;
-  border-radius:15px;
+  border-radius:10px;
   border:none;
   margin-top:20px;
-  outline:none;
 }
 
-/* ❄️ ICE CUBE */
+/* ICE CUBE */
 .cube {
   width:160px;
   height:160px;
@@ -62,13 +54,6 @@ input {
   justify-content:center;
   align-items:center;
   box-shadow:0 0 50px cyan;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0% { transform: translateY(0px);}
-  50% { transform: translateY(-10px);}
-  100% { transform: translateY(0px);}
 }
 
 /* BUTTON */
@@ -94,20 +79,12 @@ button {
   margin-top:20px;
   display:none;
   border-radius:15px;
-  box-shadow:0 0 20px cyan;
 }
 
 /* DOWNLOAD */
 #downloadBtn {
   display:none;
   margin-top:10px;
-}
-
-/* FOOTER */
-.footer {
-  margin-top:40px;
-  font-size:12px;
-  opacity:0.7;
 }
 </style>
 </head>
@@ -116,7 +93,7 @@ button {
 
 <h1>🧠 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Ask anything (image, video, story...)">
+<input id="prompt" placeholder="Ask anything (image, story, video...)">
 
 <div class="cube">
   <button onclick="generate()">Generate</button>
@@ -127,10 +104,6 @@ button {
 <img id="imagePreview">
 <br>
 <button id="downloadBtn">Download Image</button>
-
-<div class="footer">
-  Powered by Artical Neavy 🚀
-</div>
 
 <script>
 async function generate() {
@@ -151,9 +124,10 @@ async function generate() {
     });
 
     const data = await res.json();
+    console.log(data);
 
     /* TEXT */
-    output.innerHTML = data.result || "";
+    output.innerHTML = `<pre style="white-space:pre-wrap;">${data.result}</pre>`;
 
     /* IMAGE */
     if (data.image) {
@@ -164,25 +138,14 @@ async function generate() {
       downloadBtn.onclick = () => {
         const a = document.createElement("a");
         a.href = data.image;
-        a.download = "reelmind.png";
+        a.download = "image.png";
         a.click();
       };
     }
 
-    /* VIDEO */
-    if (data.video) {
-      output.innerHTML += `
-        <br><br>
-        🎬 Video Preview:<br>
-        <video controls width="300">
-          <source src="${data.video}">
-        </video>
-      `;
-    }
-
   } catch (err) {
     console.error(err);
-    output.innerHTML = "❌ Server error";
+    output.innerHTML = "❌ Failed to connect";
   }
 }
 </script>
