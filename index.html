@@ -13,7 +13,7 @@ body {
   text-align:center;
 }
 
-/* Background */
+/* Background Image */
 body::before {
   content:"";
   position:fixed;
@@ -24,6 +24,7 @@ body::before {
   z-index:-2;
 }
 
+/* Glow Overlay */
 body::after {
   content:"";
   position:fixed;
@@ -41,12 +42,13 @@ input {
   margin-top:20px;
 }
 
+/* Ice Cube */
 .cube {
   width:150px;
   height:150px;
   margin:40px auto;
   background:rgba(0,255,255,0.1);
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(20px);
   border-radius:20px;
   display:flex;
   justify-content:center;
@@ -61,10 +63,12 @@ button {
   background:cyan;
   color:black;
   cursor:pointer;
+  font-weight:bold;
 }
 
 #output {
   margin-top:20px;
+  padding:10px;
 }
 
 #imagePreview {
@@ -85,7 +89,7 @@ button {
 
 <h1>🧠 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Ask anything (image, video, ideas...)">
+<input id="prompt" placeholder="Ask anything (image, video, stories...)">
 
 <div class="cube">
   <button onclick="generate()">Generate</button>
@@ -95,7 +99,7 @@ button {
 
 <img id="imagePreview">
 <br>
-<button id="downloadBtn">Download</button>
+<button id="downloadBtn">Download Image</button>
 
 <script>
 async function generate() {
@@ -116,8 +120,12 @@ async function generate() {
     });
 
     const data = await res.json();
-    console.log(data);
+    console.log("DATA:", data);
 
+    /* TEXT */
+    output.innerHTML = data.result || "";
+
+    /* IMAGE */
     if (data.image) {
       img.src = data.image;
       img.style.display = "block";
@@ -129,26 +137,22 @@ async function generate() {
         a.download = "image.png";
         a.click();
       };
-
-      output.innerHTML = "🖼 Image Generated!";
-      return;
     }
 
+    /* VIDEO */
     if (data.video) {
-      output.innerHTML = `
-        🎬 Video Generated<br>
+      output.innerHTML += `
+        <br><br>
+        🎬 Video:<br>
         <video controls width="300">
           <source src="${data.video}">
         </video>
       `;
-      return;
     }
-
-    output.innerHTML = data.result;
 
   } catch (err) {
     console.error(err);
-    output.innerHTML = "❌ Error connecting to server";
+    output.innerHTML = "❌ Failed to connect to server";
   }
 }
 </script>
