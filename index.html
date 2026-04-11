@@ -7,59 +7,104 @@
 
 <style>
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: black;
-    color: white;
-    text-align: center;
+  margin:0;
+  font-family:Arial, sans-serif;
+  color:white;
+  text-align:center;
+  overflow-x:hidden;
 }
 
-/* Background image with glow */
+/* 🔥 BACKGROUND */
 body::before {
-    content: "";
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: url("your-image.jpg") center/cover no-repeat;
-    opacity: 0.2;
-    z-index: -1;
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:url("logo.jpg") center/cover no-repeat;
+  filter:brightness(0.4) blur(6px);
+  z-index:-2;
 }
 
-/* Input */
+/* Glow */
+body::after {
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background: radial-gradient(circle, rgba(0,255,255,0.2), transparent);
+  z-index:-1;
+}
+
+/* INPUT */
 input {
-    width: 80%;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    margin-top: 20px;
+  width:80%;
+  padding:15px;
+  border-radius:15px;
+  border:none;
+  margin-top:20px;
+  font-size:16px;
+  outline:none;
 }
 
-/* Ice cube */
+/* ❄️ ICE CUBE */
 .cube {
-    width: 150px;
-    height: 150px;
-    margin: 40px auto;
-    background: rgba(255,255,255,0.1);
-    border-radius: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 0 30px cyan;
+  width:160px;
+  height:160px;
+  margin:40px auto;
+  background:rgba(255,255,255,0.1);
+  backdrop-filter: blur(25px);
+  border-radius:25px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 0 50px cyan;
+  animation: float 3s ease-in-out infinite;
 }
 
-/* Button */
+@keyframes float {
+  0% { transform:translateY(0);}
+  50% { transform:translateY(-10px);}
+  100% { transform:translateY(0);}
+}
+
+/* BUTTON */
 button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 10px;
-    background: cyan;
-    cursor: pointer;
+  padding:12px 25px;
+  border:none;
+  border-radius:10px;
+  background:cyan;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-/* Output */
+/* OUTPUT */
 #output {
-    margin-top: 30px;
-    padding: 20px;
+  margin-top:20px;
+  padding:20px;
+  text-align:left;
+  white-space:pre-wrap;
+}
+
+/* IMAGE */
+img {
+  max-width:90%;
+  margin-top:20px;
+  border-radius:15px;
+  box-shadow:0 0 20px cyan;
+}
+
+/* VIDEO */
+video {
+  margin-top:20px;
+  border-radius:15px;
+}
+
+/* FOOTER */
+.footer {
+  margin-top:40px;
+  font-size:12px;
+  opacity:0.7;
 }
 </style>
 </head>
@@ -68,105 +113,19 @@ button {
 
 <h1>🧠 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Type anything (image, story, video idea...)">
+<input id="prompt" placeholder="Ask anything (story, image, video idea...)">
 
 <div class="cube">
-    <button onclick="handleGenerate()">Generate</button>
+  <button onclick="handleGenerate()">Generate</button>
 </div>
 
 <div id="output"></div>
 
-<script>
-// 🔑 PUT YOUR OPENROUTER KEY HERE
-const OPENROUTER_API_KEY = "YOUR_OPENROUTER_KEY_HERE";
+<div class="footer">
+  Powered by Artical Neavy 🚀
+</div>
 
-// MAIN FUNCTION
-function handleGenerate() {
-    const prompt = document.getElementById("prompt").value;
-    const output = document.getElementById("output");
-
-    if (!prompt) {
-        alert("Enter something!");
-        return;
-    }
-
-    output.innerHTML = "Generating...";
-
-    // Decide type
-    if (prompt.toLowerCase().includes("image")) {
-        generateImage(prompt);
-    } 
-    else if (prompt.toLowerCase().includes("video")) {
-        generateVideo(prompt);
-    } 
-    else {
-        generateText(prompt);
-    }
-}
-
-// ✅ IMAGE (Pollinations)
-function generateImage(prompt) {
-    const output = document.getElementById("output");
-
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
-
-    output.innerHTML = `
-        <img src="${imageUrl}" style="max-width:90%; border-radius:15px;">
-        <br><br>
-        <button onclick="downloadImage('${imageUrl}')">Download Image</button>
-    `;
-}
-
-// ✅ DOWNLOAD
-function downloadImage(url) {
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "reelmind.png";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
-
-// ✅ TEXT (OpenRouter)
-async function generateText(prompt) {
-    const output = document.getElementById("output");
-
-    try {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer " + OPENROUTER_API_KEY,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "openai/gpt-3.5-turbo",
-                messages: [
-                    { role: "user", content: prompt }
-                ]
-            })
-        });
-
-        const data = await res.json();
-
-        output.innerHTML = `<p>${data.choices[0].message.content}</p>`;
-    } catch (err) {
-        output.innerHTML = "Error generating text";
-    }
-}
-
-// ✅ VIDEO (SMART FALLBACK)
-function generateVideo(prompt) {
-    const output = document.getElementById("output");
-
-    output.innerHTML = `
-        <p>⚠️ Real video generation requires paid API.</p>
-        <p>Here is a video idea based on your prompt:</p>
-    `;
-
-    generateText("Create a short video concept for: " + prompt);
-}
-
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>
