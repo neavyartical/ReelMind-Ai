@@ -3,55 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <title>ReelMind AI</title>
-
-  <!-- MOBILE VIEW -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- GOOGLE FONT -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 
-  <!-- STYLE -->
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <!-- APP CONTAINER -->
-  <div class="app">
+<div class="container">
 
-    <!-- LOGO -->
-    <div class="logo">
-      <h1>ReelMind <span>AI</span></h1>
-    </div>
+  <h1>ReelMind <span>AI</span></h1>
+  <p class="subtitle">Create viral stories, images & videos with AI</p>
 
-    <p class="powered">Powered by Artical Neavy</p>
+  <textarea id="prompt" placeholder="Type your idea here..."></textarea>
 
-    <!-- INPUT -->
-    <textarea id="prompt" placeholder="Describe your idea..."></textarea>
+  <button class="generate" onclick="generate('all')">✨ Generate</button>
 
-    <!-- GENERATE BUTTON -->
-    <button id="generateBtn" onclick="generate('all')">✨ Generate</button>
-
-    <!-- OPTIONS -->
-    <div class="grid">
-      <button onclick="generate('story')">📖 Story</button>
-      <button onclick="generate('image')">🖼 Image</button>
-      <button onclick="generate('video')">🎬 Video</button>
-      <button onclick="askAI()">🌍 Ask AI</button>
-    </div>
-
-    <!-- RESULT -->
-    <div id="result">
-      <p>Your result will appear here...</p>
-    </div>
-
-    <!-- DOWNLOAD -->
-    <button id="downloadBtn" onclick="downloadResult()">⬇ Download</button>
-
+  <div class="grid">
+    <button onclick="generate('story')">📖 Story</button>
+    <button onclick="generate('image')">🖼 Image</button>
+    <button onclick="generate('video')">🎬 Video</button>
+    <button onclick="askAI()">🌍 Ask AI</button>
   </div>
 
-  <!-- SCRIPT -->
-  <script src="script.js"></script>
+  <div id="result">Your result will appear here...</div>
+
+</div>
+
+<script src="script.js"></script>
 
 </body>
 </html>
