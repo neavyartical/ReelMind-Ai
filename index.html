@@ -7,20 +7,17 @@
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background: #0f172a;
   color: white;
   text-align: center;
   padding: 20px;
 }
 
-/* HEADER */
 h1 {
   color: #22c55e;
-  margin-bottom: 20px;
 }
 
-/* INPUT */
 input {
   width: 90%;
   max-width: 500px;
@@ -28,46 +25,29 @@ input {
   border-radius: 10px;
   border: none;
   margin-bottom: 20px;
-  font-size: 16px;
 }
 
-/* BUTTON */
 button {
   background: #22c55e;
-  color: white;
   padding: 12px 25px;
-  border-radius: 10px;
   border: none;
-  font-size: 16px;
+  border-radius: 10px;
+  color: white;
   cursor: pointer;
 }
 
-button:hover {
-  background: #16a34a;
-}
-
-/* RESULT BOX */
 .box {
+  background: #1e293b;
   margin-top: 20px;
   padding: 15px;
   border-radius: 10px;
-  background: #1e293b;
 }
 
-/* IMAGE */
-img {
+img, video {
   width: 90%;
   max-width: 400px;
   border-radius: 10px;
   margin-top: 10px;
-}
-
-/* VIDEO */
-video {
-  width: 90%;
-  max-width: 400px;
-  margin-top: 10px;
-  border-radius: 10px;
 }
 </style>
 </head>
@@ -76,32 +56,34 @@ video {
 
 <h1>🧠 ReelMind Global</h1>
 
-<input id="prompt" placeholder="Type something... e.g dog dancing">
+<input id="prompt" placeholder="Type something..." />
 
 <br>
 <button onclick="generate()">Generate</button>
 
-<!-- STORY -->
 <div class="box">
   <h3>✍️ Story</h3>
   <p id="story">Waiting...</p>
 </div>
 
-<!-- IMAGE -->
 <div class="box">
   <h3>🖼 Image</h3>
-  <img id="image" src="" />
+  <img id="image" />
 </div>
 
-<!-- VIDEO -->
 <div class="box">
   <h3>🎬 Video</h3>
-  <video id="video" controls></video>
+  <video id="video" controls preload="none"></video>
 </div>
 
 <script>
+let videoLoaded = false;
+
 async function generate() {
   const prompt = document.getElementById("prompt").value;
+
+  /* LOADING STATE */
+  document.getElementById("story").innerText = "⏳ Generating...";
 
   /* ===== STORY ===== */
   try {
@@ -116,17 +98,21 @@ async function generate() {
     const data = await res.json();
     document.getElementById("story").innerText = data.story;
 
-  } catch (err) {
-    document.getElementById("story").innerText = "❌ Story failed";
+  } catch {
+    document.getElementById("story").innerText = "❌ Failed";
   }
 
-  /* ===== IMAGE (POLLINATION FREE API) ===== */
+  /* ===== IMAGE ===== */
   document.getElementById("image").src =
     `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
-  /* ===== VIDEO (TEMP DEMO UNTIL RUNWAY CONNECTED) ===== */
-  document.getElementById("video").src =
-    "https://www.w3schools.com/html/mov_bbb.mp4";
+  /* ===== VIDEO (NO POPPING) ===== */
+  const video = document.getElementById("video");
+
+  if (!videoLoaded) {
+    video.src = "https://www.w3schools.com/html/mov_bbb.mp4";
+    videoLoaded = true;
+  }
 }
 </script>
 
