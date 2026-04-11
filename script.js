@@ -1,76 +1,65 @@
-const API = "https://reelmindbackend-1.onrender.com";
-
-let currentUser = null;
-
-/* REGISTER */
-async function register() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const res = await fetch(API + "/register", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email, password })
-  });
-
-  const data = await res.json();
-  alert(data.message);
-}
-
-/* LOGIN */
-async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const res = await fetch(API + "/login", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email, password })
-  });
-
-  const data = await res.json();
-
-  if (data.user) {
-    currentUser = data.user;
-    alert("Logged in!");
-  } else {
-    alert("Login failed");
-  }
-}
+const API_URL = "https://reelmindbackend-1.onrender.com";
 
 /* GENERATE */
 async function generate(type) {
   const prompt = document.getElementById("prompt").value;
+  const resultDiv = document.getElementById("result");
 
-  const res = await fetch(API + "/generate", {
+  resultDiv.innerHTML = "⏳ Generating...";
+
+  const res = await fetch(`${API_URL}/generate`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      prompt,
-      type,
-      email: currentUser?.email
-    })
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ prompt, type }),
   });
 
   const data = await res.json();
 
-  let html = "";
-  if (data.story) html += `<p>${data.story}</p>`;
-  if (data.image) html += `<img src="${data.image}" />`;
+  let output = "";
 
-  document.getElementById("result").innerHTML = html;
+  if (data.story) {
+    output += `<p>${data.story}</p>`;
+  }
+
+  if (data.image) {
+    output += `<img src="${data.image}" width="100%" />`;
+  }
+
+  if (data.video) {
+    output += `<video src="${data.video}" controls width="100%"></video>`;
+  }
+
+  resultDiv.innerHTML = output;
 }
 
-/* ASK */
+/* ASK AI */
 async function askAI() {
   const question = document.getElementById("prompt").value;
+  const resultDiv = document.getElementById("result");
 
-  const res = await fetch(API + "/ask", {
+  resultDiv.innerHTML = "⏳ Thinking...";
+
+  const res = await fetch(`${API_URL}/ask`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ question })
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ question }),
   });
 
   const data = await res.json();
-  document.getElementById("result").innerHTML = `<p>${data.answer}</p>`;
+  resultDiv.innerHTML = `<p>${data.answer}</p>`;
+}
+
+/* DOWNLOAD */
+function downloadResult() {
+  const text = document.getElementById("result").innerText;
+  const blob = new Blob([text], { type: "text/plain" });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "reelmind.txt";
+  a.click();
 }
