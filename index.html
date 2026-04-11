@@ -1,157 +1,206 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReelMind Global</title>
+<title>ReelMind AI</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-
-body{
-  font-family:Arial;
-  background:black;
-  color:white;
-  text-align:center;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: black;
+  color: white;
+  text-align: center;
 }
 
-h1{margin-top:20px;color:#00ff88;}
-
-input{
-  width:90%;
-  padding:12px;
-  border-radius:20px;
-  margin-top:10px;
+/* 🔥 BACKGROUND LOGO */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('YOUR_LOGO_LINK_HERE') no-repeat center;
+  background-size: contain;
+  opacity: 0.08;
+  z-index: -1;
 }
 
-.generate-box{
-  width:180px;height:180px;margin:20px auto;
-  display:flex;align-items:center;justify-content:center;
-  background:#111;border-radius:20px;
+/* 🔥 POWERED TEXT */
+.powered {
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.6;
 }
 
-button{
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  background:#00ff88;
+/* INPUT */
+input {
+  width: 80%;
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  margin-top: 20px;
+  font-size: 16px;
 }
 
-.control-grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
-  width:90%;
-  margin:20px auto;
+/* 🔥 GLOW BUTTON */
+button {
+  padding: 12px 20px;
+  margin: 10px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-.control-grid button{background:#222;color:white;}
-.control-grid .active{background:#00ff88;color:black;}
+/* GENERATE GLOW */
+.generate-btn {
+  background: #00ff88;
+  color: black;
+  box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88;
+}
 
-.box{margin:15px;padding:15px;background:#111;}
+/* ASK BUTTON */
+.ask-btn {
+  background: #0088ff;
+  color: white;
+}
 
-img,video{width:90%;}
+/* GRID BUTTONS */
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 15px;
+}
+
+/* OUTPUT */
+.box {
+  background: #111;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+img {
+  width: 100%;
+  border-radius: 10px;
+}
+
+video {
+  width: 100%;
+  border-radius: 10px;
+}
 </style>
 </head>
 
 <body>
 
-<h1>ReelMind Global</h1>
+<h1>🧠 ReelMind Global</h1>
 
-<!-- LOGIN -->
-<div class="box">
-<input id="email" placeholder="Enter email">
-<button onclick="register()">Login</button>
-<p id="creditsDisplay">Credits: 0</p>
+<input id="prompt" placeholder="Enter your idea...">
+
+<br>
+
+<!-- 🔥 MAIN BUTTON -->
+<button class="generate-btn" onclick="generate()">Generate</button>
+
+<!-- 🔥 GRID BUTTONS -->
+<div class="button-grid">
+  <button onclick="generateStory()">📖 Story</button>
+  <button onclick="generateImage()">🖼 Image</button>
+  <button onclick="generateVideo()">🎬 Video</button>
+  <button class="ask-btn" onclick="ask()">🌍 Ask Anything</button>
 </div>
 
-<input id="prompt" placeholder="Type prompt">
+<!-- OUTPUT -->
+<div class="box" id="storyBox"></div>
+<div class="box"><img id="imageBox"></div>
+<div class="box"><video id="videoBox" controls></video></div>
+<div class="box" id="answerBox"></div>
 
-<div class="generate-box">
-<button onclick="generate()">Generate</button>
-</div>
-
-<!-- GRID -->
-<div class="control-grid">
-<button onclick="setMode('story',this)">Story</button>
-<button onclick="setMode('image',this)">Image</button>
-<button onclick="setMode('video',this)">Video</button>
-<button onclick="setMode('all',this)">All</button>
-</div>
-
-<div class="box">
-<p id="story"></p>
-<img id="image">
-<video id="video" controls></video>
-</div>
+<!-- POWERED -->
+<div class="powered">Powered by Artical Neavy</div>
 
 <script>
-const API="https://reelmindbackend-1.onrender.com";
+const API = "https://your-backend-url.onrender.com";
 
-let mode="story";
-let userEmail="";
-let credits=0;
+/* 🔥 GENERATE ALL */
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
 
-/* LOGIN */
-async function register(){
-  userEmail=email.value;
-
-  const res=await fetch(API+"/register",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({email:userEmail})
+  const res = await fetch(API + "/generate", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ prompt })
   });
 
-  const data=await res.json();
-  credits=data.credits;
-  updateCredits();
+  const data = await res.json();
+
+  document.getElementById("storyBox").innerText = data.story || "";
+  document.getElementById("imageBox").src = data.image || "";
+  document.getElementById("videoBox").src = data.video || "";
 }
 
-/* UPDATE UI */
-function updateCredits(){
-  if(credits==="unlimited"){
-    creditsDisplay.innerText="Credits: ∞ (Owner)";
-  } else {
-    creditsDisplay.innerText="Credits: "+credits;
-  }
-}
+/* 🔥 STORY ONLY */
+async function generateStory() {
+  const prompt = document.getElementById("prompt").value;
 
-/* MODE */
-function setMode(m,btn){
-  mode=m;
-  document.querySelectorAll(".control-grid button")
-  .forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-}
-
-/* GENERATE */
-async function generate(){
-  if(!userEmail){alert("Login first");return;}
-
-  if(userEmail !== "artical@example.com"){
-    const creditRes=await fetch(API+"/use-credit",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({email:userEmail})
-    });
-
-    const cData=await creditRes.json();
-    if(cData.error){alert("No credits");return;}
-
-    credits=cData.credits;
-    updateCredits();
-  }
-
-  const res=await fetch(API+"/generate",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt:prompt.value,mode})
+  const res = await fetch(API + "/generate-story", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ prompt })
   });
 
-  const data=await res.json();
+  const data = await res.json();
+  document.getElementById("storyBox").innerText = data.story;
+}
 
-  story.innerText=data.story||"";
-  image.src=data.image||"";
-  video.src=data.video||"";
+/* 🔥 IMAGE ONLY */
+async function generateImage() {
+  const prompt = document.getElementById("prompt").value;
+
+  const res = await fetch(API + "/generate-image", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ prompt })
+  });
+
+  const data = await res.json();
+  document.getElementById("imageBox").src = data.image;
+}
+
+/* 🔥 VIDEO ONLY */
+async function generateVideo() {
+  const prompt = document.getElementById("prompt").value;
+
+  const res = await fetch(API + "/generate-video", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ prompt })
+  });
+
+  const data = await res.json();
+  document.getElementById("videoBox").src = data.video;
+}
+
+/* 🔥 ASK ANYTHING */
+async function ask() {
+  const question = document.getElementById("prompt").value;
+
+  const res = await fetch(API + "/ask", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ question })
+  });
+
+  const data = await res.json();
+  document.getElementById("answerBox").innerText = data.answer;
 }
 </script>
 
