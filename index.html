@@ -1,214 +1,158 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>ReelMind AI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReelMind AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  color:white;
-  background:#020617;
-  overflow:hidden;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      color: white;
+      text-align: center;
+      background: radial-gradient(circle, #0f0c29, #302b63, #24243e);
+      transition: 0.5s;
+    }
 
-/* BACKGROUND IMAGE */
-.bg{
-  position:fixed;
-  width:100%;
-  height:100%;
-  background-size:cover;
-  background-position:center;
-  filter:blur(25px) brightness(0.4);
-  z-index:-2;
-}
+    h1 {
+      margin-top: 20px;
+    }
 
-/* GLOW */
-.overlay{
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:radial-gradient(circle,#7b2ff755,#000);
-  z-index:-1;
-}
+    input {
+      padding: 12px;
+      width: 85%;
+      border-radius: 10px;
+      border: none;
+      margin-top: 10px;
+    }
 
-/* AVATAR */
-.avatar{
-  width:90px;
-  height:90px;
-  margin:20px auto;
-  border-radius:50%;
-  background:linear-gradient(45deg,#ff7a18,#7b2ff7);
-  animation:pulse 2s infinite;
-}
+    /* 🧊 CUBE */
+    .cube {
+      margin: 40px auto;
+      width: 220px;
+      height: 220px;
+      background: rgba(0,255,255,0.1);
+      border-radius: 25px;
+      backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 0 30px cyan;
+    }
 
-@keyframes pulse{
-  50%{transform:scale(1.1);}
-}
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: cyan;
+      color: black;
+      cursor: pointer;
+      font-weight: bold;
+    }
 
-/* CUBE */
-.scene{
-  width:200px;
-  height:200px;
-  margin:40px auto;
-  perspective:800px;
-}
+    #result {
+      margin: 20px;
+      padding: 15px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 10px;
+      white-space: pre-wrap;
+    }
 
-.cube{
-  width:100%;
-  height:100%;
-  transform-style:preserve-3d;
-  animation:spin 6s infinite linear;
-}
+    #imageBox img {
+      width: 90%;
+      border-radius: 15px;
+      margin-top: 10px;
+    }
 
-.face{
-  position:absolute;
-  width:200px;
-  height:200px;
-  background:rgba(255,255,255,0.05);
-  border-radius:20px;
-}
+    .download-btn {
+      display: inline-block;
+      margin-top: 10px;
+      color: yellow;
+      font-weight: bold;
+    }
 
-.front{transform:rotateY(0) translateZ(100px);}
-.back{transform:rotateY(180deg) translateZ(100px);}
-.right{transform:rotateY(90deg) translateZ(100px);}
-.left{transform:rotateY(-90deg) translateZ(100px);}
-.top{transform:rotateX(90deg) translateZ(100px);}
-.bottom{transform:rotateX(-90deg) translateZ(100px);}
-
-@keyframes spin{
-  to{transform:rotateX(360deg) rotateY(360deg);}
-}
-
-.center{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%) translateZ(120px);
-}
-
-/* UI */
-input{
-  width:80%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-}
-
-button{
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  margin:5px;
-  background:linear-gradient(45deg,#ff7a18,#7b2ff7);
-  color:white;
-}
-
-#result{
-  margin:20px;
-  padding:15px;
-  background:rgba(0,0,0,0.6);
-  border-radius:10px;
-  white-space:pre-wrap;
-}
-</style>
+    footer {
+      margin-top: 20px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="bg" id="bg"></div>
-<div class="overlay"></div>
+<h1>🧠 ReelMind AI</h1>
 
-<h1 style="text-align:center;">ReelMind AI</h1>
+<input id="prompt" placeholder="Type anything (dog, anime, story...)" />
 
-<div class="avatar"></div>
-
-<center>
-<input id="prompt" placeholder="Type anything (dog, car, anime...)">
-<br>
-
-<button onclick="setMode('text')">Text</button>
-<button onclick="setMode('image')">Image</button>
-<button onclick="setMode('video')">Video</button>
-
-<p id="mode">Mode: TEXT</p>
-</center>
-
-<div class="scene">
 <div class="cube">
-
-<div class="face front"></div>
-<div class="face back"></div>
-<div class="face right"></div>
-<div class="face left"></div>
-<div class="face top"></div>
-<div class="face bottom"></div>
-
-<div class="center">
-<button onclick="generate()">Generate ⚡</button>
-</div>
-
-</div>
+  <button onclick="generate('text')">🧠 Generate Text</button>
+  <button onclick="generate('image')">🖼️ Generate Image</button>
+  <button onclick="generate('video')">🎬 Generate Video Idea</button>
 </div>
 
 <div id="result"></div>
+<div id="imageBox"></div>
 
-<center>
-<button onclick="download()">⬇ Download</button>
-</center>
+<footer>
+  🚀 Powered by <b>Artical Neavy</b>
+</footer>
 
 <script>
-let mode="text";
-let lastResult="";
+const API = "https://reelmindbackend-1.onrender.com";
 
-function setMode(m){
-  mode=m;
-  document.getElementById("mode").innerText="Mode: "+m.toUpperCase();
-}
+async function generate(type) {
+  const input = document.getElementById("prompt").value;
+  const resultBox = document.getElementById("result");
+  const imageBox = document.getElementById("imageBox");
 
-async function generate(){
-  const prompt=document.getElementById("prompt").value;
-  const result=document.getElementById("result");
+  if (!input) {
+    resultBox.innerHTML = "Enter something first ❌";
+    return;
+  }
 
-  if(!prompt)return;
+  resultBox.innerHTML = "⚡ Generating...";
+  imageBox.innerHTML = "";
 
-  result.innerText="Generating...";
+  let endpoint = "";
 
-  try{
-    const res=await fetch("https://reelmindbackend-1.onrender.com/generate",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({prompt,type:mode})
+  if (type === "text") endpoint = "/generate-text";
+  if (type === "image") endpoint = "/generate-image";
+  if (type === "video") endpoint = "/generate-video";
+
+  try {
+    const res = await fetch(API + endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt: input })
     });
 
-    const data=await res.json();
+    const data = await res.json();
 
-    if(data.type==="image"){
-      document.getElementById("bg").style.backgroundImage=`url(${data.result})`;
+    // 🖼️ IMAGE
+    if (data.image) {
+      imageBox.innerHTML = `
+        <img src="${data.image}" />
+        <br>
+        <a href="${data.image}" download class="download-btn">⬇ Download Image</a>
+      `;
 
-      result.innerHTML=`<img src="${data.result}" width="100%" style="border-radius:10px;">`;
+      // Background blend
+      document.body.style.backgroundImage = `url(${data.image})`;
+      document.body.style.backgroundSize = "cover";
 
-      lastResult=data.result;
+      resultBox.innerHTML = "🖼️ Image Generated!";
+      return;
     }
 
-    else{
-      result.innerText=data.result;
-      lastResult=data.result;
-    }
+    // 🧠 TEXT / 🎬 VIDEO
+    resultBox.innerHTML = data.result;
 
-  }catch(err){
-    result.innerText="Error ❌ Try again";
+  } catch (err) {
+    resultBox.innerHTML = "Error ❌ Check backend";
   }
-}
-
-function download(){
-  if(!lastResult)return;
-
-  const a=document.createElement("a");
-  a.href=lastResult;
-  a.download="result";
-  a.click();
 }
 </script>
 
