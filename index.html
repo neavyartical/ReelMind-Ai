@@ -5,6 +5,8 @@
 <title>ReelMind Global</title>
 
 <style>
+
+/* RESET */
 *{margin:0;padding:0;box-sizing:border-box;}
 
 body{
@@ -14,6 +16,7 @@ body{
   text-align:center;
 }
 
+/* BACKGROUND */
 body::before{
   content:"";
   position:fixed;
@@ -24,12 +27,14 @@ body::before{
   z-index:-1;
 }
 
+/* TITLE */
 h1{
   margin-top:20px;
   color:#00ff88;
   text-shadow:0 0 20px #00ff88;
 }
 
+/* INPUT */
 input{
   width:90%;
   padding:15px;
@@ -38,14 +43,7 @@ input{
   margin-top:15px;
 }
 
-.mode-btn, .lang-btn{
-  margin:5px;
-  padding:10px;
-  border-radius:10px;
-  background:#222;
-  color:white;
-}
-
+/* GENERATE BOX */
 .generate-box{
   width:180px;
   height:180px;
@@ -59,14 +57,36 @@ input{
   box-shadow:0 0 40px cyan;
 }
 
+/* BUTTON */
 button{
-  padding:15px;
-  border-radius:20px;
+  padding:12px;
+  border-radius:12px;
   border:none;
+  background:linear-gradient(135deg,#00ff88,#00ccff);
+  color:black;
+  font-weight:bold;
+}
+
+/* GRID */
+.control-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  width:90%;
+  margin:20px auto;
+}
+
+.control-grid button{
+  background:#1a1a1a;
+  color:white;
+}
+
+.control-grid button.active{
   background:linear-gradient(135deg,#00ff88,#00ccff);
   color:black;
 }
 
+/* BOX */
 .box{
   margin:15px;
   padding:15px;
@@ -78,12 +98,14 @@ img,video{
   width:90%;
 }
 
+/* DOWNLOAD */
 .download{
   display:inline-block;
   margin-top:10px;
   padding:10px;
   background:green;
 }
+
 </style>
 </head>
 
@@ -93,42 +115,46 @@ img,video{
 
 <input id="prompt" placeholder="Type anything...">
 
-<!-- MODE -->
-<div>
-<button class="mode-btn" onclick="setMode('story')">Story</button>
-<button class="mode-btn" onclick="setMode('image')">Image</button>
-<button class="mode-btn" onclick="setMode('video')">Video</button>
-<button class="mode-btn" onclick="setMode('all')">All</button>
-</div>
-
-<!-- LANGUAGE -->
-<div>
-<button class="lang-btn" onclick="setLang('english')">English</button>
-<button class="lang-btn" onclick="setLang('krio')">Krio</button>
-</div>
-
 <div class="generate-box">
 <button onclick="generate()">Generate</button>
 </div>
 
+<!-- GRID CONTROLS -->
+<div class="control-grid">
+
+<button id="btnStory" onclick="setMode('story')">Story</button>
+<button id="btnImage" onclick="setMode('image')">Image</button>
+
+<button id="btnVideo" onclick="setMode('video')">Video</button>
+<button id="btnAll" onclick="setMode('all')">All</button>
+
+<button id="btnEng" onclick="setLang('english')">English</button>
+<button id="btnKrio" onclick="setLang('krio')">Krio</button>
+
+</div>
+
+<!-- STORY -->
 <div class="box">
 <h3>Story</h3>
 <p id="story"></p>
 <button onclick="downloadStory()">Download</button>
 </div>
 
+<!-- IMAGE -->
 <div class="box">
 <h3>Image</h3>
 <img id="image">
 <a id="imgDownload" class="download">Download</a>
 </div>
 
+<!-- VIDEO -->
 <div class="box">
 <h3>Video</h3>
 <video id="video" controls></video>
 <a id="vidDownload" class="download">Download</a>
 </div>
 
+<!-- ASK -->
 <div class="box">
 <h3>Ask Anything</h3>
 <input id="ask">
@@ -137,14 +163,29 @@ img,video{
 </div>
 
 <script>
+
 const API="https://reelmindbackend-1.onrender.com";
 
-let mode="all";
+let mode="story";
 let language="english";
 
-function setMode(m){mode=m;}
-function setLang(l){language=l;}
+/* BUTTON STATE */
+function setMode(m){mode=m;highlight();}
+function setLang(l){language=l;highlight();}
 
+function highlight(){
+  document.querySelectorAll(".control-grid button").forEach(b=>b.classList.remove("active"));
+
+  if(mode==="story") btnStory.classList.add("active");
+  if(mode==="image") btnImage.classList.add("active");
+  if(mode==="video") btnVideo.classList.add("active");
+  if(mode==="all") btnAll.classList.add("active");
+
+  if(language==="english") btnEng.classList.add("active");
+  if(language==="krio") btnKrio.classList.add("active");
+}
+
+/* GENERATE */
 async function generate(){
   const prompt=document.getElementById("prompt").value;
 
@@ -158,24 +199,24 @@ async function generate(){
 
   const data=await res.json();
 
-  if(data.story){
-    document.getElementById("story").innerText=data.story;
-    speak(data.story);
-  }
+  document.getElementById("story").innerText=data.story || "";
 
   if(data.image){
-    document.getElementById("image").src=data.image;
-    document.getElementById("imgDownload").href=data.image;
+    image.src=data.image;
+    imgDownload.href=data.image;
   }
 
   if(data.video){
-    document.getElementById("video").src=data.video;
-    document.getElementById("vidDownload").href=data.video;
+    video.src=data.video;
+    vidDownload.href=data.video;
   }
+
+  speak(data.story);
 }
 
+/* ASK */
 async function askAI(){
-  const q=document.getElementById("ask").value;
+  const q=ask.value;
 
   const res=await fetch(API+"/ask",{
     method:"POST",
@@ -184,23 +225,29 @@ async function askAI(){
   });
 
   const data=await res.json();
+  answer.innerText=data.answer;
 
-  document.getElementById("answer").innerText=data.answer;
   speak(data.answer);
 }
 
+/* VOICE */
 function speak(text){
+  if(!text) return;
   const speech=new SpeechSynthesisUtterance(text);
   speechSynthesis.speak(speech);
 }
 
+/* DOWNLOAD */
 function downloadStory(){
-  const blob=new Blob([document.getElementById("story").innerText]);
+  const blob=new Blob([story.innerText]);
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download="story.txt";
   a.click();
 }
+
+highlight();
+
 </script>
 
 </body>
