@@ -1,63 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReelMind Global</title>
+  <title>ReelMind Global</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f0f0f;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
 
-<style>
-body {
-  font-family: Arial;
-  background: #0f172a;
-  color: white;
-  text-align: center;
-  padding: 20px;
-}
+    h1 {
+      color: #00ff88;
+    }
 
-h1 {
-  color: #22c55e;
-}
+    input {
+      width: 80%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      margin-bottom: 10px;
+    }
 
-input {
-  width: 90%;
-  max-width: 500px;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  margin-bottom: 20px;
-}
+    button {
+      padding: 12px 25px;
+      background: #00ff88;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
 
-button {
-  background: #22c55e;
-  padding: 12px 25px;
-  border: none;
-  border-radius: 10px;
-  color: white;
-  cursor: pointer;
-}
+    .box {
+      margin-top: 20px;
+      padding: 15px;
+      background: #1a1a1a;
+      border-radius: 10px;
+    }
 
-.box {
-  background: #1e293b;
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 10px;
-}
-
-img, video {
-  width: 90%;
-  max-width: 400px;
-  border-radius: 10px;
-  margin-top: 10px;
-}
-</style>
+    img, video {
+      width: 90%;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
 <body>
 
 <h1>🧠 ReelMind Global</h1>
 
-<input id="prompt" placeholder="Type something..." />
-
+<input id="prompt" placeholder="Enter idea (e.g. dogs dancing in club)">
 <br>
 <button onclick="generate()">Generate</button>
 
@@ -68,26 +62,28 @@ img, video {
 
 <div class="box">
   <h3>🖼 Image</h3>
-  <img id="image" />
+  <img id="image" src="">
 </div>
 
 <div class="box">
   <h3>🎬 Video</h3>
-  <video id="video" controls preload="none"></video>
+  <video id="video" controls></video>
 </div>
 
 <script>
-let videoLoaded = false;
+const BACKEND = "https://reelmindbackend-1.onrender.com";
 
 async function generate() {
   const prompt = document.getElementById("prompt").value;
 
-  /* LOADING STATE */
-  document.getElementById("story").innerText = "⏳ Generating...";
+  // RESET UI (fix flickering & old results)
+  document.getElementById("story").innerText = "Generating...";
+  document.getElementById("image").src = "";
+  document.getElementById("video").src = "";
 
-  /* ===== STORY ===== */
   try {
-    const res = await fetch("https://reelmindbackend-1.onrender.com/story", {
+    // 🧠 STORY
+    const storyRes = await fetch(`${BACKEND}/generate-story`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -95,23 +91,27 @@ async function generate() {
       body: JSON.stringify({ prompt })
     });
 
-    const data = await res.json();
-    document.getElementById("story").innerText = data.story;
+    const storyData = await storyRes.json();
+    document.getElementById("story").innerText = storyData.story || storyData.error;
 
-  } catch {
-    document.getElementById("story").innerText = "❌ Failed";
-  }
+    // 🖼 IMAGE (free working API)
+    document.getElementById("image").src =
+      `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
-  /* ===== IMAGE ===== */
-  document.getElementById("image").src =
-    `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+    // 🎬 VIDEO
+    const videoRes = await fetch(`${BACKEND}/generate-video`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
 
-  /* ===== VIDEO (NO POPPING) ===== */
-  const video = document.getElementById("video");
+    const videoData = await videoRes.json();
+    document.getElementById("video").src = videoData.video;
 
-  if (!videoLoaded) {
-    video.src = "https://www.w3schools.com/html/mov_bbb.mp4";
-    videoLoaded = true;
+  } catch (err) {
+    document.getElementById("story").innerText = "Error: " + err.message;
   }
 }
 </script>
