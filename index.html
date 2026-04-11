@@ -6,37 +6,61 @@
 
 <style>
 body {
-  font-family: Arial;
-  background: #f5f7fa;
-  text-align: center;
-  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+  margin: 0;
+  padding: 0;
 }
 
 .container {
-  max-width: 500px;
+  max-width: 600px;
   margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
 }
 
 textarea {
   width: 100%;
   height: 80px;
-  border-radius: 10px;
-  padding: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 14px;
 }
 
 button {
+  width: 100%;
   margin-top: 15px;
-  padding: 12px 25px;
+  padding: 14px;
   background: #00b894;
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #00997a;
+}
+
+.section {
+  margin-top: 25px;
+  text-align: left;
 }
 
 img, video {
   width: 100%;
+  border-radius: 12px;
   margin-top: 10px;
-  border-radius: 10px;
+}
+
+.download-btn {
+  margin-top: 10px;
+  display: inline-block;
 }
 </style>
 
@@ -47,18 +71,26 @@ img, video {
 
 <h1>🧠 ReelMind AI</h1>
 
-<textarea id="prompt" placeholder="Enter idea..."></textarea>
+<textarea id="prompt" placeholder="Type something viral..."></textarea>
 <button onclick="generate()">Generate</button>
 
+<div class="section">
 <h3>✍️ Story</h3>
-<p id="story"></p>
+<p id="story">No story yet...</p>
+</div>
 
+<div class="section">
 <h3>🖼 Image</h3>
-<img id="image">
-<a id="download" download="image.png"><button>Download</button></a>
+<img id="image" style="display:none;">
+<a id="download" class="download-btn" download="image.png">
+<button>Download Image</button>
+</a>
+</div>
 
+<div class="section">
 <h3>🎬 Video</h3>
-<video id="video" controls></video>
+<video id="video" controls style="display:none;"></video>
+</div>
 
 </div>
 
@@ -66,25 +98,45 @@ img, video {
 async function generate() {
   const prompt = document.getElementById("prompt").value;
 
-  // STORY (backend)
-  const storyRes = await fetch("https://YOUR-RENDER-URL.onrender.com/story", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ prompt })
-  });
+  // RESET UI
+  document.getElementById("story").innerText = "Generating...";
+  document.getElementById("image").style.display = "none";
+  document.getElementById("video").style.display = "none";
 
-  const storyData = await storyRes.json();
-  document.getElementById("story").innerText =
-    storyData.choices?.[0]?.message?.content || "Story failed";
+  // 🔥 STORY (Backend)
+  try {
+    const res = await fetch("https://reelmindbackend-1.onrender.com/story", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
 
-  // IMAGE (Pollinations)
-  const imageUrl = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
-  document.getElementById("image").src = imageUrl;
+    const data = await res.json();
+
+    document.getElementById("story").innerText =
+      data.choices?.[0]?.message?.content || "Story failed";
+
+  } catch (e) {
+    document.getElementById("story").innerText = "Server error";
+  }
+
+  // ⚡ IMAGE (FAST FIX - avoid caching delay)
+  const imageUrl = "https://image.pollinations.ai/prompt/"
+    + encodeURIComponent(prompt)
+    + "?t=" + Date.now(); // prevents slow cache
+
+  const img = document.getElementById("image");
+  img.src = imageUrl;
+  img.style.display = "block";
+
   document.getElementById("download").href = imageUrl;
 
-  // VIDEO (temporary demo)
-  document.getElementById("video").src =
-    "https://www.w3schools.com/html/mov_bbb.mp4";
+  // 🎬 VIDEO (placeholder for now)
+  const vid = document.getElementById("video");
+  vid.src = "https://www.w3schools.com/html/mov_bbb.mp4";
+  vid.style.display = "block";
 }
 </script>
 
