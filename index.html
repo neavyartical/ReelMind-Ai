@@ -8,54 +8,42 @@
 <body>
 
   <!-- BACKGROUND -->
-  <div class="overlay"></div>
+  <div class="bg"></div>
 
   <!-- APP -->
   <div class="app">
 
-    <!-- LOGO -->
-    <div class="logo">
+    <!-- HEADER -->
+    <div class="header">
       <h1>ReelMind <span>AI</span></h1>
+      <p>Powered by Artical Neavy</p>
     </div>
 
-    <!-- POWERED -->
-    <p class="powered">Powered by Artical Neavy</p>
+    <!-- INPUT CARD -->
+    <div class="card">
+      <textarea id="prompt" placeholder="Describe your idea... (story, image, video)"></textarea>
 
-    <!-- AUTH (LOGIN / REGISTER) -->
-    <div class="auth">
-      <input id="email" placeholder="Email">
-      <input id="password" type="password" placeholder="Password">
-      <div class="auth-buttons">
-        <button onclick="register()">Register</button>
-        <button onclick="login()">Login</button>
+      <button id="generateBtn" onclick="generate('all')">
+        ✨ Generate
+      </button>
+
+      <!-- GRID -->
+      <div class="grid">
+        <button onclick="generate('story')">📖 Story</button>
+        <button onclick="generate('image')">🖼 Image</button>
+        <button onclick="generate('video')">🎬 Video</button>
+        <button onclick="askAI()">🌍 Ask AI</button>
       </div>
     </div>
 
-    <!-- INPUT -->
-    <textarea id="prompt" placeholder="Enter your idea..."></textarea>
-
-    <!-- MAIN GENERATE -->
-    <button id="generateBtn" onclick="generate('all')">✨ Generate</button>
-
-    <!-- GRID ACTIONS -->
-    <div class="grid">
-      <button onclick="generate('story')">📖 Story</button>
-      <button onclick="generate('image')">🖼 Image</button>
-      <button onclick="generate('video')">🎬 Video</button>
-      <button onclick="askAI()">🌍 Ask AI</button>
+    <!-- RESULT CARD -->
+    <div class="card result-card">
+      <div id="result">Your result will appear here...</div>
+      <button id="downloadBtn" onclick="downloadResult()">⬇ Download</button>
     </div>
-
-    <!-- LOADING -->
-    <p id="loading" style="display:none;">⏳ Generating...</p>
-
-    <!-- RESULT -->
-    <div id="result"></div>
-
-    <!-- DOWNLOAD -->
-    <button id="downloadBtn" onclick="downloadResult()">⬇ Download</button>
 
   </div>
 
   <script src="script.js"></script>
 </body>
-</html>
+    </html>
