@@ -1,36 +1,37 @@
-const API_URL = "https://reelmind-ai.onrender.com/generate"; // ✅ REPLACE if your link is different
+const API = "https://reelmindbackend-1.onrender.com";
 
-async function generate() {
-  const prompt = document.getElementById("prompt").value;
-  const result = document.getElementById("result");
+async function generate(type) {
+  const input = document.getElementById("prompt").value;
+  const resultBox = document.getElementById("result");
+  const imageBox = document.getElementById("imageBox");
 
-  if (!prompt) {
-    result.innerText = "Enter a prompt first";
+  resultBox.innerHTML = "⚡ Generating...";
+  imageBox.innerHTML = "";
+
+  let endpoint = "";
+
+  if (type === "text") endpoint = "/generate-text";
+  if (type === "image") endpoint = "/generate-image";
+  if (type === "video") endpoint = "/generate-video";
+
+  const res = await fetch(API + endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ prompt: input })
+  });
+
+  const data = await res.json();
+
+  if (data.image) {
+    imageBox.innerHTML = `
+      <img src="${data.image}" class="generated-img"/>
+      <a href="${data.image}" download class="download-btn">Download</a>
+    `;
+    document.body.style.backgroundImage = `url(${data.image})`;
     return;
   }
 
-  result.innerText = "Generating...";
-
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
-
-    // 🔥 check if server responded
-    if (!res.ok) {
-      throw new Error("Server not responding");
-    }
-
-    const data = await res.json();
-
-    result.innerText = data.result || "No response";
-
-  } catch (err) {
-    console.error("ERROR:", err);
-    result.innerText = "Backend not connected ❌";
-  }
+  resultBox.innerHTML = data.result;
 }
