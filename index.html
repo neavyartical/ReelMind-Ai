@@ -3,193 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReelMind AI | Creative Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>ReelMind AI | The Ultimate Solver</title>
     <style>
         :root {
-            --primary: #6366f1;
-            --bg-dark: #0f172a;
-            --glass: rgba(255, 255, 255, 0.05);
-            --text: #f8fafc;
+            --ice: rgba(200, 233, 255, 0.15);
+            --neon-blue: #00d4ff;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            color: var(--text);
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #000;
+            color: white;
+            /* Ice Cube Aesthetic Background */
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                url('https://www.transparenttextures.com/patterns/ice-age.png');
             min-height: 100vh;
             display: flex;
-        }
-
-        /* Sidebar Navigation */
-        nav {
-            width: 260px;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid var(--glass);
-            padding: 2rem;
-            display: flex;
             flex-direction: column;
-            gap: 1rem;
+            align-items: center;
         }
 
-        .logo { font-size: 1.5rem; font-weight: 600; margin-bottom: 2rem; color: var(--primary); }
-
-        .nav-btn {
-            background: transparent;
-            border: 1px solid var(--glass);
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: left;
-            transition: 0.3s;
+        .container {
+            width: 90%;
+            max-width: 900px;
+            text-align: center;
+            padding-top: 50px;
         }
 
-        .nav-btn:hover { background: var(--primary); border-color: var(--primary); }
-
-        /* Main Content Area */
-        main {
-            flex: 1;
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
+        .logo-img {
+            width: 300px;
+            filter: drop-shadow(0 0 15px var(--neon-blue));
+            margin-bottom: 30px;
         }
 
-        .input-section {
-            background: var(--glass);
-            padding: 2rem;
-            border-radius: 16px;
-            border: 1px solid var(--glass);
-            margin-bottom: 2rem;
+        .ice-card {
+            background: var(--ice);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
         }
 
         textarea {
             width: 100%;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid var(--glass);
-            border-radius: 8px;
-            padding: 1rem;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--neon-blue);
+            border-radius: 12px;
             color: white;
-            resize: none;
-            margin-bottom: 1rem;
+            padding: 15px;
+            font-size: 16px;
+            margin-bottom: 20px;
         }
 
-        .action-bar { display: flex; gap: 10px; flex-wrap: wrap; }
-
-        button.generate-btn {
-            padding: 10px 20px;
-            border-radius: 8px;
+        .solver-btn {
+            background: linear-gradient(45deg, #00d4ff, #0055ff);
+            color: white;
             border: none;
-            background: var(--primary);
-            color: white;
-            font-weight: 600;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
             cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
         }
 
-        /* Preview Display */
-        #output-display {
-            min-height: 400px;
-            background: var(--glass);
-            border-radius: 16px;
-            border: 1px dashed rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
+        .solver-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.8);
+        }
+
+        #output-window {
+            margin-top: 30px;
+            min-height: 200px;
+            width: 100%;
+        }
+
+        .result-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
             padding: 20px;
-            position: relative;
+            border: 1px solid var(--ice);
         }
-
-        .download-btn {
-            margin-top: 15px;
-            display: inline-block;
-            padding: 8px 16px;
-            background: #10b981;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-
-        .loading-spinner {
-            border: 4px solid rgba(255,255,255,0.1);
-            border-left: 4px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <nav>
-        <div class="logo">ReelMind AI</div>
-        <button class="nav-btn" onclick="location.reload()">Dashboard</button>
-        <button class="nav-btn" onclick="alert('Library Coming Soon')">My Creations</button>
-        <hr style="opacity: 0.1">
-        <button class="nav-btn" style="font-size: 0.8rem">Terms & Conditions</button>
-    </nav>
+    <div class="container">
+        <img src="442630.png" alt="ReelMind AI" class="logo-img">
 
-    <main>
-        <header style="margin-bottom: 2rem;">
-            <h1>Create with AI</h1>
-            <p style="color: #94a3b8;">Generate cinematic images, 4K videos, and stories in seconds.</p>
-        </header>
-
-        <section class="input-section">
-            <textarea id="user-prompt" rows="4" placeholder="Describe your cinematic vision or ask a question..."></textarea>
+        <div class="ice-card">
+            <textarea id="userInput" placeholder="Ask anything, generate 4K images, or create cinematic videos..."></textarea>
             
-            <div class="action-bar">
-                <button class="generate-btn" onclick="handleAction('chat')">Ask AI</button>
-                <button class="generate-btn" style="background: #ec4899;" onclick="handleAction('image')">Generate 4K Image</button>
-                <button class="generate-btn" style="background: #8b5cf6;" onclick="handleAction('video')">Generate Video</button>
-                <button class="generate-btn" style="background: #64748b;" onclick="loadLocalStories()">View Stories</button>
+            <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                <button class="solver-btn" onclick="process('chat')">Solve Problem</button>
+                <button class="solver-btn" style="background: #ff007a;" onclick="process('image')">Generate 4K</button>
+                <button class="solver-btn" style="background: #7a00ff;" onclick="process('video')">Create Video</button>
             </div>
-        </section>
 
-        <section id="output-display">
-            <p style="color: #64748b;">Your AI masterpiece will appear here...</p>
-        </section>
-    </main>
+            <div id="output-window"></div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
-    <script>
-        // Bridge function to communicate with your script.js
-        function handleAction(type) {
-            const prompt = document.getElementById('user-prompt').value;
-            if(!prompt) return alert("Please enter a prompt first!");
-            
-            // This calls the triggerAI function we built in your script.js
-            if(typeof triggerAI === 'function') {
-                triggerAI(type, prompt);
-            } else {
-                console.error("script.js not loaded properly.");
-            }
-        }
-
-        async function loadLocalStories() {
-            const display = document.getElementById('output-display');
-            display.innerHTML = '<div class="loading-spinner"></div>';
-            
-            try {
-                const res = await fetch('https://reelmindbackend-1.onrender.com/story');
-                const stories = await res.json();
-                display.innerHTML = stories.map(s => `
-                    <div style="background:rgba(255,255,255,0.05); padding:15px; margin:10px; border-radius:10px; width:100%;">
-                        <h3>${s.title}</h3>
-                        <p>${s.content}</p>
-                    </div>
-                `).join('');
-            } catch (e) {
-                display.innerHTML = "Error loading stories.";
-            }
-        }
-    </script>
 </body>
 </html>
