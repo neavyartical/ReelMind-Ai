@@ -3,155 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReelMind Global</title>
+<title>ReelMind AI</title>
 
 <style>
 body {
-  font-family: Arial;
-  background: #0d0d0d;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: url('https://chat.openai.com/mnt/data/8EEDA5E5-39ED-4A7D-88A2-A89F2C8A5897.png') no-repeat center center/cover;
   color: white;
   text-align: center;
 }
 
+/* Dark overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.75);
+  z-index:-1;
+}
+
 h1 {
+  margin-top: 20px;
+  font-size: 32px;
   color: #00ffcc;
 }
 
+/* Input */
 input {
   width: 80%;
-  padding: 12px;
+  padding: 15px;
   border-radius: 10px;
   border: none;
-  margin: 10px;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+/* Ice Cube Button */
+.generate-box {
+  margin: 30px auto;
+  width: 150px;
+  height: 150px;
+  border-radius: 20px;
+  background: rgba(0,255,255,0.1);
+  box-shadow: 0 0 30px cyan;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 button {
-  padding: 12px 25px;
+  padding: 15px 25px;
   border-radius: 10px;
   border: none;
-  background: #00ff66;
+  background: #00ff88;
   color: black;
   font-weight: bold;
   cursor: pointer;
-  margin: 5px;
 }
 
+/* Sections */
 .section {
-  background: #1a1a1a;
-  margin: 15px;
+  margin: 20px;
   padding: 15px;
+  background: rgba(255,255,255,0.05);
   border-radius: 10px;
 }
 
 img, video {
-  width: 100%;
+  max-width: 90%;
   border-radius: 10px;
   margin-top: 10px;
 }
 
-.footer {
-  margin-top: 30px;
-  font-size: 14px;
-  color: #aaa;
-}
-
-.hidden {
-  display: none;
+.error {
+  color: red;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🧠 ReelMind Global</h1>
+<h1>🧠 ReelMind AI</h1>
 
-<!-- LOGIN / REGISTER -->
-<div class="section" id="authBox">
-  <h3>🔐 Login / Register</h3>
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <br>
-  <button onclick="login()">Login</button>
-  <button onclick="register()">Register</button>
-</div>
+<input id="prompt" placeholder="Enter your idea..." />
 
-<!-- MAIN APP -->
-<div id="app" class="hidden">
-
-<input id="prompt" placeholder="Enter cinematic idea...">
-<br>
-<button onclick="generate()">Generate</button>
-
-<div class="section">
-  <h3>✍️ Story</h3>
-  <p id="story">...</p>
+<div class="generate-box">
+  <button onclick="generate()">GENERATE</button>
 </div>
 
 <div class="section">
-  <h3>🖼 Image</h3>
-  <img id="image">
+  <h2>✍️ Story</h2>
+  <p id="story">Waiting...</p>
 </div>
 
 <div class="section">
-  <h3>🎬 Video</h3>
+  <h2>🖼️ Image</h2>
+  <img id="image" />
+</div>
+
+<div class="section">
+  <h2>🎬 Video</h2>
   <video id="video" controls></video>
 </div>
 
-<!-- MONETIZATION -->
-<div class="section">
-  <h3>💰 Go Pro</h3>
-  <button onclick="upgrade()">Unlock Premium</button>
-</div>
-
-<!-- TERMS -->
-<div class="section">
-  <button onclick="showTerms()">Terms & Conditions</button>
-</div>
-
-</div>
-
-<!-- TERMS MODAL -->
-<div id="termsBox" class="hidden section">
-  <h3>📜 Terms & Conditions</h3>
-  <p>
-    By using ReelMind Global, you agree to use AI responsibly.
-    Content generated is user responsibility.
-    No illegal, harmful, or abusive use allowed.
-  </p>
-  <button onclick="closeTerms()">Close</button>
-</div>
-
-<!-- FOOTER -->
-<div class="footer">
-  Powered by ARTICAL NEAVY 🚀
-</div>
-
 <script>
-const API = "https://reelmindbackend-1.onrender.com";
+const BACKEND = "https://reelmindbackend-1.onrender.com";
 
-// 🔐 AUTH SYSTEM (LOCAL)
-function register() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  localStorage.setItem("user", JSON.stringify({ email, password }));
-  alert("Registered successfully!");
-}
-
-function login() {
-  const saved = JSON.parse(localStorage.getItem("user"));
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  if (saved && saved.email === email && saved.password === password) {
-    document.getElementById("authBox").classList.add("hidden");
-    document.getElementById("app").classList.remove("hidden");
-  } else {
-    alert("Invalid login");
-  }
-}
-
-// 🎬 GENERATE
 async function generate() {
   const prompt = document.getElementById("prompt").value;
 
@@ -160,55 +119,37 @@ async function generate() {
   document.getElementById("video").src = "";
 
   try {
-    // STORY
-    const storyRes = await fetch(API + "/story", {
+    const res = await fetch(`${BACKEND}/generate`, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({ prompt })
     });
 
-    const storyData = await storyRes.json();
-    document.getElementById("story").innerText = storyData.story;
+    const data = await res.json();
+
+    // STORY
+    if (data.story) {
+      document.getElementById("story").innerText = data.story;
+    } else {
+      document.getElementById("story").innerText = "Story failed";
+    }
 
     // IMAGE
-    const imgRes = await fetch(API + "/image", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ prompt })
-    });
+    if (data.image) {
+      document.getElementById("image").src = data.image;
+    }
 
-    const imgData = await imgRes.json();
-    document.getElementById("image").src = imgData.image;
-
-    // VIDEO
-    const vidRes = await fetch(API + "/video", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ prompt })
-    });
-
-    const vidData = await vidRes.json();
-    if (vidData.video) {
-      document.getElementById("video").src = vidData.video;
+    // VIDEO (NO AUTO PLAY)
+    if (data.video) {
+      document.getElementById("video").src = data.video;
     }
 
   } catch (err) {
-    document.getElementById("story").innerText = "⚠️ AI not responding";
+    document.getElementById("story").innerHTML =
+      "<span class='error'>Server not responding</span>";
   }
-}
-
-// 💰 MONETIZATION
-function upgrade() {
-  alert("Payment system coming soon 💰");
-}
-
-// 📜 TERMS
-function showTerms() {
-  document.getElementById("termsBox").classList.remove("hidden");
-}
-
-function closeTerms() {
-  document.getElementById("termsBox").classList.add("hidden");
 }
 </script>
 
