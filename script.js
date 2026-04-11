@@ -1,79 +1,76 @@
 const API = "https://reelmindbackend-1.onrender.com";
 
+let currentUser = null;
+
+/* REGISTER */
+async function register() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch(API + "/register", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+}
+
+/* LOGIN */
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch(API + "/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (data.user) {
+    currentUser = data.user;
+    alert("Logged in!");
+  } else {
+    alert("Login failed");
+  }
+}
+
+/* GENERATE */
 async function generate(type) {
   const prompt = document.getElementById("prompt").value;
 
-  if (!prompt) {
-    alert("Enter something first!");
-    return;
-  }
+  const res = await fetch(API + "/generate", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      prompt,
+      type,
+      email: currentUser?.email
+    })
+  });
 
-  try {
-    const res = await fetch(API + "/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt, type })
-    });
+  const data = await res.json();
 
-    const data = await res.json();
-    display(data);
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById("result").innerHTML = "❌ Error generating";
-  }
-}
-
-async function askAI() {
-  const question = document.getElementById("prompt").value;
-
-  if (!question) {
-    alert("Ask something!");
-    return;
-  }
-
-  try {
-    const res = await fetch(API + "/ask", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ question })
-    });
-
-    const data = await res.json();
-    document.getElementById("result").innerHTML = `<p>${data.answer}</p>`;
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById("result").innerHTML = "❌ AI error";
-  }
-}
-
-function display(data) {
   let html = "";
-
   if (data.story) html += `<p>${data.story}</p>`;
   if (data.image) html += `<img src="${data.image}" />`;
-  if (data.video) html += `<p>${data.video}</p>`;
 
   document.getElementById("result").innerHTML = html;
 }
 
-function downloadResult() {
-  const text = document.getElementById("result").innerText;
+/* ASK */
+async function askAI() {
+  const question = document.getElementById("prompt").value;
 
-  if (!text) {
-    alert("Nothing to download");
-    return;
-  }
+  const res = await fetch(API + "/ask", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ question })
+  });
 
-  const blob = new Blob([text], { type: "text/plain" });
-  const a = document.createElement("a");
-
-  a.href = URL.createObjectURL(blob);
-  a.download = "reelmind.txt";
-  a.click();
+  const data = await res.json();
+  document.getElementById("result").innerHTML = `<p>${data.answer}</p>`;
 }
