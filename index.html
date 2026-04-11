@@ -14,31 +14,19 @@ body{
   text-align:center;
 }
 
-body::before{
-  content:"";
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:url("https://neavyartical.github.io/ReelMind-Ai/logo.png") center/cover no-repeat;
-  opacity:0.15;
-  z-index:-1;
-}
-
 h1{margin-top:20px;color:#00ff88;}
 
 input{
   width:90%;
-  padding:15px;
-  border-radius:30px;
-  border:none;
+  padding:12px;
+  border-radius:20px;
   margin-top:10px;
 }
 
 .generate-box{
   width:180px;height:180px;margin:20px auto;
-  border-radius:25px;
-  background:rgba(255,255,255,0.08);
   display:flex;align-items:center;justify-content:center;
+  background:#111;border-radius:20px;
 }
 
 button{
@@ -57,17 +45,11 @@ button{
 }
 
 .control-grid button{background:#222;color:white;}
-
 .control-grid .active{background:#00ff88;color:black;}
 
-.box{
-  margin:15px;
-  padding:15px;
-  background:#111;
-}
+.box{margin:15px;padding:15px;background:#111;}
 
 img,video{width:90%;}
-
 </style>
 </head>
 
@@ -90,10 +72,10 @@ img,video{width:90%;}
 
 <!-- GRID -->
 <div class="control-grid">
-<button id="btnStory" onclick="setMode('story')">Story</button>
-<button id="btnImage" onclick="setMode('image')">Image</button>
-<button id="btnVideo" onclick="setMode('video')">Video</button>
-<button id="btnAll" onclick="setMode('all')">All</button>
+<button onclick="setMode('story',this)">Story</button>
+<button onclick="setMode('image',this)">Image</button>
+<button onclick="setMode('video',this)">Video</button>
+<button onclick="setMode('all',this)">All</button>
 </div>
 
 <div class="box">
@@ -124,35 +106,40 @@ async function register(){
   updateCredits();
 }
 
-/* CREDIT UI */
+/* UPDATE UI */
 function updateCredits(){
-  creditsDisplay.innerText="Credits: "+credits;
+  if(credits==="unlimited"){
+    creditsDisplay.innerText="Credits: ∞ (Owner)";
+  } else {
+    creditsDisplay.innerText="Credits: "+credits;
+  }
 }
 
 /* MODE */
-function setMode(m){
+function setMode(m,btn){
   mode=m;
   document.querySelectorAll(".control-grid button")
   .forEach(b=>b.classList.remove("active"));
-  event.target.classList.add("active");
+  btn.classList.add("active");
 }
 
 /* GENERATE */
 async function generate(){
   if(!userEmail){alert("Login first");return;}
 
-  const creditRes=await fetch(API+"/use-credit",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({email:userEmail})
-  });
+  if(userEmail !== "artical@example.com"){
+    const creditRes=await fetch(API+"/use-credit",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email:userEmail})
+    });
 
-  const cData=await creditRes.json();
+    const cData=await creditRes.json();
+    if(cData.error){alert("No credits");return;}
 
-  if(cData.error){alert("No credits");return;}
-
-  credits=cData.credits;
-  updateCredits();
+    credits=cData.credits;
+    updateCredits();
+  }
 
   const res=await fetch(API+"/generate",{
     method:"POST",
