@@ -2,60 +2,53 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReelMind Global</title>
 
 <style>
 body {
-  background: #0f0f0f;
-  color: white;
-  font-family: Arial;
-  text-align: center;
-  padding: 20px;
+    font-family: Arial;
+    background: #0f0f0f;
+    color: white;
+    text-align: center;
 }
 
 h1 {
-  color: #00ff99;
+    color: #00ff88;
 }
 
 input {
-  width: 90%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  margin-top: 10px;
+    width: 80%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    margin: 10px;
 }
 
 button {
-  margin-top: 15px;
-  padding: 12px 25px;
-  border-radius: 10px;
-  border: none;
-  background: #00ff99;
-  font-weight: bold;
-  cursor: pointer;
+    padding: 12px 25px;
+    background: #00ff88;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
-button:disabled {
-  background: gray;
+.card {
+    background: #1c1c1c;
+    margin: 15px;
+    padding: 15px;
+    border-radius: 15px;
 }
 
-.section {
-  margin-top: 20px;
-  background: #1a1a1a;
-  padding: 15px;
-  border-radius: 10px;
+img {
+    width: 90%;
+    border-radius: 15px;
 }
 
-img, video {
-  width: 100%;
-  border-radius: 10px;
-  margin-top: 10px;
-}
-
-.status {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #ccc;
+video {
+    width: 90%;
+    border-radius: 15px;
 }
 </style>
 </head>
@@ -64,91 +57,68 @@ img, video {
 
 <h1>🧠 ReelMind Global</h1>
 
-<input id="prompt" placeholder="Enter idea (cinematic style works best)">
+<input id="prompt" placeholder="Enter your idea..."/>
 <br>
-<button id="generateBtn" onclick="generate()">Generate</button>
+<button onclick="generate()">Generate</button>
 
-<!-- STORY -->
-<div class="section">
+<div class="card">
 <h3>✍️ Story</h3>
-<div id="story">Waiting...</div>
+<p id="story">Waiting...</p>
 </div>
 
-<!-- IMAGE -->
-<div class="section">
-<h3>🖼️ Image</h3>
+<div class="card">
+<h3>🖼 Image</h3>
 <img id="image" />
 </div>
 
-<!-- VIDEO -->
-<div class="section">
+<div class="card">
 <h3>🎬 Video</h3>
-<div id="videoStatus" class="status">Waiting...</div>
 <video id="video" controls></video>
 </div>
 
 <script>
-const API = "https://reelmindbackend-1.onrender.com";
 
-let isGenerating = false;
+const BACKEND = "https://reelmindbackend-1.onrender.com";
 
 async function generate() {
-  if (isGenerating) return;
 
-  const prompt = document.getElementById("prompt").value.trim();
-  if (!prompt) {
-    alert("Enter a prompt first!");
-    return;
-  }
+    const prompt = document.getElementById("prompt").value;
 
-  isGenerating = true;
-  document.getElementById("generateBtn").disabled = true;
+    document.getElementById("story").innerText = "Generating...";
+    document.getElementById("image").src = "";
+    document.getElementById("video").src = "";
 
-  // Reset UI
-  document.getElementById("story").innerText = "Generating story...";
-  document.getElementById("image").src = "";
-  document.getElementById("video").src = "";
-  document.getElementById("videoStatus").innerText = "⏳ Generating video (30–60s)...";
+    try {
 
-  try {
-    const res = await fetch(API + "/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
+        const res = await fetch(BACKEND + "/generate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ prompt })
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    // STORY
-    document.getElementById("story").innerText =
-      data.story || "❌ Story failed";
+        // ✅ STORY
+        document.getElementById("story").innerText =
+            data.story || "Story failed";
 
-    // IMAGE
-    if (data.image) {
-      document.getElementById("image").src = data.image;
+        // ✅ IMAGE
+        document.getElementById("image").src =
+            data.image || "https://picsum.photos/500";
+
+        // ✅ VIDEO (NO LOOP BUG)
+        const video = document.getElementById("video");
+        video.pause();
+        video.src = data.video || "";
+        video.load();
+
+    } catch (err) {
+        document.getElementById("story").innerText = "Server error";
     }
-
-    // VIDEO
-    if (data.video) {
-      const vid = document.getElementById("video");
-      vid.src = data.video;
-      vid.pause(); // stop auto-play bug
-      document.getElementById("videoStatus").innerText = "✅ Video ready";
-    } else {
-      document.getElementById("videoStatus").innerText =
-        "⚠️ Video still processing or failed";
-    }
-
-  } catch (err) {
-    document.getElementById("story").innerText = "❌ Server error";
-    document.getElementById("videoStatus").innerText = "❌ Failed to connect";
-  }
-
-  isGenerating = false;
-  document.getElementById("generateBtn").disabled = false;
 }
+
 </script>
 
 </body>
