@@ -1,38 +1,23 @@
-// ===============================
-// 🔑 CONFIG
-// ===============================
-const OPENROUTER_API_KEY = "YOUR_OPENROUTER_KEY_HERE";
+const BASE_URL = "https://reelmindbackend-1.onrender.com";
 
-// ===============================
-// 🚀 MAIN GENERATE FUNCTION
-// ===============================
+/* MAIN */
 function handleGenerate() {
     const prompt = document.getElementById("prompt").value.trim();
     const output = document.getElementById("output");
 
     if (!prompt) {
-        alert("Please enter something first!");
+        alert("Enter something!");
         return;
     }
 
     output.innerHTML = "⏳ Generating...";
 
-    const lowerPrompt = prompt.toLowerCase();
+    const lower = prompt.toLowerCase();
 
-    // Smart detection
-    if (
-        lowerPrompt.includes("image") ||
-        lowerPrompt.includes("picture") ||
-        lowerPrompt.includes("photo") ||
-        lowerPrompt.includes("draw")
-    ) {
+    if (lower.includes("image")) {
         generateImage(prompt);
     } 
-    else if (
-        lowerPrompt.includes("video") ||
-        lowerPrompt.includes("clip") ||
-        lowerPrompt.includes("movie")
-    ) {
+    else if (lower.includes("video")) {
         generateVideo(prompt);
     } 
     else {
@@ -40,92 +25,77 @@ function handleGenerate() {
     }
 }
 
-// ===============================
-// 🖼️ IMAGE GENERATION (Pollinations)
-// ===============================
+/* ================= IMAGE ================= */
 function generateImage(prompt) {
     const output = document.getElementById("output");
 
-    try {
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
-        output.innerHTML = `
-            <img src="${imageUrl}" 
-                 style="max-width:90%; border-radius:15px; box-shadow:0 0 20px cyan;">
-            <br><br>
-            <button onclick="downloadImage('${imageUrl}')">⬇ Download Image</button>
-        `;
-    } catch (err) {
-        output.innerHTML = "❌ Image generation failed.";
-    }
+    output.innerHTML = `
+        <img src="${url}" style="max-width:90%; border-radius:15px;">
+        <br><br>
+        <button onclick="downloadImage('${url}')">Download Image</button>
+    `;
 }
 
-// ===============================
-// ⬇ DOWNLOAD IMAGE
-// ===============================
+/* DOWNLOAD */
 function downloadImage(url) {
     const a = document.createElement("a");
     a.href = url;
-    a.download = "reelmind-image.png";
-    document.body.appendChild(a);
+    a.download = "image.png";
     a.click();
-    document.body.removeChild(a);
 }
 
-// ===============================
-// 🧠 TEXT / STORIES (OpenRouter)
-// ===============================
+/* ================= TEXT ================= */
 async function generateText(prompt) {
     const output = document.getElementById("output");
 
     try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        const res = await fetch(`${BASE_URL}/generate-text`, {
             method: "POST",
-            headers: {
-                "Authorization": "Bearer " + OPENROUTER_API_KEY,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "openai/gpt-3.5-turbo",
-                messages: [
-                    {
-                        role: "user",
-                        content: prompt
-                    }
-                ]
-            })
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ prompt })
         });
 
-        const data = await response.json();
-
-        if (!data || !data.choices || !data.choices[0]) {
-            output.innerHTML = "❌ API error. Check your key or quota.";
-            return;
-        }
+        const data = await res.json();
 
         output.innerHTML = `
-            <div style="max-width:90%; margin:auto; text-align:left;">
-                ${data.choices[0].message.content}
+            <div style="text-align:left; max-width:90%; margin:auto;">
+                ${data.choices?.[0]?.message?.content || "No response"}
             </div>
         `;
 
-    } catch (error) {
-        output.innerHTML = "❌ Failed to generate text.";
+    } catch {
+        output.innerHTML = "❌ Text failed";
     }
 }
 
-// ===============================
-// 🎬 VIDEO (SMART FALLBACK)
-// ===============================
-function generateVideo(prompt) {
+/* ================= VIDEO ================= */
+async function generateVideo(prompt) {
     const output = document.getElementById("output");
 
-    output.innerHTML = `
-        <p style="color:orange;">
-        ⚠️ Real video generation requires a paid API (Replicate / Runway / Pika).
-        </p>
-        <p>🎬 Generating video concept instead...</p>
-    `;
+    output.innerHTML = "🎬 Generating video... please wait...";
 
-    generateText("Create a cinematic short video script for: " + prompt);
+    try {
+        const res = await fetch(`${BASE_URL}/generate-video`, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ prompt })
+        });
+
+        const data = await res.json();
+
+        if (data.video_url) {
+            output.innerHTML = `
+                <video controls width="300">
+                    <source src="${data.video_url}">
+                </video>
+            `;
+        } else {
+            output.innerHTML = "⏳ Video processing... try again.";
+        }
+
+    } catch {
+        output.innerHTML = "❌ Video failed";
+    }
 }
