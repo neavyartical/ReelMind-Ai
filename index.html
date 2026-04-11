@@ -5,8 +5,6 @@
 <title>ReelMind Global</title>
 
 <style>
-
-/* RESET */
 *{margin:0;padding:0;box-sizing:border-box;}
 
 body{
@@ -16,7 +14,6 @@ body{
   text-align:center;
 }
 
-/* BACKGROUND */
 body::before{
   content:"";
   position:fixed;
@@ -27,14 +24,12 @@ body::before{
   z-index:-1;
 }
 
-/* TITLE */
 h1{
   margin-top:20px;
   color:#00ff88;
   text-shadow:0 0 20px #00ff88;
 }
 
-/* INPUT */
 input{
   width:90%;
   padding:15px;
@@ -43,16 +38,14 @@ input{
   margin-top:15px;
 }
 
-/* MODE BUTTONS */
-.mode-btn{
+.mode-btn, .lang-btn{
   margin:5px;
-  padding:10px 15px;
-  border-radius:15px;
+  padding:10px;
+  border-radius:10px;
   background:#222;
   color:white;
 }
 
-/* ICE BUTTON */
 .generate-box{
   width:180px;
   height:180px;
@@ -67,15 +60,13 @@ input{
 }
 
 button{
-  padding:15px 30px;
+  padding:15px;
   border-radius:20px;
   border:none;
   background:linear-gradient(135deg,#00ff88,#00ccff);
   color:black;
-  font-weight:bold;
 }
 
-/* BOX */
 .box{
   margin:15px;
   padding:15px;
@@ -85,17 +76,14 @@ button{
 
 img,video{
   width:90%;
-  border-radius:10px;
 }
 
-/* DOWNLOAD */
 .download{
   display:inline-block;
   margin-top:10px;
   padding:10px;
   background:green;
 }
-
 </style>
 </head>
 
@@ -113,32 +101,34 @@ img,video{
 <button class="mode-btn" onclick="setMode('all')">All</button>
 </div>
 
+<!-- LANGUAGE -->
+<div>
+<button class="lang-btn" onclick="setLang('english')">English</button>
+<button class="lang-btn" onclick="setLang('krio')">Krio</button>
+</div>
+
 <div class="generate-box">
 <button onclick="generate()">Generate</button>
 </div>
 
-<!-- STORY -->
 <div class="box">
 <h3>Story</h3>
 <p id="story"></p>
 <button onclick="downloadStory()">Download</button>
 </div>
 
-<!-- IMAGE -->
 <div class="box">
 <h3>Image</h3>
 <img id="image">
 <a id="imgDownload" class="download">Download</a>
 </div>
 
-<!-- VIDEO -->
 <div class="box">
 <h3>Video</h3>
 <video id="video" controls></video>
 <a id="vidDownload" class="download">Download</a>
 </div>
 
-<!-- ASK -->
 <div class="box">
 <h3>Ask Anything</h3>
 <input id="ask">
@@ -148,9 +138,12 @@ img,video{
 
 <script>
 const API="https://reelmindbackend-1.onrender.com";
+
 let mode="all";
+let language="english";
 
 function setMode(m){mode=m;}
+function setLang(l){language=l;}
 
 async function generate(){
   const prompt=document.getElementById("prompt").value;
@@ -160,16 +153,21 @@ async function generate(){
   const res=await fetch(API+"/generate",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt,mode})
+    body:JSON.stringify({prompt,mode,language})
   });
 
   const data=await res.json();
 
-  if(data.story) document.getElementById("story").innerText=data.story;
+  if(data.story){
+    document.getElementById("story").innerText=data.story;
+    speak(data.story);
+  }
+
   if(data.image){
     document.getElementById("image").src=data.image;
     document.getElementById("imgDownload").href=data.image;
   }
+
   if(data.video){
     document.getElementById("video").src=data.video;
     document.getElementById("vidDownload").href=data.video;
@@ -182,16 +180,22 @@ async function askAI(){
   const res=await fetch(API+"/ask",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({question:q})
+    body:JSON.stringify({question:q,language})
   });
 
   const data=await res.json();
+
   document.getElementById("answer").innerText=data.answer;
+  speak(data.answer);
+}
+
+function speak(text){
+  const speech=new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(speech);
 }
 
 function downloadStory(){
-  const text=document.getElementById("story").innerText;
-  const blob=new Blob([text]);
+  const blob=new Blob([document.getElementById("story").innerText]);
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download="story.txt";
