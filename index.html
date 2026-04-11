@@ -3,163 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReelMind AI • Unlimited Burst</title>
+    <title>ReelMind AI • Global Unlimited</title>
     <style>
-        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: radial-gradient(circle at center, #0f2027, #203a43, #2c5364); color: white; text-align: center; min-height: 100vh; overflow-x: hidden; }
+        body { margin: 0; font-family: Arial; background: radial-gradient(circle, #0f2027, #2c5364); color: white; text-align: center; min-height: 100vh; }
+        .logo-box { padding: 30px 0; }
+        .logo-img { width: 150px; filter: drop-shadow(0 0 10px cyan); } /* Uses 442630.png */
         
-        /* HEADER & LOGO */
-        .header-box { padding: 30px 0; }
-        .logo-img { width: 140px; filter: drop-shadow(0 0 10px cyan); transition: 0.5s; }
-        .logo-img:hover { transform: scale(1.05); }
-
-        /* AUTH BOX */
-        .auth-card { margin: 15px auto; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 12px; width: fit-content; border: 1px solid rgba(0, 255, 255, 0.1); font-size: 13px; }
-        #credits { font-weight: bold; color: cyan; margin: 0 0 5px 0; }
-        .social-btn { padding: 5px 10px; border-radius: 6px; border: none; background: white; color: black; font-weight: bold; font-size: 10px; cursor: pointer; margin: 0 3px; }
-        .social-btn:hover { background: cyan; }
-
-        /* INPUT AREA */
-        textarea { width: 85%; max-width: 650px; padding: 18px; border-radius: 20px; border: 1px solid rgba(0, 255, 255, 0.2); margin-top: 10px; background: rgba(0, 0, 0, 0.4); color: white; font-size: 16px; outline: none; box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.1); }
+        .status-badge { color: cyan; font-weight: bold; border: 1px solid cyan; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
+        
+        textarea { width: 85%; max-width: 650px; padding: 18px; border-radius: 20px; border: 1px solid rgba(0, 255, 255, 0.4); margin-top: 20px; background: rgba(0, 0, 0, 0.5); color: white; font-size: 16px; outline: none; }
         
         /* THE ICE CUBE INTERFACE */
-        .cube { width: 175px; height: 175px; margin: 35px auto; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 60px rgba(0, 255, 255, 0.3), inset 0 0 15px rgba(255, 255, 255, 0.1); transition: 0.5s; }
-        .cube:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 0 100px rgba(0, 255, 255, 0.5); }
+        .cube { width: 170px; height: 170px; margin: 30px auto; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(25px); border-radius: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 60px cyan; border: 1px solid rgba(255, 255, 255, 0.2); }
 
-        /* GENERATE BUTTON */
-        .gen-btn { padding: 14px 28px; border: none; border-radius: 12px; background: cyan; color: black; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; transition: 0.3s; box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); }
-        .gen-btn:hover { background: #fff; box-shadow: 0 0 40px #fff; }
+        .gen-btn { padding: 14px 28px; border: none; border-radius: 12px; background: cyan; color: black; font-weight: bold; cursor: pointer; text-transform: uppercase; }
 
-        /* OUTPUT CONTAINERS */
-        #output { margin-top: 10px; padding: 20px; }
-        .result-card { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 255, 255, 0.2); border-radius: 20px; padding: 25px; margin: 20px auto; max-width: 850px; text-align: left; line-height: 1.7; animation: slideIn 0.5s ease-out; }
+        #output { margin-top: 20px; padding: 20px; }
+        .result-card { background: rgba(0, 0, 0, 0.4); border: 1px solid cyan; border-radius: 20px; padding: 25px; margin: 20px auto; max-width: 850px; text-align: left; animation: fadeIn 0.5s; }
         
-        @keyframes slideIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-        img, video { max-width: 100%; border-radius: 15px; margin-top: 20px; border: 1px solid rgba(0, 255, 255, 0.5); box-shadow: 0 0 30px rgba(0, 255, 255, 0.2); display: block; margin-left: auto; margin-right: auto; }
+        img, video { max-width: 100%; border-radius: 15px; margin-top: 20px; box-shadow: 0 0 25px cyan; border: 1px solid rgba(0, 255, 255, 0.5); }
         
-        .result-btn { background: rgba(0, 255, 255, 0.1); border: 1px solid cyan; color: cyan; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-top: 15px; font-size: 13px; font-weight: bold; text-transform: uppercase; }
-
-        footer { margin-top: 50px; padding-bottom: 30px; font-size: 11px; color: #777; letter-spacing: 1px; }
+        .action-btn { background: white; color: black; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-top: 15px; font-weight: bold; font-size: 12px; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        footer { margin-top: 50px; padding-bottom: 30px; font-size: 11px; color: #888; }
     </style>
 </head>
 <body>
 
-<div class="header-box">
+<div class="logo-box">
     <img src="442630.png" alt="ReelMind AI" class="logo-img">
-    <h1 style="font-weight: 300; letter-spacing: 2px;">REELMIND <span style="color:cyan; font-weight: 800;">PRO</span></h1>
-    <span style="color:cyan; font-weight: bold; font-size: 11px; border: 1px solid cyan; padding: 3px 8px; border-radius: 4px;">✅ SaaS Level 17 v2.3.0 Burst Mode</span>
+    <h1>REELMIND <span style="color:cyan">GLOBAL</span></h1>
+    <span class="status-badge">✅ NATIVE LANGUAGE ENGINE ACTIVE</span>
 </div>
 
-<div class="auth-card">
-    <p id="credits">Node Credits: 5</p>
-    <div style="display: flex; gap: 4px;">
-        <button class="social-btn" onclick="alert('Google Auth Ready')">Google</button>
-        <button class="social-btn" onclick="alert('Apple Auth Ready')">Apple</button>
-        <button class="social-btn" onclick="alert('FB Auth Ready')">Facebook</button>
-    </div>
-</div>
-
-<textarea id="prompt" placeholder="Ex: 'cinematic image of a cyberpunk detective' or 'solution to renewable energy'..."></textarea>
+<textarea id="prompt" placeholder="Tell me something in Krio or any language..."></textarea>
 
 <div class="cube">
-  <button class="gen-btn" onclick="runProEngine()">Generate</button>
+  <button class="gen-btn" onclick="runGlobalEngine()">Generate</button>
 </div>
 
 <div id="output"></div>
 
-<footer>
-    &copy; 2026 REELMIND AI • UNLIMITED burst edition • POWERED BY ARTICAL NEAVY
-</footer>
+<footer>POWERED BY ARTICAL NEAVY • SAAS LEVEL 17</footer>
 
 <script>
-// IMPORTANT: This must match your Render Backend URL exactly
-const BASE_URL = "https://reelmindbackend-1.onrender.com";
+const API_BASE = "https://reelmindbackend-1.onrender.com";
 
-/* LOCAL SaaS STORAGE */
-let credits = parseInt(localStorage.getItem("pro_credits")) || 5;
-updateCreditsDisplay();
-
-function updateCreditsDisplay() {
-    document.getElementById("credits").innerText = "Level 17 Credits: " + credits;
-}
-
-/* NARRATION SERVICE */
+/* NATIVE VOICE NARATION */
 function speak(text) {
     window.speechSynthesis.cancel();
     const speech = new SpeechSynthesisUtterance(text);
-    speech.rate = 1.0;
+    // Auto-detects native pitch/speed
+    speech.rate = 0.9; 
     window.speechSynthesis.speak(speech);
 }
 
-/* DOWNLOAD TOOL */
-function downloadMedia(url) {
-    const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.download = "reelmind_creation";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
-
-/* 🎬 PRO BURST ENGINE */
-async function runProEngine() {
-    const promptText = document.getElementById("prompt").value;
+async function runGlobalEngine() {
+    const prompt = document.getElementById("prompt").value;
     const output = document.getElementById("output");
 
-    if (!promptText) return alert("Please enter your cinematic vision!");
-    if (credits <= 0) return alert("Credits empty! Wait 24h for recharge 💰");
-
-    // Deduct Credit (SaaS logic)
-    credits--;
-    localStorage.setItem("pro_credits", credits);
-    updateCreditsDisplay();
-
-    // Reset and show initial loading status
-    output.innerHTML = "<h3 style='color:cyan;'>🧊 ReelMind Core Level 17: Multi-Modal Burst...</h3><p>calibrating nodes... (up to 40s wait if server was sleeping)</p>";
+    if (!prompt) return alert("Vision required!");
+    output.innerHTML = "⚡ <span style='color:cyan'>Global Core</span> is translating and generating...";
 
     try {
-        // CALL CONCURRENT ENDPOINT
-        const response = await fetch(`${BASE_URL}/generate`, {
+        const res = await fetch(`${API_BASE}/generate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: promptText })
+            body: JSON.stringify({ prompt: prompt })
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
-        // RENDER RESULTS
         output.innerHTML = `
             <div class="result-card">
-                <h3 style="color:cyan;">🧠 Problem Solver & Story</h3>
+                <h3 style="color:cyan;">🧠 Native Language Script</h3>
                 <p>${data.text}</p>
-                <button class="result-btn" onclick="speak(\`${data.text.replace(/`/g, "'")}\`)">🔊 Narrate Solution</button>
+                <button class="action-btn" onclick="speak(\`${data.text.replace(/`/g, "'")}\`)">🔊 Hear Native Audio</button>
             </div>
 
             <div class="result-card">
-                <h3 style="color:cyan;">🖼 4K Cinematic Render</h3>
-                <img src="${data.image}" alt="ReelMind 4K Render">
-                <button class="result-btn" onclick="downloadMedia('${data.image}')">⬇ Download 4K Image</button>
+                <h3 style="color:cyan;">🖼 4K Cinematic Preview</h3>
+                <img src="${data.image}">
+                <br>
+                <button class="action-btn" onclick="window.open('${data.image}')">Download 4K</button>
             </div>
 
-            <div class="result-card" style="border-color: #8b5cf6;">
-                <h3 style="color:#8b5cf6;">🎥 AI Video Render (Professional)</h3>
-                <p style="color:rgba(255,255,255,0.7); font-size: 13px;">Pro video render task accepted. 
-                Runway Gen-3 nodes are processing this cinematic vision. Render time is ~60 seconds. 
-                Task ID: ${data.videoTask}</p>
-                <button class="result-btn" style="border-color:#8b5cf6; color:#8b5cf6;" onclick="alert('Render initiated. Check Runway dashboard or wait 60s for direct download.')">⏳ Initialize Video Render</button>
+            <div class="result-card">
+                <h3 style="color:cyan;">🎥 Video Motion Render</h3>
+                <p style="font-size: 12px;">Runway Gen-3 Engine Task: ${data.videoTask}</p>
+                <button class="action-btn" onclick="alert('Video generation processing on Runway nodes.')">Check Status</button>
             </div>
-
-            <br>
-            <button class="gen-btn" style="background:#fff; box-shadow:0 0 10px #fff;" onclick="window.scrollTo(0,0)">Create New</button>
         `;
 
     } catch (err) {
-        output.innerHTML = "<p style='color:#ff4d4d;'>⚠️ Core Glitch. Is the backend live on Render?</p>";
-        console.error(err);
+        output.innerHTML = "<p style='color:red;'>⚠️ Connection error. Click Generate again in 30s.</p>";
     }
 }
 </script>
-
 </body>
 </html>
