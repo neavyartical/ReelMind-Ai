@@ -8,89 +8,83 @@
     body {
       margin: 0;
       font-family: Arial;
-      color: white;
       text-align: center;
+      color: white;
 
-      /* 🔥 YOUR LOGO BACKGROUND */
-      background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)),
-      url("logo.jpg"); /* 🔁 PUT YOUR IMAGE NAME HERE */
+      background:
+        linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
+        url("logo.jpg");
 
       background-size: cover;
       background-position: center;
-      transition: 0.5s;
     }
 
     h1 {
       margin-top: 20px;
-      font-size: 30px;
       text-shadow: 0 0 20px cyan;
     }
 
     input {
-      padding: 12px;
+      padding: 14px;
       width: 85%;
       border-radius: 12px;
       border: none;
-      margin-top: 10px;
-      font-size: 16px;
     }
 
-    /* 🧊 GLASS CUBE */
+    /* 🧊 ICE CUBE */
     .cube {
-      margin: 40px auto;
-      width: 230px;
-      height: 230px;
-      background: rgba(0,255,255,0.08);
-      border-radius: 25px;
-      backdrop-filter: blur(25px);
+      margin: 50px auto;
+      width: 240px;
+      height: 240px;
+      border-radius: 30px;
+
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(30px);
+
+      box-shadow:
+        0 0 40px cyan,
+        inset 0 0 20px rgba(255,255,255,0.2);
+
       display: flex;
-      flex-direction: column;
+      align-items: center;
       justify-content: center;
-      gap: 12px;
-      box-shadow: 0 0 40px cyan, inset 0 0 20px rgba(255,255,255,0.2);
+
+      animation: float 4s infinite;
+    }
+
+    @keyframes float {
+      50% { transform: translateY(-15px); }
     }
 
     button {
-      padding: 12px;
+      padding: 16px 25px;
+      border-radius: 15px;
       border: none;
-      border-radius: 12px;
+
       background: linear-gradient(45deg, cyan, purple);
       color: white;
-      cursor: pointer;
       font-weight: bold;
-      font-size: 14px;
-      box-shadow: 0 0 10px cyan;
+
+      box-shadow: 0 0 15px cyan;
+      cursor: pointer;
     }
 
     #result {
       margin: 20px;
-      padding: 15px;
       background: rgba(0,0,0,0.6);
+      padding: 15px;
       border-radius: 12px;
       white-space: pre-wrap;
     }
 
-    #imageBox img {
+    img {
       width: 90%;
       border-radius: 15px;
       margin-top: 10px;
-      box-shadow: 0 0 20px purple;
-    }
-
-    .download-btn {
-      display: inline-block;
-      margin-top: 10px;
-      color: yellow;
-      font-weight: bold;
     }
 
     footer {
-      margin-top: 30px;
-      font-size: 14px;
-    }
-
-    a {
-      color: cyan;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -99,91 +93,67 @@
 
 <h1>🚀 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Try: dog, anime, car, story idea..." />
+<input id="prompt" placeholder="dog, anime, viral video idea..." />
 
 <div class="cube">
-  <button onclick="generate('text')">🧠 Text</button>
-  <button onclick="generate('image')">🖼 Image</button>
-  <button onclick="generate('video')">🎬 Video</button>
+  <button onclick="generate()">⚡ Generate</button>
 </div>
 
 <div id="result"></div>
 <div id="imageBox"></div>
 
 <footer>
-  🚀 Powered by <b>Artical Neavy</b><br><br>
+  🚀 Powered by <b>Artical Neavy</b><br>
   <a href="terms.html">Terms & Conditions</a>
 </footer>
 
 <script>
 const API = "https://reelmindbackend-1.onrender.com";
 
-async function generate(type) {
-  const input = document.getElementById("prompt").value;
-  const resultBox = document.getElementById("result");
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
+  const result = document.getElementById("result");
   const imageBox = document.getElementById("imageBox");
 
-  if (!input) {
-    resultBox.innerHTML = "Enter something first ❌";
+  if (!prompt) {
+    result.innerHTML = "Enter prompt ❌";
     return;
   }
 
-  resultBox.innerHTML = "⚡ Generating...";
+  result.innerHTML = "⚡ Generating...";
   imageBox.innerHTML = "";
 
-  let endpoint = "";
-
-  if (type === "text") endpoint = "/generate-text";
-  if (type === "image") endpoint = "/generate-image";
-  if (type === "video") endpoint = "/generate-video";
-
   try {
-    const res = await fetch(API + endpoint, {
+    const res = await fetch(API + "/generate-smart", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ prompt: input })
+      body: JSON.stringify({ prompt })
     });
 
     const data = await res.json();
 
-    console.log("API RESPONSE:", data);
+    console.log(data);
 
-    // 🖼 IMAGE FIX
-    if (type === "image") {
-      if (!data.image) {
-        resultBox.innerHTML = "❌ Image failed. Your API may not support image generation.";
-        return;
-      }
-
-      imageBox.innerHTML = `
-        <img src="${data.image}" />
-        <br>
-        <a href="${data.image}" download class="download-btn">⬇ Download</a>
-      `;
-
-      resultBox.innerHTML = "✅ Image Generated!";
+    // IMAGE
+    if (data.type === "image") {
+      imageBox.innerHTML = `<img src="${data.output}" />`;
+      result.innerHTML = "✅ Image Generated";
       return;
     }
 
-    // 🎬 VIDEO FIX
-    if (type === "video") {
-      if (!data.result) {
-        resultBox.innerHTML = "❌ Video generation failed.";
-        return;
-      }
-
-      resultBox.innerHTML = "🎬 Viral Video Idea:\n\n" + data.result;
+    // VIDEO
+    if (data.type === "video") {
+      result.innerHTML = "🎬 Video Plan:\n\n" + data.output;
       return;
     }
 
-    // 🧠 TEXT
-    resultBox.innerHTML = data.result || "No response";
+    // TEXT
+    result.innerHTML = data.output;
 
   } catch (err) {
-    console.error(err);
-    resultBox.innerHTML = "Server error ❌";
+    result.innerHTML = "Server error ❌";
   }
 }
 </script>
