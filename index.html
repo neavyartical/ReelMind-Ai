@@ -2,73 +2,151 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>ReelMind AI</title>
 
 <style>
 body {
-  margin:0;
-  font-family:Arial;
-  color:white;
-  text-align:center;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom, #ffffff, #e6f7ff);
+  text-align: center;
 }
 
-body::before {
-  content:"";
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:url("logo.jpg") center/cover no-repeat;
-  filter:brightness(0.4) blur(6px);
-  z-index:-2;
+/* Brain */
+.logo {
+  font-size: 40px;
+  margin-top: 20px;
 }
 
-input {
-  width:80%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  margin-top:20px;
+/* Input */
+textarea {
+  width: 80%;
+  height: 80px;
+  border-radius: 10px;
+  padding: 10px;
+  border: none;
+  box-shadow: 0 0 5px #ccc;
 }
 
-.cube {
-  width:160px;
-  height:160px;
-  margin:40px auto;
-  background:rgba(255,255,255,0.1);
-  border-radius:20px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  box-shadow:0 0 40px cyan;
+/* Ice cube */
+.generate-box {
+  margin: 30px auto;
+  width: 160px;
+  height: 160px;
+  background: white;
+  border-radius: 25px;
+  box-shadow: 0 0 35px cyan;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* Button */
 button {
-  padding:10px 20px;
-  border:none;
-  border-radius:10px;
-  background:cyan;
-  cursor:pointer;
+  background: cyan;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
+/* Output */
 #output {
-  margin-top:20px;
+  margin-top: 20px;
+  padding: 10px;
+}
+
+img, video {
+  max-width: 90%;
+  border-radius: 10px;
+  margin-top: 10px;
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<h1>🧠 ReelMind AI</h1>
+<div class="logo">🧠</div>
+<h2>ReelMind AI</h2>
 
-<input id="prompt" placeholder="Type anything...">
+<textarea id="prompt" placeholder="Type something..."></textarea>
 
-<div class="cube">
-  <button onclick="handleGenerate()">Generate</button>
+<div class="generate-box">
+  <button onclick="generate()">Generate</button>
 </div>
 
 <div id="output"></div>
 
-<script src="script.js"></script>
+<script>
+const API_KEY = "PASTE_YOUR_OPENROUTER_KEY";
+
+/* MAIN FUNCTION */
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
+  const output = document.getElementById("output");
+
+  if (!prompt) {
+    output.innerHTML = "⚠️ Enter something";
+    return;
+  }
+
+  output.innerHTML = "⏳ Generating...";
+
+  try {
+
+    /* ========= TEXT (FIXED MODEL) ========= */
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-3.5-turbo",   // ✅ FIXED MODEL
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+
+    let story = "⚠️ No text output";
+    if (data.choices) {
+      story = data.choices[0].message.content;
+    }
+
+    /* ========= IMAGE (POLLINATIONS) ========= */
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+
+    /* ========= VIDEO (DEMO UNTIL BACKEND FIX) ========= */
+    const videoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
+
+    /* ========= DISPLAY ========= */
+    output.innerHTML = `
+      <h3>📝 Story</h3>
+      <p>${story}</p>
+
+      <h3>🖼 Image</h3>
+      <img src="${imageUrl}">
+
+      <br><br>
+      <a href="${imageUrl}" download>
+        <button>Download Image</button>
+      </a>
+
+      <h3>🎬 Video</h3>
+      <video controls>
+        <source src="${videoUrl}" type="video/mp4">
+      </video>
+    `;
+
+  } catch (err) {
+    output.innerHTML = "❌ Error: " + err.message;
+  }
+}
+</script>
 
 </body>
 </html>
