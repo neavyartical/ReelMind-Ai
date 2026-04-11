@@ -1,65 +1,49 @@
-const API_URL = "https://reelmindbackend-1.onrender.com";
-
-/* GENERATE */
 async function generate(type) {
   const prompt = document.getElementById("prompt").value;
-  const resultDiv = document.getElementById("result");
+  const result = document.getElementById("result");
 
-  resultDiv.innerHTML = "⏳ Generating...";
-
-  const res = await fetch(`${API_URL}/generate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ prompt, type }),
-  });
-
-  const data = await res.json();
-
-  let output = "";
-
-  if (data.story) {
-    output += `<p>${data.story}</p>`;
+  if (!prompt) {
+    result.innerHTML = "⚠️ Please enter something";
+    return;
   }
 
-  if (data.image) {
-    output += `<img src="${data.image}" width="100%" />`;
-  }
+  result.innerHTML = "⏳ Generating...";
 
-  if (data.video) {
-    output += `<video src="${data.video}" controls width="100%"></video>`;
-  }
+  try {
+    const res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt, type })
+    });
 
-  resultDiv.innerHTML = output;
+    const data = await res.json();
+
+    if (type === "image") {
+      result.innerHTML = `<img src="${data.output}" />`;
+    } else {
+      result.innerHTML = `<p>${data.output}</p>`;
+    }
+
+  } catch (err) {
+    result.innerHTML = "❌ Error generating";
+  }
 }
 
 /* ASK AI */
-async function askAI() {
-  const question = document.getElementById("prompt").value;
-  const resultDiv = document.getElementById("result");
-
-  resultDiv.innerHTML = "⏳ Thinking...";
-
-  const res = await fetch(`${API_URL}/ask`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ question }),
-  });
-
-  const data = await res.json();
-  resultDiv.innerHTML = `<p>${data.answer}</p>`;
+function askAI() {
+  generate("all");
 }
 
 /* DOWNLOAD */
 function downloadResult() {
-  const text = document.getElementById("result").innerText;
-  const blob = new Blob([text], { type: "text/plain" });
+  const content = document.getElementById("result").innerText;
 
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "reelmind.txt";
-  a.click();
+  const blob = new Blob([content], { type: "text/plain" });
+  const link = document.createElement("a");
+
+  link.href = URL.createObjectURL(blob);
+  link.download = "reelmind.txt";
+  link.click();
 }
