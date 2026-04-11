@@ -2,133 +2,179 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReelMind AI</title>
 
 <style>
 body {
-  font-family: Arial;
+  font-family: Arial, sans-serif;
+  background: #f5f7fa;
+  margin: 0;
   text-align: center;
-  background: #f5f5f5;
 }
 
 .container {
-  margin-top: 50px;
+  max-width: 500px;
+  margin: auto;
+  padding: 20px;
 }
 
-input {
-  width: 80%;
-  padding: 15px;
+h1 {
+  margin-bottom: 10px;
+}
+
+textarea {
+  width: 100%;
+  padding: 12px;
   border-radius: 10px;
   border: 1px solid #ccc;
+  resize: none;
 }
 
 button {
-  margin-top: 20px;
-  padding: 15px 30px;
+  margin-top: 15px;
+  padding: 12px 25px;
   border: none;
   border-radius: 10px;
-  background: #00c2b2;
+  background: #00c9a7;
   color: white;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
 }
 
-.result {
-  margin-top: 30px;
+button:hover {
+  background: #00a98c;
 }
 
-img {
-  max-width: 90%;
-  border-radius: 10px;
+.output {
+  margin-top: 20px;
+  text-align: left;
 }
 
-video {
-  max-width: 90%;
+.section {
+  margin-top: 25px;
+}
+
+img, video {
+  width: 100%;
   border-radius: 10px;
+  margin-top: 10px;
+}
+
+.loader {
+  margin-top: 10px;
+  display: none;
 }
 </style>
-</head>
 
+</head>
 <body>
+
+<div class="container">
 
 <h1>🧠 ReelMind AI</h1>
 
-<div class="container">
-  <input id="prompt" placeholder="Enter prompt..." />
-  <br>
-  <button onclick="generate()">Generate</button>
+<textarea id="prompt" rows="3" placeholder="Enter your idea..."></textarea>
+
+<br>
+<button onclick="generate()">Generate</button>
+
+<div class="loader" id="loader">⏳ Generating...</div>
+
+<div class="output">
+
+<div class="section">
+<h3>✍️ Story</h3>
+<p id="story">No story generated</p>
 </div>
 
-<div class="result">
+<div class="section">
+<h3>🖼 Image</h3>
+<img id="image" />
+<a id="downloadLink" download="image.png">
+<button>Download Image</button>
+</a>
+</div>
 
-  <h3>✍️ Story</h3>
-  <p id="story">...</p>
+<div class="section">
+<h3>🎬 Video</h3>
+<video id="video" controls></video>
+</div>
 
-  <h3>🖼️ Image</h3>
-  <img id="image" />
-
-  <br><br>
-  <a id="download" download="image.png">
-    <button>Download Image</button>
-  </a>
-
-  <h3>🎬 Video</h3>
-  <video id="video" controls></video>
+</div>
 
 </div>
 
 <script>
 
+// 🔑 PUT YOUR KEYS HERE
+const OPENROUTER_KEY = "PASTE_OPENROUTER_KEY";
+const RUNWAY_KEY = "PASTE_RUNWAY_KEY";
+
 async function generate() {
   const prompt = document.getElementById("prompt").value;
 
-  document.getElementById("story").innerText = "Loading...";
+  if (!prompt) {
+    alert("Enter something!");
+    return;
+  }
+
+  document.getElementById("loader").style.display = "block";
+
+  // RESET OUTPUT
+  document.getElementById("story").innerText = "Generating...";
   document.getElementById("image").src = "";
   document.getElementById("video").src = "";
 
-  // 🔥 FIXED OpenRouter (WORKING MODEL)
+  // =========================
+  // 1. STORY (OpenRouter FIXED)
+  // =========================
   try {
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer YOUR_OPENROUTER_KEY",
+        "Authorization": "Bearer " + OPENROUTER_KEY,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }]
+        messages: [
+          { role: "user", content: "Write a short viral story about: " + prompt }
+        ]
       })
     });
 
     const data = await res.json();
+
     document.getElementById("story").innerText =
-      data.choices?.[0]?.message?.content || "No story generated";
+      data.choices?.[0]?.message?.content || "Story failed";
 
   } catch (e) {
     document.getElementById("story").innerText = "Error generating story";
   }
 
-  // ✅ Pollinations Image (WORKING)
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
-  document.getElementById("image").src = imageUrl;
-  document.getElementById("download").href = imageUrl;
-
-  // 🎬 Runway (PLACEHOLDER - your backend should handle this)
+  // =========================
+  // 2. IMAGE (Pollinations)
+  // =========================
   try {
-    const videoRes = await fetch("https://your-backend-url/video", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
+    const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
-    const videoData = await videoRes.json();
-    document.getElementById("video").src = videoData.video_url;
+    document.getElementById("image").src = imgUrl;
+    document.getElementById("downloadLink").href = imgUrl;
 
-  } catch (e) {
-    console.log("Video failed");
-  }
+  } catch (e) {}
+
+  // =========================
+  // 3. VIDEO (Runway - demo fallback)
+  // =========================
+  try {
+    // ⚠️ Runway API is complex → for now demo video
+    document.getElementById("video").src =
+      "https://www.w3schools.com/html/mov_bbb.mp4";
+
+  } catch (e) {}
+
+  document.getElementById("loader").style.display = "none";
 }
 
 </script>
