@@ -6,10 +6,9 @@
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background: #f5f7fa;
   text-align: center;
-  margin: 0;
   padding: 20px;
 }
 
@@ -18,48 +17,26 @@ body {
   margin: auto;
 }
 
-h1 {
-  margin-bottom: 20px;
-}
-
 textarea {
   width: 100%;
   height: 80px;
   border-radius: 10px;
-  border: 1px solid #ccc;
   padding: 10px;
-  font-size: 16px;
 }
 
 button {
   margin-top: 15px;
   padding: 12px 25px;
-  border: none;
-  border-radius: 10px;
   background: #00b894;
   color: white;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #019874;
-}
-
-.section {
-  margin-top: 25px;
-  text-align: left;
+  border: none;
+  border-radius: 10px;
 }
 
 img, video {
   width: 100%;
+  margin-top: 10px;
   border-radius: 10px;
-  margin-top: 10px;
-}
-
-.loader {
-  margin-top: 10px;
-  color: #999;
 }
 </style>
 
@@ -70,32 +47,18 @@ img, video {
 
 <h1>🧠 ReelMind AI</h1>
 
-<textarea id="prompt" placeholder="Enter your idea..."></textarea>
-
-<br>
+<textarea id="prompt" placeholder="Enter idea..."></textarea>
 <button onclick="generate()">Generate</button>
 
-<div class="section">
 <h3>✍️ Story</h3>
-<p id="story">No story yet</p>
-<p id="storyLoader" class="loader"></p>
-</div>
+<p id="story"></p>
 
-<div class="section">
 <h3>🖼 Image</h3>
-<p id="imageLoader" class="loader"></p>
-<img id="image" src="">
-<br>
-<a id="downloadLink" download="image.png">
-<button>Download Image</button>
-</a>
-</div>
+<img id="image">
+<a id="download" download="image.png"><button>Download</button></a>
 
-<div class="section">
 <h3>🎬 Video</h3>
-<p id="videoLoader" class="loader"></p>
 <video id="video" controls></video>
-</div>
 
 </div>
 
@@ -103,77 +66,25 @@ img, video {
 async function generate() {
   const prompt = document.getElementById("prompt").value;
 
-  // RESET UI
-  document.getElementById("story").innerText = "";
-  document.getElementById("image").src = "";
-  document.getElementById("video").src = "";
+  // STORY (backend)
+  const storyRes = await fetch("https://YOUR-RENDER-URL.onrender.com/story", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ prompt })
+  });
 
-  document.getElementById("storyLoader").innerText = "Generating story...";
-  document.getElementById("imageLoader").innerText = "Generating image...";
-  document.getElementById("videoLoader").innerText = "Generating video...";
+  const storyData = await storyRes.json();
+  document.getElementById("story").innerText =
+    storyData.choices?.[0]?.message?.content || "Story failed";
 
-  // =========================
-  // STORY (OPENROUTER FIXED)
-  // =========================
-  try {
-    const storyRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer YOUR_OPENROUTER_KEY",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "mistralai/mistral-7b-instruct",
-        messages: [
-          { role: "user", content: "Write a short viral story: " + prompt }
-        ]
-      })
-    });
+  // IMAGE (Pollinations)
+  const imageUrl = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
+  document.getElementById("image").src = imageUrl;
+  document.getElementById("download").href = imageUrl;
 
-    const storyData = await storyRes.json();
-
-    document.getElementById("story").innerText =
-      storyData.choices?.[0]?.message?.content || "Story failed";
-
-  } catch (e) {
-    document.getElementById("story").innerText = "Story error";
-  }
-
-  document.getElementById("storyLoader").innerText = "";
-
-  // =========================
-  // IMAGE (POLLINATIONS FAST)
-  // =========================
-  try {
-    const imageUrl = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
-    
-    // preload trick (fix slow loading issue)
-    const img = new Image();
-    img.src = imageUrl;
-
-    img.onload = () => {
-      document.getElementById("image").src = imageUrl;
-      document.getElementById("downloadLink").href = imageUrl;
-      document.getElementById("imageLoader").innerText = "";
-    };
-
-  } catch (e) {
-    document.getElementById("imageLoader").innerText = "Image failed";
-  }
-
-  // =========================
-  // VIDEO (RUNWAY READY)
-  // =========================
-  try {
-    // TEMP demo video (replace with Runway API later)
-    document.getElementById("video").src =
-      "https://www.w3schools.com/html/mov_bbb.mp4";
-
-    document.getElementById("videoLoader").innerText = "";
-
-  } catch (e) {
-    document.getElementById("videoLoader").innerText = "Video failed";
-  }
+  // VIDEO (temporary demo)
+  document.getElementById("video").src =
+    "https://www.w3schools.com/html/mov_bbb.mp4";
 }
 </script>
 
