@@ -2,123 +2,86 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReelMind AI</title>
 
 <style>
 body {
-  margin:0;
-  font-family:Arial, sans-serif;
-  color:white;
-  text-align:center;
-  overflow-x:hidden;
+  margin: 0;
+  font-family: Arial;
+  color: white;
+  text-align: center;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  overflow-x: hidden;
 }
 
-/* 🔥 BACKGROUND (YOUR LOGO) */
-body::before {
-  content:"";
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:url("logo.jpg") center/cover no-repeat;
-  filter:brightness(0.4) blur(6px);
-  z-index:-2;
+/* Background Image */
+.bg-img {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: url("YOUR_IMAGE_HERE.jpg") center/cover no-repeat;
+  opacity: 0.15;
+  z-index: -1;
 }
 
-/* GLOW EFFECT */
-body::after {
-  content:"";
-  position:fixed;
-  width:100%;
-  height:100%;
-  background: radial-gradient(circle at center, rgba(0,255,255,0.2), transparent);
-  z-index:-1;
-}
-
-h1 {
-  margin-top:30px;
-}
-
-/* INPUT */
-input {
-  width:80%;
-  padding:15px;
-  border:none;
-  border-radius:15px;
-  margin-top:20px;
-  font-size:16px;
-  outline:none;
-}
-
-/* ❄️ ICE CUBE */
+/* Ice Cube */
 .cube {
-  width:160px;
-  height:160px;
-  margin:40px auto;
-  background:rgba(255,255,255,0.1);
-  backdrop-filter: blur(25px);
-  border-radius:25px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 0 50px cyan;
-  animation: float 3s ease-in-out infinite;
+  margin: 40px auto;
+  width: 160px;
+  height: 160px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  box-shadow: 0 0 40px cyan;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-@keyframes float {
-  0% { transform:translateY(0);}
-  50% { transform:translateY(-10px);}
-  100% { transform:translateY(0);}
-}
-
-/* BUTTON */
+/* Button */
 button {
-  padding:12px 25px;
-  border:none;
-  border-radius:10px;
-  background:cyan;
-  color:black;
-  font-weight:bold;
-  cursor:pointer;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: cyan;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-/* OUTPUT */
+/* Input */
+input {
+  width: 80%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-top: 20px;
+}
+
+/* Output */
 #output {
-  margin-top:20px;
-  padding:20px;
-  text-align:left;
-  white-space:pre-wrap;
+  margin-top: 20px;
 }
 
-/* IMAGE */
-#imagePreview {
-  max-width:90%;
-  margin-top:20px;
-  border-radius:15px;
-  display:none;
-  box-shadow:0 0 20px cyan;
+img {
+  max-width: 90%;
+  border-radius: 10px;
+  margin-top: 20px;
 }
 
-/* DOWNLOAD */
-#downloadBtn {
-  display:none;
-  margin-top:10px;
-}
-
-/* FOOTER */
-.footer {
-  margin-top:40px;
-  font-size:12px;
-  opacity:0.7;
+.download {
+  margin-top: 10px;
 }
 </style>
 </head>
 
 <body>
 
+<div class="bg-img"></div>
+
 <h1>🧠 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Ask anything (stories, ideas, image, video...)">
+<input id="prompt" placeholder="Type anything... (image, video, story, ideas)">
 
 <div class="cube">
   <button onclick="generate()">Generate</button>
@@ -126,66 +89,90 @@ button {
 
 <div id="output"></div>
 
-<img id="imagePreview">
-<br>
-<button id="downloadBtn">Download Image</button>
-
-<div class="footer">
-  Powered by Artical Neavy 🚀
-</div>
-
 <script>
 async function generate() {
-  const prompt = document.getElementById("prompt").value.trim();
+  const prompt = document.getElementById("prompt").value;
   const output = document.getElementById("output");
-  const img = document.getElementById("imagePreview");
-  const downloadBtn = document.getElementById("downloadBtn");
 
-  if (!prompt) {
-    output.innerHTML = "❌ Please enter something";
+  output.innerHTML = "⏳ Generating...";
+
+  /* =========================
+     IMAGE GENERATION (FIXED)
+  ==========================*/
+  if (prompt.toLowerCase().includes("image") || prompt.toLowerCase().includes("photo")) {
+
+    let img = new Image();
+
+    // Primary API
+    img.src = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
+
+    img.onload = () => {
+      output.innerHTML = "";
+      output.appendChild(img);
+
+      let btn = document.createElement("button");
+      btn.innerText = "Download Image";
+      btn.className = "download";
+      btn.onclick = () => {
+        let a = document.createElement("a");
+        a.href = img.src;
+        a.download = "image.png";
+        a.click();
+      };
+
+      output.appendChild(btn);
+    };
+
+    // 🔥 Fallback if API fails
+    img.onerror = () => {
+      output.innerHTML = `
+        ❌ Image API failed<br><br>
+        <img src="https://source.unsplash.com/800x500/?${encodeURIComponent(prompt)}">
+      `;
+    };
+
     return;
   }
 
-  output.innerHTML = "⚡ Generating...";
-  img.style.display = "none";
-  downloadBtn.style.display = "none";
+  /* =========================
+     VIDEO GENERATION (SMART)
+  ==========================*/
+  if (prompt.toLowerCase().includes("video")) {
 
+    output.innerHTML = `
+      🎬 Video generation is limited (no free API)<br><br>
+      Here is a storyboard idea:<br><br>
+      <b>Scene 1:</b> ${prompt}<br>
+      <b>Scene 2:</b> Action continues<br>
+      <b>Scene 3:</b> Cinematic ending
+    `;
+    return;
+  }
+
+  /* =========================
+     TEXT / STORY (OpenRouter)
+  ==========================*/
   try {
-    const res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
+    let res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": "Bearer YOUR_OPENROUTER_KEY",
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({
+        model: "openai/gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }]
+      })
     });
 
-    const data = await res.json();
-    console.log("RESPONSE:", data);
+    let data = await res.json();
 
-    /* 🧠 TEXT OUTPUT */
-    if (data.result) {
-      output.innerHTML = data.result;
-    } else {
-      output.innerHTML = "⚠️ No response from AI";
-    }
+    let text = data.choices?.[0]?.message?.content || "No response";
 
-    /* 🖼 IMAGE OUTPUT */
-    if (data.image) {
-      img.src = data.image;
-      img.style.display = "block";
+    output.innerHTML = "<p>" + text + "</p>";
 
-      downloadBtn.style.display = "inline-block";
-      downloadBtn.onclick = () => {
-        const a = document.createElement("a");
-        a.href = data.image;
-        a.download = "reelmind.png";
-        a.click();
-      };
-    }
-
-  } catch (error) {
-    console.error(error);
-    output.innerHTML = "❌ Failed to connect to server";
+  } catch (e) {
+    output.innerHTML = "❌ Error generating text";
   }
 }
 </script>
