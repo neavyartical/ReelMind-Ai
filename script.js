@@ -1,37 +1,71 @@
-const API = "https://reelmindbackend-1.onrender.com";
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
+  const output = document.getElementById("output");
+  const downloadBtn = document.getElementById("downloadBtn");
 
-async function generate(type) {
-  const input = document.getElementById("prompt").value;
-  const resultBox = document.getElementById("result");
-  const imageBox = document.getElementById("imageBox");
+  output.innerHTML = "⏳ Generating...";
+  downloadBtn.style.display = "none";
 
-  resultBox.innerHTML = "⚡ Generating...";
-  imageBox.innerHTML = "";
-
-  let endpoint = "";
-
-  if (type === "text") endpoint = "/generate-text";
-  if (type === "image") endpoint = "/generate-image";
-  if (type === "video") endpoint = "/generate-video";
-
-  const res = await fetch(API + endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ prompt: input })
-  });
-
-  const data = await res.json();
-
-  if (data.image) {
-    imageBox.innerHTML = `
-      <img src="${data.image}" class="generated-img"/>
-      <a href="${data.image}" download class="download-btn">Download</a>
-    `;
-    document.body.style.backgroundImage = `url(${data.image})`;
+  if (!prompt) {
+    output.innerHTML = "❌ Enter something";
     return;
   }
 
-  resultBox.innerHTML = data.result;
+  const lower = prompt.toLowerCase();
+
+  // 🧠 DETECT MODE
+  if (lower.includes("image") || lower.includes("photo") || lower.includes("picture")) {
+    generateImage(prompt);
+  } else if (lower.includes("video")) {
+    generateVideo(prompt);
+  } else {
+    generateText(prompt);
+  }
+}
+
+// 🎨 IMAGE GENERATION (REAL FIX)
+function generateImage(prompt) {
+  const output = document.getElementById("output");
+  const downloadBtn = document.getElementById("downloadBtn");
+
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+
+  output.innerHTML = `<img src="${url}" id="genImg">`;
+
+  // DOWNLOAD FIX
+  downloadBtn.href = url;
+  downloadBtn.style.display = "inline-block";
+  downloadBtn.innerText = "⬇ Download Image";
+}
+
+// 🎬 VIDEO (SMART SYSTEM)
+function generateVideo(prompt) {
+  const output = document.getElementById("output");
+
+  output.innerHTML = `
+  🎬 <b>Video Generation (Pro Feature)</b><br><br>
+  We are preparing your cinematic AI video...<br><br>
+  🔒 Unlock full video generation in ReelMind Pro 🚀
+  `;
+}
+
+// 🧠 TEXT GENERATION (BACKEND)
+async function generateText(prompt) {
+  const output = document.getElementById("output");
+
+  try {
+    const res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+    output.innerText = data.result;
+
+  } catch {
+    output.innerText = "❌ Server error";
+  }
 }
