@@ -1,35 +1,21 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Terms & Conditions</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: Arial;
-      background: #020617;
-      color: white;
-      padding: 20px;
-    }
-  </style>
+<title>Terms</title>
 </head>
-
-<body>
+<body style="background:black;color:white;padding:20px">
 
 <h1>Terms & Conditions</h1>
 
-<p>Welcome to ReelMind AI.</p>
-
-<p>By using this app, you agree to the following:</p>
+<p>By using ReelMind AI, you agree to:</p>
 
 <ul>
-  <li>This app generates AI-based content for creative purposes.</li>
-  <li>We do not guarantee accuracy or performance of generated content.</li>
-  <li>You are responsible for how you use generated content.</li>
-  <li>Do not use this app for illegal or harmful activities.</li>
+<li>No illegal content</li>
+<li>No harmful or abusive usage</li>
+<li>AI results may not be 100% accurate</li>
 </ul>
 
-<p>🚀 Powered by Artical Neavy</p>
+<p>© ReelMind AI - Artical Neavy</p>
 
 </body>
 </html>
