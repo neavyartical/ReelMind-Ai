@@ -8,8 +8,8 @@
     body {
       margin: 0;
       font-family: Arial;
-      text-align: center;
       color: white;
+      text-align: center;
 
       background:
         linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
@@ -48,12 +48,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-
-      animation: float 4s infinite;
-    }
-
-    @keyframes float {
-      50% { transform: translateY(-15px); }
     }
 
     button {
@@ -83,9 +77,18 @@
       margin-top: 10px;
     }
 
+    .download {
+      display: inline-block;
+      margin-top: 10px;
+      color: yellow;
+      font-weight: bold;
+    }
+
     footer {
       margin-top: 20px;
     }
+
+    a { color: cyan; }
   </style>
 </head>
 
@@ -136,20 +139,24 @@ async function generate() {
 
     console.log(data);
 
-    // IMAGE
+    // 🖼 IMAGE
     if (data.type === "image") {
-      imageBox.innerHTML = `<img src="${data.output}" />`;
+      imageBox.innerHTML = `
+        <img src="${data.output}" />
+        <br>
+        <a href="${data.output}" download class="download">⬇ Download Image</a>
+      `;
       result.innerHTML = "✅ Image Generated";
       return;
     }
 
-    // VIDEO
+    // 🎬 VIDEO
     if (data.type === "video") {
-      result.innerHTML = "🎬 Video Plan:\n\n" + data.output;
+      result.innerHTML = "🎬 Viral Video Script:\n\n" + data.output;
       return;
     }
 
-    // TEXT
+    // 🧠 TEXT
     result.innerHTML = data.output;
 
   } catch (err) {
