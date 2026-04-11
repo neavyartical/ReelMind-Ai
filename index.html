@@ -1,55 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>ReelMind Global</title>
+  <title>ReelMind Global</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body {
-  font-family: Arial;
-  background: #0f0f0f;
-  color: white;
-  text-align: center;
-}
+  <style>
+    body {
+      background: #0a0a0a;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+      padding: 20px;
+    }
 
-h1 {
-  color: #00ff88;
-}
+    h1 {
+      color: #00ff88;
+    }
 
-input {
-  width: 80%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-}
+    input {
+      width: 90%;
+      padding: 15px;
+      border-radius: 10px;
+      border: none;
+      margin: 10px;
+    }
 
-button {
-  padding: 12px 25px;
-  margin-top: 10px;
-  border: none;
-  border-radius: 10px;
-  background: #00ff88;
-  font-weight: bold;
-  cursor: pointer;
-}
+    button {
+      padding: 15px 30px;
+      border-radius: 10px;
+      border: none;
+      background: #00ff88;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-.section {
-  margin-top: 30px;
-  padding: 15px;
-  background: #1a1a1a;
-  border-radius: 10px;
-}
+    .box {
+      margin-top: 20px;
+      padding: 15px;
+      background: #1a1a1a;
+      border-radius: 10px;
+    }
 
-img {
-  width: 100%;
-  border-radius: 10px;
-}
-
-video {
-  width: 100%;
-  border-radius: 10px;
-}
-</style>
+    img, video {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
 <body>
@@ -60,72 +58,78 @@ video {
 <br>
 <button onclick="generate()">Generate</button>
 
-<div class="section">
-  <h2>✍️ Story</h2>
-  <p id="story">...</p>
+<div class="box">
+  <h3>✍️ Story</h3>
+  <div id="story">...</div>
 </div>
 
-<div class="section">
-  <h2>🖼 Image</h2>
-  <img id="image" />
+<div class="box">
+  <h3>🖼 Image</h3>
+  <img id="image"/>
 </div>
 
-<div class="section">
-  <h2>🎬 Video</h2>
+<div class="box">
+  <h3>🎬 Video</h3>
   <video id="video" controls></video>
 </div>
 
 <script>
-const BASE_URL = "https://reelmindbackend-1.onrender.com";
+const API = "https://reelmindbackend-1.onrender.com";
+
+let loading = false;
 
 async function generate() {
+  if (loading) return; // 🔥 prevent loop
+  loading = true;
+
   const prompt = document.getElementById("prompt").value;
 
-  // Reset UI
-  document.getElementById("story").innerText = "Loading...";
+  document.getElementById("story").innerText = "Generating...";
   document.getElementById("image").src = "";
-  
-  const videoEl = document.getElementById("video");
-  videoEl.pause();
-  videoEl.src = "";
-  videoEl.load();
+  document.getElementById("video").src = "";
 
   try {
-    // STORY
-    const storyRes = await fetch(BASE_URL + "/api/story", {
+
+    // 🔥 STORY
+    const storyRes = await fetch(API + "/story", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt })
     });
 
     const storyData = await storyRes.json();
-    document.getElementById("story").innerText = storyData.story;
+    document.getElementById("story").innerText = storyData.story || "Failed";
 
-    // IMAGE
-    const imgRes = await fetch(BASE_URL + "/api/image", {
+    // 🔥 IMAGE
+    const imgRes = await fetch(API + "/image", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt })
     });
 
     const imgData = await imgRes.json();
     document.getElementById("image").src = imgData.image;
 
-    // VIDEO
-    const vidRes = await fetch(BASE_URL + "/api/video", {
+    // 🔥 VIDEO (REAL RUNWAY)
+    const vidRes = await fetch(API + "/video", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt })
     });
 
     const vidData = await vidRes.json();
 
-    videoEl.src = vidData.video;
-    videoEl.controls = true;
+    if (vidData.video) {
+      document.getElementById("video").src = vidData.video;
+    } else {
+      document.getElementById("video").outerHTML = "<p>⚠️ Video processing... check backend logs</p>";
+    }
 
   } catch (err) {
-    document.getElementById("story").innerText = "❌ Error connecting to AI";
+    document.getElementById("story").innerText = "❌ AI Error";
   }
+
+  loading = false;
 }
 </script>
 
