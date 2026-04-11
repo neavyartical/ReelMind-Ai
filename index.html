@@ -1,216 +1,214 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReelMind AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      color: white;
-      text-align: center;
-      background: linear-gradient(270deg, #ff7a18, #7b2ff7, #020617);
-      background-size: 600% 600%;
-      animation: bgMove 10s infinite alternate;
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  color:white;
+  background:#020617;
+  overflow:hidden;
+}
 
-    @keyframes bgMove {
-      0% { background-position: left; }
-      100% { background-position: right; }
-    }
+/* BACKGROUND IMAGE */
+.bg{
+  position:fixed;
+  width:100%;
+  height:100%;
+  background-size:cover;
+  background-position:center;
+  filter:blur(25px) brightness(0.4);
+  z-index:-2;
+}
 
-    input {
-      padding: 12px;
-      width: 85%;
-      border-radius: 10px;
-      border: none;
-      margin-top: 15px;
-    }
+/* GLOW */
+.overlay{
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:radial-gradient(circle,#7b2ff755,#000);
+  z-index:-1;
+}
 
-    button {
-      padding: 10px 16px;
-      border-radius: 10px;
-      border: none;
-      margin: 5px;
-      background: linear-gradient(45deg,#ff7a18,#7b2ff7);
-      color: white;
-      cursor: pointer;
-    }
+/* AVATAR */
+.avatar{
+  width:90px;
+  height:90px;
+  margin:20px auto;
+  border-radius:50%;
+  background:linear-gradient(45deg,#ff7a18,#7b2ff7);
+  animation:pulse 2s infinite;
+}
 
-    /* 🧊 CUBE */
-    .scene {
-      width: 200px;
-      height: 200px;
-      margin: 60px auto;
-      perspective: 800px;
-    }
+@keyframes pulse{
+  50%{transform:scale(1.1);}
+}
 
-    .cube {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      transform-style: preserve-3d;
-      animation: spin 6s infinite linear;
-    }
+/* CUBE */
+.scene{
+  width:200px;
+  height:200px;
+  margin:40px auto;
+  perspective:800px;
+}
 
-    .face {
-      position: absolute;
-      width: 200px;
-      height: 200px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.2);
-    }
+.cube{
+  width:100%;
+  height:100%;
+  transform-style:preserve-3d;
+  animation:spin 6s infinite linear;
+}
 
-    .front  { transform: rotateY(0deg) translateZ(100px); }
-    .back   { transform: rotateY(180deg) translateZ(100px); }
-    .right  { transform: rotateY(90deg) translateZ(100px); }
-    .left   { transform: rotateY(-90deg) translateZ(100px); }
-    .top    { transform: rotateX(90deg) translateZ(100px); }
-    .bottom { transform: rotateX(-90deg) translateZ(100px); }
+.face{
+  position:absolute;
+  width:200px;
+  height:200px;
+  background:rgba(255,255,255,0.05);
+  border-radius:20px;
+}
 
-    @keyframes spin {
-      from { transform: rotateX(0deg) rotateY(0deg); }
-      to { transform: rotateX(360deg) rotateY(360deg); }
-    }
+.front{transform:rotateY(0) translateZ(100px);}
+.back{transform:rotateY(180deg) translateZ(100px);}
+.right{transform:rotateY(90deg) translateZ(100px);}
+.left{transform:rotateY(-90deg) translateZ(100px);}
+.top{transform:rotateX(90deg) translateZ(100px);}
+.bottom{transform:rotateX(-90deg) translateZ(100px);}
 
-    .center-btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) translateZ(120px);
-    }
+@keyframes spin{
+  to{transform:rotateX(360deg) rotateY(360deg);}
+}
 
-    #result {
-      margin: 20px;
-      padding: 15px;
-      background: rgba(0,0,0,0.5);
-      border-radius: 10px;
-      white-space: pre-wrap;
-    }
-  </style>
+.center{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) translateZ(120px);
+}
+
+/* UI */
+input{
+  width:80%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+}
+
+button{
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  margin:5px;
+  background:linear-gradient(45deg,#ff7a18,#7b2ff7);
+  color:white;
+}
+
+#result{
+  margin:20px;
+  padding:15px;
+  background:rgba(0,0,0,0.6);
+  border-radius:10px;
+  white-space:pre-wrap;
+}
+</style>
 </head>
 
 <body>
 
-<h1>🧠 ReelMind AI</h1>
+<div class="bg" id="bg"></div>
+<div class="overlay"></div>
 
-<input id="prompt" placeholder="Enter viral idea..." />
+<h1 style="text-align:center;">ReelMind AI</h1>
 
-<!-- MODE -->
-<div>
-  <button onclick="setMode('text')">🧠 Text</button>
-  <button onclick="setMode('image')">🖼️ Image</button>
-  <button onclick="setMode('video')">🎬 Video</button>
+<div class="avatar"></div>
+
+<center>
+<input id="prompt" placeholder="Type anything (dog, car, anime...)">
+<br>
+
+<button onclick="setMode('text')">Text</button>
+<button onclick="setMode('image')">Image</button>
+<button onclick="setMode('video')">Video</button>
+
+<p id="mode">Mode: TEXT</p>
+</center>
+
+<div class="scene">
+<div class="cube">
+
+<div class="face front"></div>
+<div class="face back"></div>
+<div class="face right"></div>
+<div class="face left"></div>
+<div class="face top"></div>
+<div class="face bottom"></div>
+
+<div class="center">
+<button onclick="generate()">Generate ⚡</button>
 </div>
 
-<p id="modeDisplay">Mode: TEXT</p>
-
-<!-- 🧊 CUBE -->
-<div class="scene">
-  <div class="cube">
-    <div class="face front"></div>
-    <div class="face back"></div>
-    <div class="face right"></div>
-    <div class="face left"></div>
-    <div class="face top"></div>
-    <div class="face bottom"></div>
-
-    <div class="center-btn">
-      <button onclick="generate()">Generate ⚡</button>
-    </div>
-  </div>
+</div>
 </div>
 
 <div id="result"></div>
 
+<center>
 <button onclick="download()">⬇ Download</button>
-
-<footer>
-  🚀 Powered by <b>Artical Neavy</b>
-</footer>
+</center>
 
 <script>
-let mode = "text";
-let lastResult = "";
+let mode="text";
+let lastResult="";
 
-function setMode(m) {
-  mode = m;
-  document.getElementById("modeDisplay").innerText = "Mode: " + m.toUpperCase();
+function setMode(m){
+  mode=m;
+  document.getElementById("mode").innerText="Mode: "+m.toUpperCase();
 }
 
-async function generate() {
-  const prompt = document.getElementById("prompt").value;
-  const result = document.getElementById("result");
+async function generate(){
+  const prompt=document.getElementById("prompt").value;
+  const result=document.getElementById("result");
 
-  if (!prompt) {
-    result.innerText = "Enter a prompt ❌";
-    return;
-  }
+  if(!prompt)return;
 
-  result.innerText = "Generating ⚡...";
+  result.innerText="Generating...";
 
-  try {
-    const res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt, type: mode })
+  try{
+    const res=await fetch("https://reelmindbackend-1.onrender.com/generate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt,type:mode})
     });
 
-    const data = await res.json();
+    const data=await res.json();
 
-    // TEXT
-    if (data.type === "text") {
-      result.innerText = data.result;
-      lastResult = data.result;
+    if(data.type==="image"){
+      document.getElementById("bg").style.backgroundImage=`url(${data.result})`;
+
+      result.innerHTML=`<img src="${data.result}" width="100%" style="border-radius:10px;">`;
+
+      lastResult=data.result;
     }
 
-    // IMAGE (BACKGROUND EFFECT)
-    else if (data.type === "image") {
-      document.body.style.backgroundImage = `url(${data.result})`;
-      document.body.style.backgroundSize = "cover";
-      document.body.style.backgroundPosition = "center";
-
-      result.innerHTML = `<img src="${data.result}" width="100%" />`;
-      lastResult = data.result;
+    else{
+      result.innerText=data.result;
+      lastResult=data.result;
     }
 
-    // VIDEO
-    else if (data.type === "video") {
-      result.innerText = data.result;
-      lastResult = data.result;
-    }
-
-  } catch (err) {
-    result.innerText = "Connection error ❌";
+  }catch(err){
+    result.innerText="Error ❌ Try again";
   }
 }
 
-// DOWNLOAD
-function download() {
-  if (!lastResult) return alert("Nothing to download");
+function download(){
+  if(!lastResult)return;
 
-  if (mode === "text") {
-    const blob = new Blob([lastResult], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "reelmind.txt";
-    a.click();
-  }
-
-  else if (mode === "image") {
-    const a = document.createElement("a");
-    a.href = lastResult;
-    a.download = "image.png";
-    a.click();
-  }
-
-  else {
-    alert("Video download coming soon 🎬");
-  }
+  const a=document.createElement("a");
+  a.href=lastResult;
+  a.download="result";
+  a.click();
 }
 </script>
 
