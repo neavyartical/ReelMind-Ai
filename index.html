@@ -1,77 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>ReelMind AI • Global</title>
-    <style>
-        body { background: #0f2027; color: white; text-align: center; font-family: sans-serif; }
-        .logo-img { width: 150px; filter: drop-shadow(0 0 10px cyan); }
-        textarea { width: 80%; padding: 15px; border-radius: 15px; background: rgba(0,0,0,0.5); color: white; border: 1px solid cyan; }
-        .cube { width: 150px; height: 150px; margin: 20px auto; border: 1px solid cyan; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px cyan; }
-        .gen-btn { background: cyan; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 10px; }
-        .result-card { background: rgba(255,255,255,0.05); border: 1px solid cyan; padding: 20px; margin: 20px auto; max-width: 600px; border-radius: 15px; text-align: left; }
-        img { width: 100%; border-radius: 10px; border: 1px solid rgba(0,255,255,0.5); }
-        .action-btn { background: white; color: black; border: none; padding: 8px 12px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelMind Global</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+/* HEADER */
+h1 {
+  color: #22c55e;
+  margin-bottom: 20px;
+}
+
+/* INPUT */
+input {
+  width: 90%;
+  max-width: 500px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+/* BUTTON */
+button {
+  background: #22c55e;
+  color: white;
+  padding: 12px 25px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #16a34a;
+}
+
+/* RESULT BOX */
+.box {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  background: #1e293b;
+}
+
+/* IMAGE */
+img {
+  width: 90%;
+  max-width: 400px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+/* VIDEO */
+video {
+  width: 90%;
+  max-width: 400px;
+  margin-top: 10px;
+  border-radius: 10px;
+}
+</style>
 </head>
+
 <body>
 
-<img src="442630.png" class="logo-img"> <h2>REELMIND <span style="color:cyan">GLOBAL</span></h2>
+<h1>🧠 ReelMind Global</h1>
 
-<textarea id="prompt" placeholder="Ask anything, even in Krio..."></textarea>
+<input id="prompt" placeholder="Type something... e.g dog dancing">
 
-<div class="cube">
-    <button class="gen-btn" onclick="runEngine()">GENERATE</button>
+<br>
+<button onclick="generate()">Generate</button>
+
+<!-- STORY -->
+<div class="box">
+  <h3>✍️ Story</h3>
+  <p id="story">Waiting...</p>
 </div>
 
-<div id="output"></div>
+<!-- IMAGE -->
+<div class="box">
+  <h3>🖼 Image</h3>
+  <img id="image" src="" />
+</div>
+
+<!-- VIDEO -->
+<div class="box">
+  <h3>🎬 Video</h3>
+  <video id="video" controls></video>
+</div>
 
 <script>
-const API_BASE = "https://reelmindbackend-1.onrender.com";
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
 
-function speak(text) {
-    window.speechSynthesis.cancel();
-    const speech = new SpeechSynthesisUtterance(text);
-    speech.rate = 0.9;
-    window.speechSynthesis.speak(speech);
-}
+  /* ===== STORY ===== */
+  try {
+    const res = await fetch("https://reelmindbackend-1.onrender.com/story", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
 
-async function runEngine() {
-    const prompt = document.getElementById("prompt").value;
-    const output = document.getElementById("output");
-    if (!prompt) return alert("Enter a prompt!");
+    const data = await res.json();
+    document.getElementById("story").innerText = data.story;
 
-    output.innerHTML = "<p style='color:cyan'>⚡ REELMIND CORE is generating...</p>";
+  } catch (err) {
+    document.getElementById("story").innerText = "❌ Story failed";
+  }
 
-    try {
-        const res = await fetch(`${API_BASE}/generate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: prompt })
-        });
-        const data = await res.json();
+  /* ===== IMAGE (POLLINATION FREE API) ===== */
+  document.getElementById("image").src =
+    `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
-        // FIXED: Display image directly to avoid redirecting to info page
-        output.innerHTML = `
-            <div class="result-card">
-                <h3>🧠 Native Script</h3>
-                <p>${data.text}</p>
-                <button class="action-btn" onclick="speak(\`${data.text.replace(/`/g, "'")}\`)">🔊 Hear Native</button>
-            </div>
-            <div class="result-card">
-                <h3>🖼 4K Render</h3>
-                <img src="${data.image}">
-            </div>
-            <div class="result-card">
-                <h3>🎥 Video Status</h3>
-                <p>Task: ${data.videoTask}</p>
-                <p style="font-size:12px; color:#888;">Video usually takes 60s to process on Runway nodes.</p>
-            </div>
-        `;
-    } catch (err) {
-        output.innerHTML = "<p style='color:red'>⚠️ Engine offline. Check Render logs.</p>";
-    }
+  /* ===== VIDEO (TEMP DEMO UNTIL RUNWAY CONNECTED) ===== */
+  document.getElementById("video").src =
+    "https://www.w3schools.com/html/mov_bbb.mp4";
 }
 </script>
+
 </body>
 </html>
