@@ -21,21 +21,23 @@
     <!-- POWERED -->
     <p class="powered">Powered by Artical Neavy</p>
 
-    <!-- AUTH SYSTEM -->
+    <!-- AUTH (LOGIN / REGISTER) -->
     <div class="auth">
       <input id="email" placeholder="Email">
       <input id="password" type="password" placeholder="Password">
-      <button onclick="register()">Register</button>
-      <button onclick="login()">Login</button>
+      <div class="auth-buttons">
+        <button onclick="register()">Register</button>
+        <button onclick="login()">Login</button>
+      </div>
     </div>
 
     <!-- INPUT -->
     <textarea id="prompt" placeholder="Enter your idea..."></textarea>
 
-    <!-- GENERATE BUTTON -->
+    <!-- MAIN GENERATE -->
     <button id="generateBtn" onclick="generate('all')">✨ Generate</button>
 
-    <!-- GRID BUTTONS -->
+    <!-- GRID ACTIONS -->
     <div class="grid">
       <button onclick="generate('story')">📖 Story</button>
       <button onclick="generate('image')">🖼 Image</button>
