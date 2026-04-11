@@ -1,89 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>ReelMind Global</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f0f0f;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelMind Global</title>
 
-    h1 {
-      color: #00ff88;
-    }
+<style>
+body {
+  font-family: Arial;
+  background: #0f0f0f;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
 
-    input {
-      width: 80%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      margin-bottom: 10px;
-    }
+h1 {
+  color: #00ff99;
+}
 
-    button {
-      padding: 12px 25px;
-      background: #00ff88;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+input {
+  width: 90%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+}
 
-    .box {
-      margin-top: 20px;
-      padding: 15px;
-      background: #1a1a1a;
-      border-radius: 10px;
-    }
+button {
+  padding: 12px 20px;
+  background: #00ff99;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
 
-    img, video {
-      width: 90%;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-  </style>
+.section {
+  margin-top: 20px;
+  background: #1a1a1a;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+img, video {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.loader {
+  display: none;
+}
+</style>
 </head>
 
 <body>
 
 <h1>🧠 ReelMind Global</h1>
 
-<input id="prompt" placeholder="Enter idea (e.g. dogs dancing in club)">
+<input id="prompt" placeholder="Enter your idea...">
 <br>
 <button onclick="generate()">Generate</button>
 
-<div class="box">
+<div class="section">
   <h3>✍️ Story</h3>
-  <p id="story">Waiting...</p>
+  <div id="story">Waiting...</div>
 </div>
 
-<div class="box">
+<div class="section">
   <h3>🖼 Image</h3>
-  <img id="image" src="">
+  <div id="imageLoader" class="loader">Generating image...</div>
+  <img id="image" />
 </div>
 
-<div class="box">
+<div class="section">
   <h3>🎬 Video</h3>
+  <div id="videoLoader" class="loader">Generating video...</div>
   <video id="video" controls></video>
 </div>
 
 <script>
 const BACKEND = "https://reelmindbackend-1.onrender.com";
 
+let generating = false;
+
 async function generate() {
+  if (generating) return; // prevent spam clicking
+  generating = true;
+
   const prompt = document.getElementById("prompt").value;
 
-  // RESET UI (fix flickering & old results)
   document.getElementById("story").innerText = "Generating...";
-  document.getElementById("image").src = "";
-  document.getElementById("video").src = "";
+  document.getElementById("imageLoader").style.display = "block";
+  document.getElementById("videoLoader").style.display = "block";
 
   try {
-    // 🧠 STORY
-    const storyRes = await fetch(`${BACKEND}/generate-story`, {
+    const res = await fetch(BACKEND + "/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -91,28 +102,32 @@ async function generate() {
       body: JSON.stringify({ prompt })
     });
 
-    const storyData = await storyRes.json();
-    document.getElementById("story").innerText = storyData.story || storyData.error;
+    const data = await res.json();
 
-    // 🖼 IMAGE (free working API)
-    document.getElementById("image").src =
-      `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+    // STORY
+    document.getElementById("story").innerText =
+      data.story || "Story failed";
 
-    // 🎬 VIDEO
-    const videoRes = await fetch(`${BACKEND}/generate-video`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
+    // IMAGE
+    document.getElementById("imageLoader").style.display = "none";
+    if (data.image) {
+      document.getElementById("image").src = data.image;
+    }
 
-    const videoData = await videoRes.json();
-    document.getElementById("video").src = videoData.video;
+    // VIDEO
+    document.getElementById("videoLoader").style.display = "none";
+    if (data.video) {
+      const vid = document.getElementById("video");
+      vid.src = data.video;
+      vid.pause(); // stop auto loop issue
+    }
 
   } catch (err) {
-    document.getElementById("story").innerText = "Error: " + err.message;
+    document.getElementById("story").innerText = "❌ Error connecting to AI";
+    console.log(err);
   }
+
+  generating = false;
 }
 </script>
 
