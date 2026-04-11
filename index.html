@@ -10,10 +10,9 @@
       font-family: Arial;
       color: white;
       text-align: center;
-      overflow-x: hidden;
-      background: linear-gradient(270deg, #7b2ff7, #ff7a18, #020617);
+      background: linear-gradient(270deg, #ff7a18, #7b2ff7, #020617);
       background-size: 600% 600%;
-      animation: bgMove 12s infinite alternate;
+      animation: bgMove 10s infinite alternate;
     }
 
     @keyframes bgMove {
@@ -21,21 +20,27 @@
       100% { background-position: right; }
     }
 
-    h1 {
-      margin-top: 20px;
-      font-size: 32px;
-    }
+    h1 { margin-top: 20px; }
 
     input {
-      padding: 14px;
+      padding: 12px;
       width: 85%;
-      border-radius: 12px;
+      border-radius: 10px;
       border: none;
-      margin-top: 15px;
-      font-size: 16px;
+      margin-top: 10px;
     }
 
-    /* 🧊 REAL 3D CUBE */
+    button {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: none;
+      margin: 5px;
+      background: linear-gradient(45deg,#ff7a18,#7b2ff7);
+      color: white;
+      cursor: pointer;
+    }
+
+    /* 🧊 CUBE */
     .scene {
       width: 200px;
       height: 200px;
@@ -48,7 +53,7 @@
       height: 100%;
       position: relative;
       transform-style: preserve-3d;
-      animation: spin 8s infinite linear;
+      animation: spin 6s infinite linear;
     }
 
     .face {
@@ -56,9 +61,8 @@
       width: 200px;
       height: 200px;
       background: rgba(255,255,255,0.05);
-      border: 2px solid rgba(255,255,255,0.2);
       border-radius: 20px;
-      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
     }
 
     .front  { transform: rotateY(0deg) translateZ(100px); }
@@ -82,40 +86,16 @@
       z-index: 10;
     }
 
-    button {
-      padding: 14px 22px;
-      border-radius: 12px;
-      border: none;
-      background: linear-gradient(45deg, #ff7a18, #7b2ff7);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 0 20px rgba(255,100,0,0.8);
-    }
-
     #result {
       margin: 20px;
-      padding: 20px;
-      text-align: left;
-      white-space: pre-wrap;
+      padding: 15px;
       background: rgba(255,255,255,0.05);
-      border-radius: 15px;
+      border-radius: 10px;
+      white-space: pre-wrap;
     }
 
     footer {
-      margin-top: 30px;
-      font-size: 14px;
-      opacity: 0.8;
-    }
-
-    a {
-      color: #00ffcc;
-      text-decoration: none;
-    }
-
-    /* LOGIN */
-    #loginBox {
-      margin-top: 30px;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -124,13 +104,16 @@
 
 <h1>🧠 ReelMind AI</h1>
 
-<!-- 🔐 LOGIN -->
-<div id="loginBox">
-  <input id="username" placeholder="Enter username..." />
-  <button onclick="login()">Login</button>
+<input id="prompt" placeholder="Enter viral idea..." />
+
+<!-- 🎮 MODE -->
+<div>
+  <button onclick="setMode('text')">🧠 Text</button>
+  <button onclick="setMode('image')">🖼️ Image</button>
+  <button onclick="setMode('video')">🎬 Video</button>
 </div>
 
-<input id="prompt" placeholder="Enter viral idea..." />
+<p id="modeDisplay">Mode: TEXT</p>
 
 <!-- 🧊 CUBE -->
 <div class="scene">
@@ -142,7 +125,7 @@
     <div class="face top"></div>
     <div class="face bottom"></div>
 
-    <!-- BUTTON INSIDE -->
+    <!-- ✅ BUTTON INSIDE -->
     <div class="center-btn">
       <button onclick="generate()">Generate ⚡</button>
     </div>
@@ -151,28 +134,25 @@
 
 <div id="result"></div>
 
+<!-- ⬇ DOWNLOAD -->
+<button onclick="download()">⬇ Download</button>
+
 <footer>
   🚀 Powered by <b>Artical Neavy</b><br>
-  <a href="terms.html">Terms & Conditions</a>
+  <a href="terms.html">Terms</a>
 </footer>
 
 <script>
-let user = localStorage.getItem("user");
+let mode = "text";
+let lastResult = "";
 
-if (user) {
-  document.getElementById("loginBox").innerHTML = "👋 Welcome " + user;
+// MODE SWITCH
+function setMode(m) {
+  mode = m;
+  document.getElementById("modeDisplay").innerText = "Mode: " + m.toUpperCase();
 }
 
-// 🔐 LOGIN
-function login() {
-  const username = document.getElementById("username").value;
-  if (!username) return;
-
-  localStorage.setItem("user", username);
-  location.reload();
-}
-
-// 🚀 GENERATE
+// GENERATE
 async function generate() {
   const prompt = document.getElementById("prompt").value;
   const result = document.getElementById("result");
@@ -182,7 +162,7 @@ async function generate() {
     return;
   }
 
-  result.innerText = "Generating ⚡ Please wait...";
+  result.innerText = "Generating ⚡...";
 
   try {
     const res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
@@ -190,15 +170,58 @@ async function generate() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt, type: mode })
     });
 
     const data = await res.json();
 
-    result.innerText = data.result;
+    // TEXT
+    if (data.type === "text") {
+      result.innerText = data.result;
+      lastResult = data.result;
+    }
+
+    // IMAGE
+    else if (data.type === "image") {
+      result.innerHTML = `<img src="${data.result}" width="100%" />`;
+      lastResult = data.result;
+    }
+
+    // VIDEO
+    else if (data.type === "video") {
+      result.innerText = data.result;
+      lastResult = data.result;
+    }
 
   } catch (err) {
     result.innerText = "Connection error ❌";
+  }
+}
+
+// DOWNLOAD
+function download() {
+  if (!lastResult) return alert("Nothing to download");
+
+  // TEXT DOWNLOAD
+  if (mode === "text") {
+    const blob = new Blob([lastResult], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "reelmind.txt";
+    a.click();
+  }
+
+  // IMAGE DOWNLOAD
+  else if (mode === "image") {
+    const a = document.createElement("a");
+    a.href = lastResult;
+    a.download = "image.png";
+    a.click();
+  }
+
+  // VIDEO
+  else {
+    alert("Video download coming soon 🎬");
   }
 }
 </script>
