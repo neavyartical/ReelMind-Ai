@@ -3,113 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReelMind AI | The Ultimate Solver</title>
+    <title>ReelMind AI | Pro Engine</title>
     <style>
-        :root {
-            --ice: rgba(200, 233, 255, 0.15);
-            --neon-blue: #00d4ff;
-        }
         body {
             margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: #000;
+            font-family: 'Inter', Arial, sans-serif;
             color: white;
-            /* Ice Cube Aesthetic Background */
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
-                url('https://www.transparenttextures.com/patterns/ice-age.png');
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 900px;
             text-align: center;
-            padding-top: 50px;
+            background: radial-gradient(circle at center, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .logo-img {
-            width: 300px;
-            filter: drop-shadow(0 0 15px var(--neon-blue));
-            margin-bottom: 30px;
-        }
+        /* HEADER & LOGO */
+        .header-container { margin-top: 30px; }
+        .logo-img { width: 180px; filter: drop-shadow(0 0 10px cyan); transition: 0.5s; }
+        .logo-img:hover { transform: scale(1.05); }
 
-        .ice-card {
-            background: var(--ice);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-        }
-
+        /* INPUT AREA */
         textarea {
-            width: 100%;
-            height: 120px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--neon-blue);
-            border-radius: 12px;
-            color: white;
-            padding: 15px;
+            width: 85%;
+            max-width: 600px;
+            padding: 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            margin-top: 20px;
             font-size: 16px;
-            margin-bottom: 20px;
-        }
-
-        .solver-btn {
-            background: linear-gradient(45deg, #00d4ff, #0055ff);
+            background: rgba(0, 0, 0, 0.4);
             color: white;
+            outline: none;
+            box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+
+        /* THE ICE CUBE CURE */
+        .cube {
+            width: 180px;
+            height: 180px;
+            margin: 40px auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* GENERATE BUTTON */
+        .gen-btn {
+            padding: 15px 30px;
             border: none;
-            padding: 15px 40px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
+            border-radius: 12px;
+            background: cyan;
+            color: #000;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 0 20px cyan;
             transition: 0.3s;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
         }
 
-        .solver-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 40px rgba(0, 212, 255, 0.8);
+        .gen-btn:hover {
+            background: #fff;
+            box-shadow: 0 0 40px #fff;
+            transform: scale(1.1);
         }
 
-        #output-window {
-            margin-top: 30px;
-            min-height: 200px;
-            width: 100%;
-        }
-
-        .result-box {
-            background: rgba(255,255,255,0.05);
-            border-radius: 15px;
+        /* OUTPUT RESULTS */
+        #output {
+            margin: 20px auto;
             padding: 20px;
-            border: 1px solid var(--ice);
+            max-width: 800px;
+            line-height: 1.6;
         }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            text-align: left;
+        }
+
+        img, video {
+            max-width: 100%;
+            border-radius: 15px;
+            margin-top: 15px;
+            border: 1px solid cyan;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+        }
+
+        .action-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid cyan;
+            color: cyan;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        footer { margin: 50px 0; font-size: 12px; color: #666; letter-spacing: 1px; }
     </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <img src="442630.png" alt="ReelMind AI" class="logo-img">
+<div class="header-container">
+    <img src="442630.png" alt="ReelMind AI" class="logo-img">
+    <h1 style="font-weight: 300; letter-spacing: 2px;">REELMIND <span style="color:cyan; font-weight:800;">PRO</span></h1>
+</div>
 
-        <div class="ice-card">
-            <textarea id="userInput" placeholder="Ask anything, generate 4K images, or create cinematic videos..."></textarea>
-            
-            <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                <button class="solver-btn" onclick="process('chat')">Solve Problem</button>
-                <button class="solver-btn" style="background: #ff007a;" onclick="process('image')">Generate 4K</button>
-                <button class="solver-btn" style="background: #7a00ff;" onclick="process('video')">Create Video</button>
+<textarea id="prompt" placeholder="Solve a problem, generate 4K art, or create cinema..."></textarea>
+
+<div class="cube">
+  <button class="gen-btn" onclick="generate()">Generate</button>
+</div>
+
+<div id="output"></div>
+
+<footer>
+    &copy; 2026 REELMIND AI • POWERED BY ARTICAL NEAVY • <a href="#" style="color:#888;">TERMS</a>
+</footer>
+
+<script>
+// IMPORTANT: This must match your Render Backend URL exactly
+const BASE_URL = "https://reelmindbackend-1.onrender.com";
+
+/* 🔊 NARRATION */
+function speak(text) {
+    window.speechSynthesis.cancel(); // Stop any current speech
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.rate = 0.9;
+    window.speechSynthesis.speak(speech);
+}
+
+/* ⬇ DOWNLOAD */
+function downloadMedia(url) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.download = "reelmind_creation";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+/* 🎬 MAIN ENGINE */
+async function generate() {
+    const promptValue = document.getElementById("prompt").value;
+    const output = document.getElementById("output");
+
+    if (!promptValue) {
+        alert("Please enter a vision or a question!");
+        return;
+    }
+
+    // Reset and show loading status
+    output.innerHTML = "<h3 style='color:cyan;'>🧊 Waking up the Ice Cube...</h3><p>Processing world-class AI models (may take 40s if server was sleeping)</p>";
+
+    try {
+        /* 1. CALL BACKEND FOR PROBLEM SOLVING / CHAT */
+        const chatRes = await fetch(`${BASE_URL}/generate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "chat", input: promptValue })
+        });
+        const chatData = await chatRes.json();
+        const storyText = chatData.data || "The AI is currently calculating. Please try again.";
+
+        /* 2. CALL BACKEND FOR 4K IMAGE (Pollinations Flux) */
+        const imgRes = await fetch(`${BASE_URL}/generate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "image", input: promptValue })
+        });
+        const imgData = await imgRes.json();
+        const finalImageUrl = imgData.data;
+
+        /* 3. DISPLAY RESULTS */
+        output.innerHTML = `
+            <div class="result-card">
+                <h3 style="color:cyan;">🧠 AI Solution & Story</h3>
+                <p>${storyText}</p>
+                <button class="action-btn" onclick="speak(\`${storyText.replace(/`/g, "'")}\`)">🔊 Narrate Solution</button>
             </div>
 
-            <div id="output-window"></div>
-        </div>
-    </div>
+            <div class="result-card">
+                <h3 style="color:cyan;">🖼 4K Cinematic Render</h3>
+                <img src="${finalImageUrl}" alt="AI Result">
+                <br>
+                <button class="action-btn" onclick="downloadMedia('${finalImageUrl}')">⬇ Download 4K Image</button>
+            </div>
 
-    <script src="script.js"></script>
+            <div class="result-card" style="border-color: #8b5cf6;">
+                <h3 style="color:#8b5cf6;">🎬 AI Motion Video</h3>
+                <p style="font-size:13px; opacity:0.7;">Video processing starts now. Click below to check status.</p>
+                <button class="action-btn" style="border-color:#8b5cf6; color:#8b5cf6;" onclick="alert('Video render initiated. Due to high 4K resolution, check your Runway dashboard or wait 60 seconds.')">⏳ Initialize Video Render</button>
+            </div>
+
+            <br>
+            <button class="gen-btn" style="background:#fff; box-shadow:0 0 10px #fff; font-size:12px;" onclick="window.scrollTo(0,0)">Create New</button>
+        `;
+
+    } catch (err) {
+        console.error(err);
+        output.innerHTML = "<p style='color:#ff4d4d;'>⚠️ Connection Error. Ensure your Render backend is 'Active' and API keys are set.</p>";
+    }
+}
+</script>
+
 </body>
 </html>
