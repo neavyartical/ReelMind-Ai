@@ -25,7 +25,7 @@ function handleGenerate() {
     }
 }
 
-/* ================= IMAGE ================= */
+/* IMAGE */
 function generateImage(prompt) {
     const output = document.getElementById("output");
 
@@ -38,7 +38,6 @@ function generateImage(prompt) {
     `;
 }
 
-/* DOWNLOAD */
 function downloadImage(url) {
     const a = document.createElement("a");
     a.href = url;
@@ -46,7 +45,7 @@ function downloadImage(url) {
     a.click();
 }
 
-/* ================= TEXT ================= */
+/* TEXT */
 async function generateText(prompt) {
     const output = document.getElementById("output");
 
@@ -70,11 +69,11 @@ async function generateText(prompt) {
     }
 }
 
-/* ================= VIDEO ================= */
+/* VIDEO (AUTO LOAD) */
 async function generateVideo(prompt) {
     const output = document.getElementById("output");
 
-    output.innerHTML = "🎬 Generating video... please wait...";
+    output.innerHTML = "🎬 Creating video...";
 
     try {
         const res = await fetch(`${BASE_URL}/generate-video`, {
@@ -84,16 +83,39 @@ async function generateVideo(prompt) {
         });
 
         const data = await res.json();
+        const jobId = data.id || data.job_id;
 
-        if (data.video_url) {
-            output.innerHTML = `
-                <video controls width="300">
-                    <source src="${data.video_url}">
-                </video>
-            `;
-        } else {
-            output.innerHTML = "⏳ Video processing... try again.";
+        if (!jobId) {
+            output.innerHTML = "⚠️ Failed to start video.";
+            return;
         }
+
+        output.innerHTML = "⏳ Processing video...";
+
+        let attempts = 0;
+
+        const interval = setInterval(async () => {
+            attempts++;
+
+            const check = await fetch(`${BASE_URL}/video-status/${jobId}`);
+            const result = await check.json();
+
+            if (result.video_url) {
+                clearInterval(interval);
+
+                output.innerHTML = `
+                    <video controls width="300">
+                        <source src="${result.video_url}">
+                    </video>
+                `;
+            }
+
+            if (attempts > 10) {
+                clearInterval(interval);
+                output.innerHTML = "⚠️ Still processing... try again.";
+            }
+
+        }, 3000);
 
     } catch {
         output.innerHTML = "❌ Video failed";
