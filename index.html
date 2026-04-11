@@ -20,14 +20,12 @@
       100% { background-position: right; }
     }
 
-    h1 { margin-top: 20px; }
-
     input {
       padding: 12px;
       width: 85%;
       border-radius: 10px;
       border: none;
-      margin-top: 10px;
+      margin-top: 15px;
     }
 
     button {
@@ -77,25 +75,19 @@
       to { transform: rotateX(360deg) rotateY(360deg); }
     }
 
-    /* 🔥 BUTTON INSIDE CUBE */
     .center-btn {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%) translateZ(120px);
-      z-index: 10;
     }
 
     #result {
       margin: 20px;
       padding: 15px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(0,0,0,0.5);
       border-radius: 10px;
       white-space: pre-wrap;
-    }
-
-    footer {
-      margin-top: 20px;
     }
   </style>
 </head>
@@ -106,7 +98,7 @@
 
 <input id="prompt" placeholder="Enter viral idea..." />
 
-<!-- 🎮 MODE -->
+<!-- MODE -->
 <div>
   <button onclick="setMode('text')">🧠 Text</button>
   <button onclick="setMode('image')">🖼️ Image</button>
@@ -125,7 +117,6 @@
     <div class="face top"></div>
     <div class="face bottom"></div>
 
-    <!-- ✅ BUTTON INSIDE -->
     <div class="center-btn">
       <button onclick="generate()">Generate ⚡</button>
     </div>
@@ -134,25 +125,21 @@
 
 <div id="result"></div>
 
-<!-- ⬇ DOWNLOAD -->
 <button onclick="download()">⬇ Download</button>
 
 <footer>
-  🚀 Powered by <b>Artical Neavy</b><br>
-  <a href="terms.html">Terms</a>
+  🚀 Powered by <b>Artical Neavy</b>
 </footer>
 
 <script>
 let mode = "text";
 let lastResult = "";
 
-// MODE SWITCH
 function setMode(m) {
   mode = m;
   document.getElementById("modeDisplay").innerText = "Mode: " + m.toUpperCase();
 }
 
-// GENERATE
 async function generate() {
   const prompt = document.getElementById("prompt").value;
   const result = document.getElementById("result");
@@ -181,8 +168,12 @@ async function generate() {
       lastResult = data.result;
     }
 
-    // IMAGE
+    // IMAGE (BACKGROUND EFFECT)
     else if (data.type === "image") {
+      document.body.style.backgroundImage = `url(${data.result})`;
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundPosition = "center";
+
       result.innerHTML = `<img src="${data.result}" width="100%" />`;
       lastResult = data.result;
     }
@@ -202,7 +193,6 @@ async function generate() {
 function download() {
   if (!lastResult) return alert("Nothing to download");
 
-  // TEXT DOWNLOAD
   if (mode === "text") {
     const blob = new Blob([lastResult], { type: "text/plain" });
     const a = document.createElement("a");
@@ -211,7 +201,6 @@ function download() {
     a.click();
   }
 
-  // IMAGE DOWNLOAD
   else if (mode === "image") {
     const a = document.createElement("a");
     a.href = lastResult;
@@ -219,7 +208,6 @@ function download() {
     a.click();
   }
 
-  // VIDEO
   else {
     alert("Video download coming soon 🎬");
   }
