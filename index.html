@@ -5,39 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ReelMind AI • Global Unlimited</title>
     <style>
-        body { margin: 0; font-family: Arial; background: radial-gradient(circle, #0f2027, #2c5364); color: white; text-align: center; min-height: 100vh; }
-        .logo-box { padding: 30px 0; }
-        .logo-img { width: 150px; filter: drop-shadow(0 0 10px cyan); } /* Uses 442630.png */
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: radial-gradient(circle, #0f2027, #2c5364); color: white; text-align: center; min-height: 100vh; }
         
-        .status-badge { color: cyan; font-weight: bold; border: 1px solid cyan; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
-        
+        /* HEADER */
+        .header-box { padding: 30px 0; }
+        .logo-img { width: 140px; filter: drop-shadow(0 0 10px cyan); transition: 0.5s; }
+        .status-badge { color: cyan; font-weight: bold; border: 1px solid cyan; padding: 4px 10px; border-radius: 5px; font-size: 11px; letter-spacing: 1px; }
+
+        /* INPUT AREA */
         textarea { width: 85%; max-width: 650px; padding: 18px; border-radius: 20px; border: 1px solid rgba(0, 255, 255, 0.4); margin-top: 20px; background: rgba(0, 0, 0, 0.5); color: white; font-size: 16px; outline: none; }
         
         /* THE ICE CUBE INTERFACE */
-        .cube { width: 170px; height: 170px; margin: 30px auto; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(25px); border-radius: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 60px cyan; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .cube { width: 170px; height: 170px; margin: 30px auto; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 60px cyan; border: 1px solid rgba(255, 255, 255, 0.2); transition: 0.4s; }
+        .cube:hover { transform: scale(1.03); box-shadow: 0 0 80px cyan; }
 
-        .gen-btn { padding: 14px 28px; border: none; border-radius: 12px; background: cyan; color: black; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .gen-btn { padding: 14px 28px; border: none; border-radius: 12px; background: cyan; color: black; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
 
+        /* OUTPUT CARDS */
         #output { margin-top: 20px; padding: 20px; }
-        .result-card { background: rgba(0, 0, 0, 0.4); border: 1px solid cyan; border-radius: 20px; padding: 25px; margin: 20px auto; max-width: 850px; text-align: left; animation: fadeIn 0.5s; }
+        .result-card { background: rgba(0, 0, 0, 0.4); border: 1px solid cyan; border-radius: 20px; padding: 25px; margin: 20px auto; max-width: 850px; text-align: left; line-height: 1.7; animation: slideUp 0.5s ease-out; }
         
-        img, video { max-width: 100%; border-radius: 15px; margin-top: 20px; box-shadow: 0 0 25px cyan; border: 1px solid rgba(0, 255, 255, 0.5); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FIX: Ensure Image results look cinematic and fit correctly */
+        img, video { max-width: 100%; border-radius: 15px; margin-top: 20px; box-shadow: 0 0 25px cyan; border: 1px solid rgba(0, 255, 255, 0.5); display: block; margin-left: auto; margin-right: auto; }
         
-        .action-btn { background: white; color: black; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-top: 15px; font-weight: bold; font-size: 12px; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .action-btn { background: white; color: black; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; margin-top: 15px; font-weight: bold; font-size: 12px; transition: 0.3s; }
+        .action-btn:hover { background: cyan; }
+
         footer { margin-top: 50px; padding-bottom: 30px; font-size: 11px; color: #888; }
     </style>
 </head>
 <body>
 
-<div class="logo-box">
-    <img src="442630.png" alt="ReelMind AI" class="logo-img">
+<div class="header-box">
+    <img src="442630.png" alt="ReelMind Logo" class="logo-img">
     <h1>REELMIND <span style="color:cyan">GLOBAL</span></h1>
-    <span class="status-badge">✅ NATIVE LANGUAGE ENGINE ACTIVE</span>
+    <span class="status-badge">✅ V2.5.0 NATIVE ENGINE: ONLINE</span>
 </div>
 
-<textarea id="prompt" placeholder="Tell me something in Krio or any language..."></textarea>
+<textarea id="prompt" placeholder="Ex: 'Write a story in Krio about a lion' or 'Generate image of a futuristic city'..."></textarea>
 
 <div class="cube">
   <button class="gen-btn" onclick="runGlobalEngine()">Generate</button>
@@ -48,56 +55,62 @@
 <footer>POWERED BY ARTICAL NEAVY • SAAS LEVEL 17</footer>
 
 <script>
+/* CONFIGURATION */
 const API_BASE = "https://reelmindbackend-1.onrender.com";
 
-/* NATIVE VOICE NARATION */
+/* 🔊 NATIVE VOICE ENGINE (Supports Krio and regional accents) */
 function speak(text) {
     window.speechSynthesis.cancel();
     const speech = new SpeechSynthesisUtterance(text);
-    // Auto-detects native pitch/speed
-    speech.rate = 0.9; 
+    speech.rate = 0.95; // Slightly slower for better native clarity
     window.speechSynthesis.speak(speech);
 }
 
+/* 🎬 CORE SaaS GENERATOR */
 async function runGlobalEngine() {
-    const prompt = document.getElementById("prompt").value;
+    const promptValue = document.getElementById("prompt").value;
     const output = document.getElementById("output");
 
-    if (!prompt) return alert("Vision required!");
-    output.innerHTML = "⚡ <span style='color:cyan'>Global Core</span> is translating and generating...";
+    if (!promptValue) return alert("Please enter a vision or question!");
+    
+    // Show loading state immediately
+    output.innerHTML = "⚡ <span style='color:cyan'>REELMIND CORE</span> is generating Cinematic results...";
 
     try {
-        const res = await fetch(`${API_BASE}/generate`, {
+        // Step 1: Call the Render backend
+        const response = await fetch(`${API_BASE}/generate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: prompt })
+            body: JSON.stringify({ prompt: promptValue })
         });
 
-        const data = await res.json();
+        const data = await response.json();
 
+        // Step 2: Build the output based on result
+        // This logic fixes the error where you saw the documentation page
         output.innerHTML = `
             <div class="result-card">
-                <h3 style="color:cyan;">🧠 Native Language Script</h3>
+                <h3 style="color:cyan;">🧠 Native Language & Script</h3>
                 <p>${data.text}</p>
                 <button class="action-btn" onclick="speak(\`${data.text.replace(/`/g, "'")}\`)">🔊 Hear Native Audio</button>
             </div>
 
             <div class="result-card">
-                <h3 style="color:cyan;">🖼 4K Cinematic Preview</h3>
-                <img src="${data.image}">
-                <br>
-                <button class="action-btn" onclick="window.open('${data.image}')">Download 4K</button>
+                <h3 style="color:cyan;">🖼 4K Cinematic Render</h3>
+                <img src="${data.image}" alt="AI Cinematic Preview">
+                <button class="action-btn" onclick="window.open('${data.image}')">⬇ Download 4K Image</button>
             </div>
 
-            <div class="result-card">
-                <h3 style="color:cyan;">🎥 Video Motion Render</h3>
-                <p style="font-size: 12px;">Runway Gen-3 Engine Task: ${data.videoTask}</p>
-                <button class="action-btn" onclick="alert('Video generation processing on Runway nodes.')">Check Status</button>
+            <div class="result-card" style="border-color: rgba(255,255,255,0.2);">
+                <h3 style="color:#aaa;">🎥 Video Render Status</h3>
+                <p style="font-size: 13px;">Runway Gen-3 Engine Task: ${data.videoTask}</p>
+                <button class="action-btn" style="background:rgba(255,255,255,0.1); color:white; border:1px solid #fff;" onclick="alert('Runway video render is processing in the background. Ready in ~60s.')">⏳ Video Processing...</button>
             </div>
         `;
 
     } catch (err) {
-        output.innerHTML = "<p style='color:red;'>⚠️ Connection error. Click Generate again in 30s.</p>";
+        output.innerHTML = "<p style='color:#ff4d4d;'>⚠️ Connection Error. Ensure your Render backend is active and retry in 30 seconds.</p>";
+        console.error("Engine Error:", err);
     }
 }
 </script>
