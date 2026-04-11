@@ -1,37 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReelMind Global</title>
 
 <style>
 body {
-  font-family: Arial;
   background: #0f0f0f;
   color: white;
   text-align: center;
-  padding: 20px;
-}
-
-h1 {
-  color: #00ff99;
+  font-family: Arial;
 }
 
 input {
   width: 90%;
   padding: 12px;
   border-radius: 10px;
-  border: none;
-  margin-bottom: 10px;
 }
 
 button {
-  padding: 12px 20px;
+  padding: 12px;
   background: #00ff99;
   border: none;
   border-radius: 10px;
-  cursor: pointer;
+  margin-top: 10px;
 }
 
 .section {
@@ -43,55 +34,48 @@ button {
 
 img, video {
   width: 100%;
-  border-radius: 10px;
   margin-top: 10px;
-}
-
-.loader {
-  display: none;
+  border-radius: 10px;
 }
 </style>
+
 </head>
 
 <body>
 
 <h1>🧠 ReelMind Global</h1>
 
-<input id="prompt" placeholder="Enter your idea...">
+<input id="prompt" placeholder="Enter idea...">
 <br>
 <button onclick="generate()">Generate</button>
 
 <div class="section">
-  <h3>✍️ Story</h3>
-  <div id="story">Waiting...</div>
+<h3>Story</h3>
+<div id="story">Waiting...</div>
 </div>
 
 <div class="section">
-  <h3>🖼 Image</h3>
-  <div id="imageLoader" class="loader">Generating image...</div>
-  <img id="image" />
+<h3>Image</h3>
+<img id="image">
 </div>
 
 <div class="section">
-  <h3>🎬 Video</h3>
-  <div id="videoLoader" class="loader">Generating video...</div>
-  <video id="video" controls></video>
+<h3>Video</h3>
+<video id="video" controls></video>
 </div>
 
 <script>
 const BACKEND = "https://reelmindbackend-1.onrender.com";
 
-let generating = false;
+let loading = false;
 
 async function generate() {
-  if (generating) return; // prevent spam clicking
-  generating = true;
+  if (loading) return;
+  loading = true;
 
   const prompt = document.getElementById("prompt").value;
 
   document.getElementById("story").innerText = "Generating...";
-  document.getElementById("imageLoader").style.display = "block";
-  document.getElementById("videoLoader").style.display = "block";
 
   try {
     const res = await fetch(BACKEND + "/generate", {
@@ -104,30 +88,23 @@ async function generate() {
 
     const data = await res.json();
 
-    // STORY
-    document.getElementById("story").innerText =
-      data.story || "Story failed";
+    document.getElementById("story").innerText = data.story || "Failed";
 
-    // IMAGE
-    document.getElementById("imageLoader").style.display = "none";
     if (data.image) {
       document.getElementById("image").src = data.image;
     }
 
-    // VIDEO
-    document.getElementById("videoLoader").style.display = "none";
     if (data.video) {
       const vid = document.getElementById("video");
       vid.src = data.video;
-      vid.pause(); // stop auto loop issue
+      vid.pause(); // stop auto replay bug
     }
 
   } catch (err) {
-    document.getElementById("story").innerText = "❌ Error connecting to AI";
-    console.log(err);
+    document.getElementById("story").innerText = "❌ Server error";
   }
 
-  generating = false;
+  loading = false;
 }
 </script>
 
