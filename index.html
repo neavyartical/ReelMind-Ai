@@ -1,144 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>ReelMind AI</title>
-
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f7fb;
-  margin: 0;
-  padding: 0;
-}
-
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding: 20px;
-}
-
-h1 {
-  text-align: center;
-}
-
-textarea {
-  width: 100%;
-  height: 80px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-}
-
-button {
-  width: 100%;
-  margin-top: 15px;
-  padding: 14px;
-  background: #00b894;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #00997a;
-}
-
-.section {
-  margin-top: 25px;
-  text-align: left;
-}
-
-img, video {
-  width: 100%;
-  border-radius: 12px;
-  margin-top: 10px;
-}
-
-.download-btn {
-  margin-top: 10px;
-  display: inline-block;
-}
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReelMind Stories</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; }
+        .story-card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .loading { color: #666; font-style: italic; }
+        .error { color: #d9534f; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-<div class="container">
+    <div class="container">
+        <h1>ReelMind Stories</h1>
+        <div id="story-container">
+            <p class="loading">Fetching stories from the server...</p>
+        </div>
+    </div>
 
-<h1>🧠 ReelMind AI</h1>
+    <script>
+        // REPLACE THIS URL with your actual Render backend URL
+        const API_URL = "https://reelmindbackend-1.onrender.com/story";
 
-<textarea id="prompt" placeholder="Type something viral..."></textarea>
-<button onclick="generate()">Generate</button>
+        async function fetchStories() {
+            const container = document.getElementById('story-container');
+            
+            try {
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-<div class="section">
-<h3>✍️ Story</h3>
-<p id="story">No story yet...</p>
-</div>
+                const data = await response.json();
+                
+                // Clear the loading message
+                container.innerHTML = '';
 
-<div class="section">
-<h3>🖼 Image</h3>
-<img id="image" style="display:none;">
-<a id="download" class="download-btn" download="image.png">
-<button>Download Image</button>
-</a>
-</div>
+                if (data.length === 0) {
+                    container.innerHTML = '<p>No stories found.</p>';
+                    return;
+                }
 
-<div class="section">
-<h3>🎬 Video</h3>
-<video id="video" controls style="display:none;"></video>
-</div>
+                // Loop through data and create HTML
+                data.forEach(story => {
+                    const card = document.createElement('div');
+                    card.className = 'story-card';
+                    card.innerHTML = `
+                        <h3>${story.title}</h3>
+                        <p>${story.content}</p>
+                    `;
+                    container.appendChild(card);
+                });
 
-</div>
+            } catch (err) {
+                console.error("Fetch error:", err);
+                container.innerHTML = `<p class="error">Failed to load stories. Make sure the backend is awake!</p>`;
+            }
+        }
 
-<script>
-async function generate() {
-  const prompt = document.getElementById("prompt").value;
-
-  // RESET UI
-  document.getElementById("story").innerText = "Generating...";
-  document.getElementById("image").style.display = "none";
-  document.getElementById("video").style.display = "none";
-
-  // 🔥 STORY (Backend)
-  try {
-    const res = await fetch("https://reelmindbackend-1.onrender.com/story", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await res.json();
-
-    document.getElementById("story").innerText =
-      data.choices?.[0]?.message?.content || "Story failed";
-
-  } catch (e) {
-    document.getElementById("story").innerText = "Server error";
-  }
-
-  // ⚡ IMAGE (FAST FIX - avoid caching delay)
-  const imageUrl = "https://image.pollinations.ai/prompt/"
-    + encodeURIComponent(prompt)
-    + "?t=" + Date.now(); // prevents slow cache
-
-  const img = document.getElementById("image");
-  img.src = imageUrl;
-  img.style.display = "block";
-
-  document.getElementById("download").href = imageUrl;
-
-  // 🎬 VIDEO (placeholder for now)
-  const vid = document.getElementById("video");
-  vid.src = "https://www.w3schools.com/html/mov_bbb.mp4";
-  vid.style.display = "block";
-}
-</script>
-
+        // Run the function when the page loads
+        fetchStories();
+    </script>
 </body>
 </html>
