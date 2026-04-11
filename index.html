@@ -1,28 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>ReelMind Global</title>
 
 <style>
 body {
   background: #0f0f0f;
   color: white;
-  text-align: center;
   font-family: Arial;
+  text-align: center;
+  padding: 20px;
+}
+
+h1 {
+  color: #00ff99;
 }
 
 input {
   width: 90%;
   padding: 12px;
   border-radius: 10px;
+  border: none;
+  margin-top: 10px;
 }
 
 button {
-  padding: 12px;
-  background: #00ff99;
-  border: none;
+  margin-top: 15px;
+  padding: 12px 25px;
   border-radius: 10px;
-  margin-top: 10px;
+  border: none;
+  background: #00ff99;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: gray;
 }
 
 .section {
@@ -34,51 +48,70 @@ button {
 
 img, video {
   width: 100%;
-  margin-top: 10px;
   border-radius: 10px;
+  margin-top: 10px;
+}
+
+.status {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #ccc;
 }
 </style>
-
 </head>
 
 <body>
 
 <h1>🧠 ReelMind Global</h1>
 
-<input id="prompt" placeholder="Enter idea...">
+<input id="prompt" placeholder="Enter idea (cinematic style works best)">
 <br>
-<button onclick="generate()">Generate</button>
+<button id="generateBtn" onclick="generate()">Generate</button>
 
+<!-- STORY -->
 <div class="section">
-<h3>Story</h3>
+<h3>✍️ Story</h3>
 <div id="story">Waiting...</div>
 </div>
 
+<!-- IMAGE -->
 <div class="section">
-<h3>Image</h3>
-<img id="image">
+<h3>🖼️ Image</h3>
+<img id="image" />
 </div>
 
+<!-- VIDEO -->
 <div class="section">
-<h3>Video</h3>
+<h3>🎬 Video</h3>
+<div id="videoStatus" class="status">Waiting...</div>
 <video id="video" controls></video>
 </div>
 
 <script>
-const BACKEND = "https://reelmindbackend-1.onrender.com";
+const API = "https://reelmindbackend-1.onrender.com";
 
-let loading = false;
+let isGenerating = false;
 
 async function generate() {
-  if (loading) return;
-  loading = true;
+  if (isGenerating) return;
 
-  const prompt = document.getElementById("prompt").value;
+  const prompt = document.getElementById("prompt").value.trim();
+  if (!prompt) {
+    alert("Enter a prompt first!");
+    return;
+  }
 
-  document.getElementById("story").innerText = "Generating...";
+  isGenerating = true;
+  document.getElementById("generateBtn").disabled = true;
+
+  // Reset UI
+  document.getElementById("story").innerText = "Generating story...";
+  document.getElementById("image").src = "";
+  document.getElementById("video").src = "";
+  document.getElementById("videoStatus").innerText = "⏳ Generating video (30–60s)...";
 
   try {
-    const res = await fetch(BACKEND + "/generate", {
+    const res = await fetch(API + "/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -88,23 +121,33 @@ async function generate() {
 
     const data = await res.json();
 
-    document.getElementById("story").innerText = data.story || "Failed";
+    // STORY
+    document.getElementById("story").innerText =
+      data.story || "❌ Story failed";
 
+    // IMAGE
     if (data.image) {
       document.getElementById("image").src = data.image;
     }
 
+    // VIDEO
     if (data.video) {
       const vid = document.getElementById("video");
       vid.src = data.video;
-      vid.pause(); // stop auto replay bug
+      vid.pause(); // stop auto-play bug
+      document.getElementById("videoStatus").innerText = "✅ Video ready";
+    } else {
+      document.getElementById("videoStatus").innerText =
+        "⚠️ Video still processing or failed";
     }
 
   } catch (err) {
     document.getElementById("story").innerText = "❌ Server error";
+    document.getElementById("videoStatus").innerText = "❌ Failed to connect";
   }
 
-  loading = false;
+  isGenerating = false;
+  document.getElementById("generateBtn").disabled = false;
 }
 </script>
 
