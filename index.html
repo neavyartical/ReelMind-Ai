@@ -2,150 +2,135 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>ReelMind AI</title>
 
 <style>
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(to bottom, #ffffff, #e6f7ff);
+  font-family: Arial;
   text-align: center;
+  background: #f5f5f5;
 }
 
-/* Brain */
-.logo {
-  font-size: 40px;
-  margin-top: 20px;
+.container {
+  margin-top: 50px;
 }
 
-/* Input */
-textarea {
+input {
   width: 80%;
-  height: 80px;
+  padding: 15px;
   border-radius: 10px;
-  padding: 10px;
-  border: none;
-  box-shadow: 0 0 5px #ccc;
+  border: 1px solid #ccc;
 }
 
-/* Ice cube */
-.generate-box {
-  margin: 30px auto;
-  width: 160px;
-  height: 160px;
-  background: white;
-  border-radius: 25px;
-  box-shadow: 0 0 35px cyan;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Button */
 button {
-  background: cyan;
-  border: none;
-  padding: 12px 22px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-/* Output */
-#output {
   margin-top: 20px;
-  padding: 10px;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 10px;
+  background: #00c2b2;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
 }
 
-img, video {
+.result {
+  margin-top: 30px;
+}
+
+img {
   max-width: 90%;
   border-radius: 10px;
-  margin-top: 10px;
+}
+
+video {
+  max-width: 90%;
+  border-radius: 10px;
 }
 </style>
-
 </head>
+
 <body>
 
-<div class="logo">🧠</div>
-<h2>ReelMind AI</h2>
+<h1>🧠 ReelMind AI</h1>
 
-<textarea id="prompt" placeholder="Type something..."></textarea>
-
-<div class="generate-box">
+<div class="container">
+  <input id="prompt" placeholder="Enter prompt..." />
+  <br>
   <button onclick="generate()">Generate</button>
 </div>
 
-<div id="output"></div>
+<div class="result">
+
+  <h3>✍️ Story</h3>
+  <p id="story">...</p>
+
+  <h3>🖼️ Image</h3>
+  <img id="image" />
+
+  <br><br>
+  <a id="download" download="image.png">
+    <button>Download Image</button>
+  </a>
+
+  <h3>🎬 Video</h3>
+  <video id="video" controls></video>
+
+</div>
 
 <script>
-const API_KEY = "PASTE_YOUR_OPENROUTER_KEY";
 
-/* MAIN FUNCTION */
 async function generate() {
   const prompt = document.getElementById("prompt").value;
-  const output = document.getElementById("output");
 
-  if (!prompt) {
-    output.innerHTML = "⚠️ Enter something";
-    return;
-  }
+  document.getElementById("story").innerText = "Loading...";
+  document.getElementById("image").src = "";
+  document.getElementById("video").src = "";
 
-  output.innerHTML = "⏳ Generating...";
-
+  // 🔥 FIXED OpenRouter (WORKING MODEL)
   try {
-
-    /* ========= TEXT (FIXED MODEL) ========= */
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer " + API_KEY,
+        "Authorization": "Bearer YOUR_OPENROUTER_KEY",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",   // ✅ FIXED MODEL
+        model: "openai/gpt-3.5-turbo",
         messages: [{ role: "user", content: prompt }]
       })
     });
 
     const data = await res.json();
+    document.getElementById("story").innerText =
+      data.choices?.[0]?.message?.content || "No story generated";
 
-    let story = "⚠️ No text output";
-    if (data.choices) {
-      story = data.choices[0].message.content;
-    }
+  } catch (e) {
+    document.getElementById("story").innerText = "Error generating story";
+  }
 
-    /* ========= IMAGE (POLLINATIONS) ========= */
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+  // ✅ Pollinations Image (WORKING)
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+  document.getElementById("image").src = imageUrl;
+  document.getElementById("download").href = imageUrl;
 
-    /* ========= VIDEO (DEMO UNTIL BACKEND FIX) ========= */
-    const videoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
+  // 🎬 Runway (PLACEHOLDER - your backend should handle this)
+  try {
+    const videoRes = await fetch("https://your-backend-url/video", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
 
-    /* ========= DISPLAY ========= */
-    output.innerHTML = `
-      <h3>📝 Story</h3>
-      <p>${story}</p>
+    const videoData = await videoRes.json();
+    document.getElementById("video").src = videoData.video_url;
 
-      <h3>🖼 Image</h3>
-      <img src="${imageUrl}">
-
-      <br><br>
-      <a href="${imageUrl}" download>
-        <button>Download Image</button>
-      </a>
-
-      <h3>🎬 Video</h3>
-      <video controls>
-        <source src="${videoUrl}" type="video/mp4">
-      </video>
-    `;
-
-  } catch (err) {
-    output.innerHTML = "❌ Error: " + err.message;
+  } catch (e) {
+    console.log("Video failed");
   }
 }
+
 </script>
 
 </body>
