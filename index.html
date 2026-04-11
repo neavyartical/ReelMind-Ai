@@ -1,166 +1,228 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelMind AI</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      color: white;
-      text-align: center;
+<style>
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  color:white;
+  text-align:center;
+  overflow-x:hidden;
+}
 
-      background:
-        linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
-        url("logo.jpg");
+/* 🔥 Background with your logo */
+body::before {
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:url("logo.jpg") center/cover no-repeat;
+  filter:brightness(0.35) blur(3px);
+  z-index:-2;
+}
 
-      background-size: cover;
-      background-position: center;
-    }
+/* Glow overlay */
+body::after {
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background: radial-gradient(circle at center, rgba(0,255,255,0.2), transparent);
+  z-index:-1;
+}
 
-    h1 {
-      margin-top: 20px;
-      text-shadow: 0 0 20px cyan;
-    }
+/* Input */
+input {
+  width:80%;
+  padding:15px;
+  border:none;
+  border-radius:10px;
+  margin-top:30px;
+  font-size:16px;
+}
 
-    input {
-      padding: 14px;
-      width: 85%;
-      border-radius: 12px;
-      border: none;
-    }
+/* ICE CUBE */
+.cube {
+  width:150px;
+  height:150px;
+  margin:40px auto;
+  background:rgba(0,255,255,0.1);
+  backdrop-filter: blur(15px);
+  border-radius:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 0 40px cyan;
+  animation:float 3s infinite ease-in-out;
+}
 
-    /* 🧊 ICE CUBE */
-    .cube {
-      margin: 50px auto;
-      width: 240px;
-      height: 240px;
-      border-radius: 30px;
+@keyframes float {
+  0%,100% { transform:translateY(0);}
+  50% { transform:translateY(-15px);}
+}
 
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(30px);
+/* Button inside cube */
+button {
+  padding:10px 20px;
+  border:none;
+  border-radius:10px;
+  background:cyan;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+}
 
-      box-shadow:
-        0 0 40px cyan,
-        inset 0 0 20px rgba(255,255,255,0.2);
+/* Output */
+#output {
+  margin-top:20px;
+  padding:20px;
+}
 
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+/* Image preview */
+#imagePreview {
+  max-width:90%;
+  margin-top:20px;
+  border-radius:10px;
+  display:none;
+}
 
-    button {
-      padding: 16px 25px;
-      border-radius: 15px;
-      border: none;
+/* Download */
+#downloadBtn {
+  display:none;
+  margin-top:10px;
+}
 
-      background: linear-gradient(45deg, cyan, purple);
-      color: white;
-      font-weight: bold;
+/* Auth box */
+.auth {
+  margin-top:20px;
+}
 
-      box-shadow: 0 0 15px cyan;
-      cursor: pointer;
-    }
+.auth input {
+  width:60%;
+  margin:5px;
+}
 
-    #result {
-      margin: 20px;
-      background: rgba(0,0,0,0.6);
-      padding: 15px;
-      border-radius: 12px;
-      white-space: pre-wrap;
-    }
-
-    img {
-      width: 90%;
-      border-radius: 15px;
-      margin-top: 10px;
-    }
-
-    .download {
-      display: inline-block;
-      margin-top: 10px;
-      color: yellow;
-      font-weight: bold;
-    }
-
-    footer {
-      margin-top: 20px;
-    }
-
-    a { color: cyan; }
-  </style>
+/* Footer */
+footer {
+  margin-top:40px;
+  font-size:14px;
+  opacity:0.8;
+}
+</style>
 </head>
 
 <body>
 
-<h1>🚀 ReelMind AI</h1>
+<h1>🧠 ReelMind AI</h1>
 
-<input id="prompt" placeholder="dog, anime, viral video idea..." />
+<input id="prompt" placeholder="Enter anything (image, video, story, idea...)">
 
+<!-- ICE CUBE -->
 <div class="cube">
-  <button onclick="generate()">⚡ Generate</button>
+  <button onclick="generate()">Generate</button>
 </div>
 
-<div id="result"></div>
-<div id="imageBox"></div>
+<div id="output"></div>
+
+<img id="imagePreview">
+<br>
+<button id="downloadBtn">Download</button>
+
+<!-- LOGIN / REGISTER -->
+<div class="auth">
+  <h3>🔐 Account</h3>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <br>
+  <button onclick="register()">Register</button>
+  <button onclick="login()">Login</button>
+</div>
 
 <footer>
-  🚀 Powered by <b>Artical Neavy</b><br>
-  <a href="terms.html">Terms & Conditions</a>
+  Powered by Artical Neavy 🚀 | 
+  <a href="terms.html" style="color:cyan;">Terms</a>
 </footer>
 
 <script>
-const API = "https://reelmindbackend-1.onrender.com";
+const API_URL = "https://reelmindbackend-1.onrender.com/generate";
 
+/* GENERATE FUNCTION */
 async function generate() {
   const prompt = document.getElementById("prompt").value;
-  const result = document.getElementById("result");
-  const imageBox = document.getElementById("imageBox");
+  const output = document.getElementById("output");
+  const img = document.getElementById("imagePreview");
+  const downloadBtn = document.getElementById("downloadBtn");
 
-  if (!prompt) {
-    result.innerHTML = "Enter prompt ❌";
-    return;
-  }
-
-  result.innerHTML = "⚡ Generating...";
-  imageBox.innerHTML = "";
+  output.innerHTML = "⏳ Generating...";
+  img.style.display = "none";
+  downloadBtn.style.display = "none";
 
   try {
-    const res = await fetch(API + "/generate-smart", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
+    const res = await fetch(API_URL, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({prompt})
     });
 
     const data = await res.json();
 
-    console.log(data);
+    /* IMAGE */
+    if(data.image){
+      img.src = data.image;
+      img.style.display = "block";
 
-    // 🖼 IMAGE
-    if (data.type === "image") {
-      imageBox.innerHTML = `
-        <img src="${data.output}" />
-        <br>
-        <a href="${data.output}" download class="download">⬇ Download Image</a>
+      downloadBtn.style.display = "inline-block";
+      downloadBtn.onclick = () => {
+        const a = document.createElement("a");
+        a.href = data.image;
+        a.download = "reelmind.png";
+        a.click();
+      };
+
+      output.innerHTML = "🖼 Image Generated!";
+    }
+
+    /* VIDEO */
+    else if(data.video){
+      output.innerHTML = `
+        🎬 Video Generated<br>
+        <video controls width="300">
+          <source src="${data.video}">
+        </video>
       `;
-      result.innerHTML = "✅ Image Generated";
-      return;
     }
 
-    // 🎬 VIDEO
-    if (data.type === "video") {
-      result.innerHTML = "🎬 Viral Video Script:\n\n" + data.output;
-      return;
+    /* TEXT */
+    else {
+      output.innerHTML = data.result;
     }
 
-    // 🧠 TEXT
-    result.innerHTML = data.output;
+  } catch(err){
+    output.innerHTML = "❌ Error connecting to server";
+  }
+}
 
-  } catch (err) {
-    result.innerHTML = "Server error ❌";
+/* SIMPLE AUTH SYSTEM (LOCAL STORAGE) */
+function register(){
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+
+  localStorage.setItem(email, pass);
+  alert("Registered ✅");
+}
+
+function login(){
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+
+  if(localStorage.getItem(email) === pass){
+    alert("Login successful 🔓");
+  } else {
+    alert("Wrong details ❌");
   }
 }
 </script>
