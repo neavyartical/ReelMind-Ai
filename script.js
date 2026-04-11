@@ -1,71 +1,131 @@
-async function generate() {
-  const prompt = document.getElementById("prompt").value;
-  const output = document.getElementById("output");
-  const downloadBtn = document.getElementById("downloadBtn");
+// ===============================
+// 🔑 CONFIG
+// ===============================
+const OPENROUTER_API_KEY = "YOUR_OPENROUTER_KEY_HERE";
 
-  output.innerHTML = "⏳ Generating...";
-  downloadBtn.style.display = "none";
+// ===============================
+// 🚀 MAIN GENERATE FUNCTION
+// ===============================
+function handleGenerate() {
+    const prompt = document.getElementById("prompt").value.trim();
+    const output = document.getElementById("output");
 
-  if (!prompt) {
-    output.innerHTML = "❌ Enter something";
-    return;
-  }
+    if (!prompt) {
+        alert("Please enter something first!");
+        return;
+    }
 
-  const lower = prompt.toLowerCase();
+    output.innerHTML = "⏳ Generating...";
 
-  // 🧠 DETECT MODE
-  if (lower.includes("image") || lower.includes("photo") || lower.includes("picture")) {
-    generateImage(prompt);
-  } else if (lower.includes("video")) {
-    generateVideo(prompt);
-  } else {
-    generateText(prompt);
-  }
+    const lowerPrompt = prompt.toLowerCase();
+
+    // Smart detection
+    if (
+        lowerPrompt.includes("image") ||
+        lowerPrompt.includes("picture") ||
+        lowerPrompt.includes("photo") ||
+        lowerPrompt.includes("draw")
+    ) {
+        generateImage(prompt);
+    } 
+    else if (
+        lowerPrompt.includes("video") ||
+        lowerPrompt.includes("clip") ||
+        lowerPrompt.includes("movie")
+    ) {
+        generateVideo(prompt);
+    } 
+    else {
+        generateText(prompt);
+    }
 }
 
-// 🎨 IMAGE GENERATION (REAL FIX)
+// ===============================
+// 🖼️ IMAGE GENERATION (Pollinations)
+// ===============================
 function generateImage(prompt) {
-  const output = document.getElementById("output");
-  const downloadBtn = document.getElementById("downloadBtn");
+    const output = document.getElementById("output");
 
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+    try {
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
-  output.innerHTML = `<img src="${url}" id="genImg">`;
-
-  // DOWNLOAD FIX
-  downloadBtn.href = url;
-  downloadBtn.style.display = "inline-block";
-  downloadBtn.innerText = "⬇ Download Image";
+        output.innerHTML = `
+            <img src="${imageUrl}" 
+                 style="max-width:90%; border-radius:15px; box-shadow:0 0 20px cyan;">
+            <br><br>
+            <button onclick="downloadImage('${imageUrl}')">⬇ Download Image</button>
+        `;
+    } catch (err) {
+        output.innerHTML = "❌ Image generation failed.";
+    }
 }
 
-// 🎬 VIDEO (SMART SYSTEM)
-function generateVideo(prompt) {
-  const output = document.getElementById("output");
-
-  output.innerHTML = `
-  🎬 <b>Video Generation (Pro Feature)</b><br><br>
-  We are preparing your cinematic AI video...<br><br>
-  🔒 Unlock full video generation in ReelMind Pro 🚀
-  `;
+// ===============================
+// ⬇ DOWNLOAD IMAGE
+// ===============================
+function downloadImage(url) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "reelmind-image.png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 }
 
-// 🧠 TEXT GENERATION (BACKEND)
+// ===============================
+// 🧠 TEXT / STORIES (OpenRouter)
+// ===============================
 async function generateText(prompt) {
-  const output = document.getElementById("output");
+    const output = document.getElementById("output");
 
-  try {
-    const res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
+    try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + OPENROUTER_API_KEY,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "openai/gpt-3.5-turbo",
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ]
+            })
+        });
 
-    const data = await res.json();
-    output.innerText = data.result;
+        const data = await response.json();
 
-  } catch {
-    output.innerText = "❌ Server error";
-  }
+        if (!data || !data.choices || !data.choices[0]) {
+            output.innerHTML = "❌ API error. Check your key or quota.";
+            return;
+        }
+
+        output.innerHTML = `
+            <div style="max-width:90%; margin:auto; text-align:left;">
+                ${data.choices[0].message.content}
+            </div>
+        `;
+
+    } catch (error) {
+        output.innerHTML = "❌ Failed to generate text.";
+    }
+}
+
+// ===============================
+// 🎬 VIDEO (SMART FALLBACK)
+// ===============================
+function generateVideo(prompt) {
+    const output = document.getElementById("output");
+
+    output.innerHTML = `
+        <p style="color:orange;">
+        ⚠️ Real video generation requires a paid API (Replicate / Runway / Pika).
+        </p>
+        <p>🎬 Generating video concept instead...</p>
+    `;
+
+    generateText("Create a cinematic short video script for: " + prompt);
 }
