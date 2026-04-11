@@ -2,179 +2,170 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReelMind AI</title>
 
 <style>
 body {
-  margin: 0;
-  font-family: Arial;
-  color: white;
-  text-align: center;
-  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  overflow-x: hidden;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: black;
+    color: white;
+    text-align: center;
 }
 
-/* Background Image */
-.bg-img {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: url("YOUR_IMAGE_HERE.jpg") center/cover no-repeat;
-  opacity: 0.15;
-  z-index: -1;
-}
-
-/* Ice Cube */
-.cube {
-  margin: 40px auto;
-  width: 160px;
-  height: 160px;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(15px);
-  border-radius: 20px;
-  box-shadow: 0 0 40px cyan;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Button */
-button {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 10px;
-  background: cyan;
-  color: black;
-  font-weight: bold;
-  cursor: pointer;
+/* Background image with glow */
+body::before {
+    content: "";
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: url("your-image.jpg") center/cover no-repeat;
+    opacity: 0.2;
+    z-index: -1;
 }
 
 /* Input */
 input {
-  width: 80%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  margin-top: 20px;
+    width: 80%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    margin-top: 20px;
+}
+
+/* Ice cube */
+.cube {
+    width: 150px;
+    height: 150px;
+    margin: 40px auto;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 30px cyan;
+}
+
+/* Button */
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    background: cyan;
+    cursor: pointer;
 }
 
 /* Output */
 #output {
-  margin-top: 20px;
-}
-
-img {
-  max-width: 90%;
-  border-radius: 10px;
-  margin-top: 20px;
-}
-
-.download {
-  margin-top: 10px;
+    margin-top: 30px;
+    padding: 20px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="bg-img"></div>
-
 <h1>🧠 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Type anything... (image, video, story, ideas)">
+<input id="prompt" placeholder="Type anything (image, story, video idea...)">
 
 <div class="cube">
-  <button onclick="generate()">Generate</button>
+    <button onclick="handleGenerate()">Generate</button>
 </div>
 
 <div id="output"></div>
 
 <script>
-async function generate() {
-  const prompt = document.getElementById("prompt").value;
-  const output = document.getElementById("output");
+// 🔑 PUT YOUR OPENROUTER KEY HERE
+const OPENROUTER_API_KEY = "YOUR_OPENROUTER_KEY_HERE";
 
-  output.innerHTML = "⏳ Generating...";
+// MAIN FUNCTION
+function handleGenerate() {
+    const prompt = document.getElementById("prompt").value;
+    const output = document.getElementById("output");
 
-  /* =========================
-     IMAGE GENERATION (FIXED)
-  ==========================*/
-  if (prompt.toLowerCase().includes("image") || prompt.toLowerCase().includes("photo")) {
+    if (!prompt) {
+        alert("Enter something!");
+        return;
+    }
 
-    let img = new Image();
+    output.innerHTML = "Generating...";
 
-    // Primary API
-    img.src = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
+    // Decide type
+    if (prompt.toLowerCase().includes("image")) {
+        generateImage(prompt);
+    } 
+    else if (prompt.toLowerCase().includes("video")) {
+        generateVideo(prompt);
+    } 
+    else {
+        generateText(prompt);
+    }
+}
 
-    img.onload = () => {
-      output.innerHTML = "";
-      output.appendChild(img);
+// ✅ IMAGE (Pollinations)
+function generateImage(prompt) {
+    const output = document.getElementById("output");
 
-      let btn = document.createElement("button");
-      btn.innerText = "Download Image";
-      btn.className = "download";
-      btn.onclick = () => {
-        let a = document.createElement("a");
-        a.href = img.src;
-        a.download = "image.png";
-        a.click();
-      };
-
-      output.appendChild(btn);
-    };
-
-    // 🔥 Fallback if API fails
-    img.onerror = () => {
-      output.innerHTML = `
-        ❌ Image API failed<br><br>
-        <img src="https://source.unsplash.com/800x500/?${encodeURIComponent(prompt)}">
-      `;
-    };
-
-    return;
-  }
-
-  /* =========================
-     VIDEO GENERATION (SMART)
-  ==========================*/
-  if (prompt.toLowerCase().includes("video")) {
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
     output.innerHTML = `
-      🎬 Video generation is limited (no free API)<br><br>
-      Here is a storyboard idea:<br><br>
-      <b>Scene 1:</b> ${prompt}<br>
-      <b>Scene 2:</b> Action continues<br>
-      <b>Scene 3:</b> Cinematic ending
+        <img src="${imageUrl}" style="max-width:90%; border-radius:15px;">
+        <br><br>
+        <button onclick="downloadImage('${imageUrl}')">Download Image</button>
     `;
-    return;
-  }
-
-  /* =========================
-     TEXT / STORY (OpenRouter)
-  ==========================*/
-  try {
-    let res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer YOUR_OPENROUTER_KEY",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-
-    let data = await res.json();
-
-    let text = data.choices?.[0]?.message?.content || "No response";
-
-    output.innerHTML = "<p>" + text + "</p>";
-
-  } catch (e) {
-    output.innerHTML = "❌ Error generating text";
-  }
 }
+
+// ✅ DOWNLOAD
+function downloadImage(url) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "reelmind.png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// ✅ TEXT (OpenRouter)
+async function generateText(prompt) {
+    const output = document.getElementById("output");
+
+    try {
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + OPENROUTER_API_KEY,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "openai/gpt-3.5-turbo",
+                messages: [
+                    { role: "user", content: prompt }
+                ]
+            })
+        });
+
+        const data = await res.json();
+
+        output.innerHTML = `<p>${data.choices[0].message.content}</p>`;
+    } catch (err) {
+        output.innerHTML = "Error generating text";
+    }
+}
+
+// ✅ VIDEO (SMART FALLBACK)
+function generateVideo(prompt) {
+    const output = document.getElementById("output");
+
+    output.innerHTML = `
+        <p>⚠️ Real video generation requires paid API.</p>
+        <p>Here is a video idea based on your prompt:</p>
+    `;
+
+    generateText("Create a short video concept for: " + prompt);
+}
+
 </script>
 
 </body>
