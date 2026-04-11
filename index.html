@@ -2,33 +2,33 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReelMind AI</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
   background: #f5f7fa;
-  margin: 0;
   text-align: center;
+  margin: 0;
+  padding: 20px;
 }
 
 .container {
   max-width: 500px;
   margin: auto;
-  padding: 20px;
 }
 
 h1 {
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 textarea {
   width: 100%;
-  padding: 12px;
+  height: 80px;
   border-radius: 10px;
   border: 1px solid #ccc;
-  resize: none;
+  padding: 10px;
+  font-size: 16px;
 }
 
 button {
@@ -36,23 +36,19 @@ button {
   padding: 12px 25px;
   border: none;
   border-radius: 10px;
-  background: #00c9a7;
+  background: #00b894;
   color: white;
   font-size: 16px;
   cursor: pointer;
 }
 
 button:hover {
-  background: #00a98c;
-}
-
-.output {
-  margin-top: 20px;
-  text-align: left;
+  background: #019874;
 }
 
 .section {
   margin-top: 25px;
+  text-align: left;
 }
 
 img, video {
@@ -63,7 +59,7 @@ img, video {
 
 .loader {
   margin-top: 10px;
-  display: none;
+  color: #999;
 }
 </style>
 
@@ -74,23 +70,22 @@ img, video {
 
 <h1>🧠 ReelMind AI</h1>
 
-<textarea id="prompt" rows="3" placeholder="Enter your idea..."></textarea>
+<textarea id="prompt" placeholder="Enter your idea..."></textarea>
 
 <br>
 <button onclick="generate()">Generate</button>
 
-<div class="loader" id="loader">⏳ Generating...</div>
-
-<div class="output">
-
 <div class="section">
 <h3>✍️ Story</h3>
-<p id="story">No story generated</p>
+<p id="story">No story yet</p>
+<p id="storyLoader" class="loader"></p>
 </div>
 
 <div class="section">
 <h3>🖼 Image</h3>
-<img id="image" />
+<p id="imageLoader" class="loader"></p>
+<img id="image" src="">
+<br>
 <a id="downloadLink" download="image.png">
 <button>Download Image</button>
 </a>
@@ -98,85 +93,88 @@ img, video {
 
 <div class="section">
 <h3>🎬 Video</h3>
+<p id="videoLoader" class="loader"></p>
 <video id="video" controls></video>
 </div>
 
 </div>
 
-</div>
-
 <script>
-
-// 🔑 PUT YOUR KEYS HERE
-const OPENROUTER_KEY = "PASTE_OPENROUTER_KEY";
-const RUNWAY_KEY = "PASTE_RUNWAY_KEY";
-
 async function generate() {
   const prompt = document.getElementById("prompt").value;
 
-  if (!prompt) {
-    alert("Enter something!");
-    return;
-  }
-
-  document.getElementById("loader").style.display = "block";
-
-  // RESET OUTPUT
-  document.getElementById("story").innerText = "Generating...";
+  // RESET UI
+  document.getElementById("story").innerText = "";
   document.getElementById("image").src = "";
   document.getElementById("video").src = "";
 
+  document.getElementById("storyLoader").innerText = "Generating story...";
+  document.getElementById("imageLoader").innerText = "Generating image...";
+  document.getElementById("videoLoader").innerText = "Generating video...";
+
   // =========================
-  // 1. STORY (OpenRouter FIXED)
+  // STORY (OPENROUTER FIXED)
   // =========================
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const storyRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer " + OPENROUTER_KEY,
+        "Authorization": "Bearer YOUR_OPENROUTER_KEY",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
+        model: "mistralai/mistral-7b-instruct",
         messages: [
-          { role: "user", content: "Write a short viral story about: " + prompt }
+          { role: "user", content: "Write a short viral story: " + prompt }
         ]
       })
     });
 
-    const data = await res.json();
+    const storyData = await storyRes.json();
 
     document.getElementById("story").innerText =
-      data.choices?.[0]?.message?.content || "Story failed";
+      storyData.choices?.[0]?.message?.content || "Story failed";
 
   } catch (e) {
-    document.getElementById("story").innerText = "Error generating story";
+    document.getElementById("story").innerText = "Story error";
+  }
+
+  document.getElementById("storyLoader").innerText = "";
+
+  // =========================
+  // IMAGE (POLLINATIONS FAST)
+  // =========================
+  try {
+    const imageUrl = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
+    
+    // preload trick (fix slow loading issue)
+    const img = new Image();
+    img.src = imageUrl;
+
+    img.onload = () => {
+      document.getElementById("image").src = imageUrl;
+      document.getElementById("downloadLink").href = imageUrl;
+      document.getElementById("imageLoader").innerText = "";
+    };
+
+  } catch (e) {
+    document.getElementById("imageLoader").innerText = "Image failed";
   }
 
   // =========================
-  // 2. IMAGE (Pollinations)
+  // VIDEO (RUNWAY READY)
   // =========================
   try {
-    const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
-
-    document.getElementById("image").src = imgUrl;
-    document.getElementById("downloadLink").href = imgUrl;
-
-  } catch (e) {}
-
-  // =========================
-  // 3. VIDEO (Runway - demo fallback)
-  // =========================
-  try {
-    // ⚠️ Runway API is complex → for now demo video
+    // TEMP demo video (replace with Runway API later)
     document.getElementById("video").src =
       "https://www.w3schools.com/html/mov_bbb.mp4";
 
-  } catch (e) {}
+    document.getElementById("videoLoader").innerText = "";
 
-  document.getElementById("loader").style.display = "none";
+  } catch (e) {
+    document.getElementById("videoLoader").innerText = "Video failed";
+  }
 }
-
 </script>
 
 </body>
