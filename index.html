@@ -8,12 +8,13 @@
 <style>
 body {
   margin:0;
-  font-family:Arial;
+  font-family:Arial, sans-serif;
   color:white;
   text-align:center;
+  overflow-x:hidden;
 }
 
-/* BACKGROUND */
+/* 🔥 BACKGROUND (YOUR LOGO) */
 body::before {
   content:"";
   position:fixed;
@@ -24,25 +25,32 @@ body::before {
   z-index:-2;
 }
 
-/* GLOW */
+/* GLOW EFFECT */
 body::after {
   content:"";
   position:fixed;
   width:100%;
   height:100%;
-  background: radial-gradient(circle, rgba(0,255,255,0.2), transparent);
+  background: radial-gradient(circle at center, rgba(0,255,255,0.2), transparent);
   z-index:-1;
 }
 
+h1 {
+  margin-top:30px;
+}
+
+/* INPUT */
 input {
   width:80%;
   padding:15px;
-  border-radius:10px;
   border:none;
+  border-radius:15px;
   margin-top:20px;
+  font-size:16px;
+  outline:none;
 }
 
-/* ICE CUBE */
+/* ❄️ ICE CUBE */
 .cube {
   width:160px;
   height:160px;
@@ -51,9 +59,16 @@ input {
   backdrop-filter: blur(25px);
   border-radius:25px;
   display:flex;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
   box-shadow:0 0 50px cyan;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform:translateY(0);}
+  50% { transform:translateY(-10px);}
+  100% { transform:translateY(0);}
 }
 
 /* BUTTON */
@@ -70,21 +85,31 @@ button {
 /* OUTPUT */
 #output {
   margin-top:20px;
-  padding:15px;
+  padding:20px;
+  text-align:left;
+  white-space:pre-wrap;
 }
 
 /* IMAGE */
 #imagePreview {
   max-width:90%;
   margin-top:20px;
-  display:none;
   border-radius:15px;
+  display:none;
+  box-shadow:0 0 20px cyan;
 }
 
 /* DOWNLOAD */
 #downloadBtn {
   display:none;
   margin-top:10px;
+}
+
+/* FOOTER */
+.footer {
+  margin-top:40px;
+  font-size:12px;
+  opacity:0.7;
 }
 </style>
 </head>
@@ -93,7 +118,7 @@ button {
 
 <h1>🧠 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Ask anything (image, story, video...)">
+<input id="prompt" placeholder="Ask anything (stories, ideas, image, video...)">
 
 <div class="cube">
   <button onclick="generate()">Generate</button>
@@ -105,12 +130,21 @@ button {
 <br>
 <button id="downloadBtn">Download Image</button>
 
+<div class="footer">
+  Powered by Artical Neavy 🚀
+</div>
+
 <script>
 async function generate() {
-  const prompt = document.getElementById("prompt").value;
+  const prompt = document.getElementById("prompt").value.trim();
   const output = document.getElementById("output");
   const img = document.getElementById("imagePreview");
   const downloadBtn = document.getElementById("downloadBtn");
+
+  if (!prompt) {
+    output.innerHTML = "❌ Please enter something";
+    return;
+  }
 
   output.innerHTML = "⚡ Generating...";
   img.style.display = "none";
@@ -118,18 +152,24 @@ async function generate() {
 
   try {
     const res = await fetch("https://reelmindbackend-1.onrender.com/generate", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({prompt})
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
     });
 
     const data = await res.json();
-    console.log(data);
+    console.log("RESPONSE:", data);
 
-    /* TEXT */
-    output.innerHTML = `<pre style="white-space:pre-wrap;">${data.result}</pre>`;
+    /* 🧠 TEXT OUTPUT */
+    if (data.result) {
+      output.innerHTML = data.result;
+    } else {
+      output.innerHTML = "⚠️ No response from AI";
+    }
 
-    /* IMAGE */
+    /* 🖼 IMAGE OUTPUT */
     if (data.image) {
       img.src = data.image;
       img.style.display = "block";
@@ -138,14 +178,14 @@ async function generate() {
       downloadBtn.onclick = () => {
         const a = document.createElement("a");
         a.href = data.image;
-        a.download = "image.png";
+        a.download = "reelmind.png";
         a.click();
       };
     }
 
-  } catch (err) {
-    console.error(err);
-    output.innerHTML = "❌ Failed to connect";
+  } catch (error) {
+    console.error(error);
+    output.innerHTML = "❌ Failed to connect to server";
   }
 }
 </script>
