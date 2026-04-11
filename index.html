@@ -7,49 +7,56 @@
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background: #0d0d0d;
   color: white;
   text-align: center;
-  margin: 0;
 }
 
 h1 {
   color: #00ffcc;
-  margin-top: 20px;
 }
 
 input {
   width: 80%;
-  padding: 15px;
+  padding: 12px;
   border-radius: 10px;
   border: none;
-  margin-top: 20px;
-  font-size: 16px;
+  margin: 10px;
 }
 
 button {
-  margin-top: 15px;
   padding: 12px 25px;
-  border: none;
   border-radius: 10px;
+  border: none;
   background: #00ff66;
   color: black;
   font-weight: bold;
   cursor: pointer;
+  margin: 5px;
 }
 
 .section {
-  margin: 20px;
-  padding: 15px;
-  border-radius: 15px;
   background: #1a1a1a;
+  margin: 15px;
+  padding: 15px;
+  border-radius: 10px;
 }
 
 img, video {
-  max-width: 100%;
-  border-radius: 15px;
+  width: 100%;
+  border-radius: 10px;
   margin-top: 10px;
+}
+
+.footer {
+  margin-top: 30px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.hidden {
+  display: none;
 }
 </style>
 </head>
@@ -58,84 +65,150 @@ img, video {
 
 <h1>🧠 ReelMind Global</h1>
 
-<input id="prompt" placeholder="Enter cinematic idea..." />
+<!-- LOGIN / REGISTER -->
+<div class="section" id="authBox">
+  <h3>🔐 Login / Register</h3>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <br>
+  <button onclick="login()">Login</button>
+  <button onclick="register()">Register</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="hidden">
+
+<input id="prompt" placeholder="Enter cinematic idea...">
 <br>
 <button onclick="generate()">Generate</button>
 
 <div class="section">
-  <h2>✍️ Story</h2>
-  <p id="story">Waiting...</p>
+  <h3>✍️ Story</h3>
+  <p id="story">...</p>
 </div>
 
 <div class="section">
-  <h2>🖼 Image</h2>
-  <img id="image" />
+  <h3>🖼 Image</h3>
+  <img id="image">
 </div>
 
 <div class="section">
-  <h2>🎬 Video</h2>
+  <h3>🎬 Video</h3>
   <video id="video" controls></video>
 </div>
 
-<script>
-const API_BASE = "https://reelmindbackend-1.onrender.com";
+<!-- MONETIZATION -->
+<div class="section">
+  <h3>💰 Go Pro</h3>
+  <button onclick="upgrade()">Unlock Premium</button>
+</div>
 
+<!-- TERMS -->
+<div class="section">
+  <button onclick="showTerms()">Terms & Conditions</button>
+</div>
+
+</div>
+
+<!-- TERMS MODAL -->
+<div id="termsBox" class="hidden section">
+  <h3>📜 Terms & Conditions</h3>
+  <p>
+    By using ReelMind Global, you agree to use AI responsibly.
+    Content generated is user responsibility.
+    No illegal, harmful, or abusive use allowed.
+  </p>
+  <button onclick="closeTerms()">Close</button>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  Powered by ARTICAL NEAVY 🚀
+</div>
+
+<script>
+const API = "https://reelmindbackend-1.onrender.com";
+
+// 🔐 AUTH SYSTEM (LOCAL)
+function register() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  localStorage.setItem("user", JSON.stringify({ email, password }));
+  alert("Registered successfully!");
+}
+
+function login() {
+  const saved = JSON.parse(localStorage.getItem("user"));
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  if (saved && saved.email === email && saved.password === password) {
+    document.getElementById("authBox").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+  } else {
+    alert("Invalid login");
+  }
+}
+
+// 🎬 GENERATE
 async function generate() {
   const prompt = document.getElementById("prompt").value;
 
-  if (!prompt) {
-    alert("Enter prompt first");
-    return;
-  }
-
-  // Reset UI (IMPORTANT FIX)
   document.getElementById("story").innerText = "Generating...";
   document.getElementById("image").src = "";
   document.getElementById("video").src = "";
 
   try {
     // STORY
-    const storyRes = await fetch(`${API_BASE}/story`, {
+    const storyRes = await fetch(API + "/story", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ prompt })
     });
 
     const storyData = await storyRes.json();
-    document.getElementById("story").innerText =
-      storyData.story || "Story failed";
+    document.getElementById("story").innerText = storyData.story;
 
     // IMAGE
-    const imageRes = await fetch(`${API_BASE}/image`, {
+    const imgRes = await fetch(API + "/image", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ prompt })
     });
 
-    const imageData = await imageRes.json();
-    document.getElementById("image").src =
-      imageData.image || "";
+    const imgData = await imgRes.json();
+    document.getElementById("image").src = imgData.image;
 
-    // VIDEO (IMPORTANT FIX)
-    const videoRes = await fetch(`${API_BASE}/video`, {
+    // VIDEO
+    const vidRes = await fetch(API + "/video", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ prompt })
     });
 
-    const videoData = await videoRes.json();
-
-    if (videoData.video) {
-      document.getElementById("video").src = videoData.video;
-    } else {
-      document.getElementById("video").poster = "";
-      console.log("Runway not active yet");
+    const vidData = await vidRes.json();
+    if (vidData.video) {
+      document.getElementById("video").src = vidData.video;
     }
 
   } catch (err) {
-    console.error(err);
     document.getElementById("story").innerText = "⚠️ AI not responding";
   }
+}
+
+// 💰 MONETIZATION
+function upgrade() {
+  alert("Payment system coming soon 💰");
+}
+
+// 📜 TERMS
+function showTerms() {
+  document.getElementById("termsBox").classList.remove("hidden");
+}
+
+function closeTerms() {
+  document.getElementById("termsBox").classList.add("hidden");
 }
 </script>
 
