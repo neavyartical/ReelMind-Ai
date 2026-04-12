@@ -1,39 +1,43 @@
-// MAIN GENERATE FUNCTION
-function generate(type) {
+async function generate(type) {
   const prompt = document.getElementById("prompt").value;
   const result = document.getElementById("result");
 
   if (!prompt) {
-    result.innerHTML = "<p style='color:red;'>❌ Please enter something first</p>";
+    result.innerHTML = "❌ Enter something first";
     return;
   }
 
-  result.innerHTML = "<p>⏳ Generating...</p>";
+  result.innerHTML = "⏳ Generating...";
 
-  setTimeout(() => {
-    if (type === "story") {
-      result.innerHTML = `
-        <h3>📖 Story</h3>
-        <p>Once upon a time, ${prompt} turned into something amazing...</p>
-      `;
-    } 
-    else if (type === "image") {
-      result.innerHTML = `
-        <h3>🖼 Image</h3>
-        <img src="https://picsum.photos/400/300">
-      `;
-    } 
-    else if (type === "video") {
-      result.innerHTML = `
-        <h3>🎬 Video Idea</h3>
-        <p>Create a viral video about "${prompt}"</p>
-      `;
-    } 
-    else {
-      result.innerHTML = `
-        <h3>✨ AI Result</h3>
-        <p>${prompt} can go viral!</p>
-      `;
-    }
-  }, 1500);
+  try {
+    const res = await fetch("/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt, type })
+    });
+
+    const data = await res.json();
+    result.innerHTML = data.result;
+
+  } catch (err) {
+    result.innerHTML = "❌ Error connecting to server";
+  }
+}
+
+function askAI() {
+  document.getElementById("result").innerHTML =
+    "🤖 AI assistant coming soon...";
+}
+
+function downloadResult() {
+  const text = document.getElementById("result").innerText;
+
+  const blob = new Blob([text], { type: "text/plain" });
+  const link = document.createElement("a");
+
+  link.href = URL.createObjectURL(blob);
+  link.download = "result.txt";
+  link.click();
 }
