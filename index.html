@@ -63,51 +63,24 @@ button {
   background:#38bdf8;
   cursor:pointer;
 }
-
-#topBar {
-  display:flex;
-  justify-content:space-between;
-  padding:10px;
-}
 </style>
 </head>
 
 <body>
 
-<h1>ReelMind AI 🧊</h1>
-
-<div id="topBar">
-  <button onclick="resetChat()">🧹 Reset</button>
-  <button onclick="toggleVoice()">🔊 Voice ON</button>
-</div>
+<h1>ReelMind AI ⚡</h1>
 
 <div id="chat"></div>
 
 <div id="inputArea">
-  <input id="prompt" placeholder="Ask anything...">
-  <button onclick="generate()">🧊</button>
+  <input id="prompt" placeholder="Ask fast...">
+  <button onclick="generate()">⚡</button>
 </div>
 
 <script>
 const BACKEND = "https://reelmindbackend-1.onrender.com";
 
-let voiceEnabled = true;
-
-function toggleVoice() {
-  voiceEnabled = !voiceEnabled;
-  alert("Voice " + (voiceEnabled ? "ON 🔊" : "OFF 🔇"));
-}
-
-function speak(text) {
-  if (!voiceEnabled) return;
-
-  const speech = new SpeechSynthesisUtterance(text);
-  speech.rate = 1;
-  speech.pitch = 1;
-  speech.lang = "en-US";
-
-  window.speechSynthesis.speak(speech);
-}
+let isLoading = false;
 
 function addMessage(text, type) {
   const chat = document.getElementById("chat");
@@ -119,34 +92,26 @@ function addMessage(text, type) {
   return div;
 }
 
-// ✨ typing effect
-function typeEffect(element, text) {
-  let i = 0;
-
-  function type() {
-    if (i < text.length) {
-      element.innerHTML += text.charAt(i);
-      i++;
-      setTimeout(type, 15);
-    } else {
-      speak(text); // 🔊 speak after typing
-    }
-  }
-
-  element.innerHTML = "";
-  type();
+// ⚡ FAST TYPING (almost instant)
+function fastType(element, text) {
+  element.innerHTML = text;
 }
 
+// ⚡ GENERATE
 function generate() {
+  if (isLoading) return;
+
   const input = document.getElementById("prompt");
   const prompt = input.value.trim();
 
   if (!prompt) return;
 
+  isLoading = true;
+
   addMessage(prompt, "user");
   input.value = "";
 
-  const botMsg = addMessage("⏳", "bot");
+  const botMsg = addMessage("⚡ Thinking...", "bot");
 
   fetch(BACKEND + "/generate", {
     method: "POST",
@@ -155,19 +120,13 @@ function generate() {
   })
   .then(res => res.json())
   .then(data => {
-    botMsg.innerHTML = "";
-    typeEffect(botMsg, data.result);
+    fastType(botMsg, data.result);
+    isLoading = false;
   })
   .catch(() => {
-    botMsg.innerHTML = "Error connecting to server";
+    botMsg.innerHTML = "❌ Error";
+    isLoading = false;
   });
-}
-
-// 🧹 reset
-function resetChat() {
-  fetch(BACKEND + "/reset", { method:"POST" });
-  document.getElementById("chat").innerHTML = "";
-  speechSynthesis.cancel();
 }
 
 // ENTER KEY
