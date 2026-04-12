@@ -1,17 +1,94 @@
-<script>
-const API_KEY = "YOUR_OPENROUTER_API_KEY";
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ReelMind AI</title>
 
-let chatHistory = JSON.parse(localStorage.getItem("chat")) || [];
-
-// LOAD CHAT
-window.onload = () => {
-  chatHistory.forEach(msg => addMessage(msg.text, msg.type));
-};
-
-function saveChat(text, type) {
-  chatHistory.push({ text, type });
-  localStorage.setItem("chat", JSON.stringify(chatHistory));
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#0f172a;
+  color:white;
 }
+
+h1 {
+  text-align:center;
+  color:#38bdf8;
+}
+
+#chat {
+  height:70vh;
+  overflow-y:auto;
+  padding:15px;
+}
+
+.message {
+  margin:10px 0;
+  padding:12px;
+  border-radius:10px;
+  max-width:80%;
+}
+
+.user {
+  background:#38bdf8;
+  color:black;
+  margin-left:auto;
+}
+
+.bot {
+  background:#1e293b;
+}
+
+#inputArea {
+  display:flex;
+  gap:10px;
+  padding:10px;
+  background:#020617;
+  position:sticky;
+  bottom:0;
+}
+
+input {
+  flex:1;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+}
+
+button {
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#38bdf8;
+  cursor:pointer;
+}
+
+#topBar {
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>ReelMind AI 🧊</h1>
+
+<div id="topBar">
+  <button onclick="resetChat()">🧹 Reset</button>
+</div>
+
+<div id="chat"></div>
+
+<div id="inputArea">
+  <input id="prompt" placeholder="Ask anything...">
+  <button onclick="generate()">🧊</button>
+</div>
+
+<script>
+const BACKEND = "https://reelmindbackend-1.onrender.com";
 
 function addMessage(text, type) {
   const chat = document.getElementById("chat");
@@ -20,87 +97,64 @@ function addMessage(text, type) {
   div.innerHTML = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
-  saveChat(text, type);
+  return div;
+}
+
+// ✨ TYPING EFFECT
+function typeEffect(element, text) {
+  let i = 0;
+  const speed = 15;
+
+  function type() {
+    if (i < text.length) {
+      element.innerHTML += text.charAt(i);
+      i++;
+      setTimeout(type, speed);
+    }
+  }
+
+  element.innerHTML = "";
+  type();
 }
 
 function generate() {
   const input = document.getElementById("prompt");
-  let prompt = input.value.trim();
+  const prompt = input.value.trim();
 
   if (!prompt) return;
 
   addMessage(prompt, "user");
   input.value = "";
 
-  addMessage("⏳ Thinking...", "bot");
+  const botMsg = addMessage("⏳", "bot");
 
-  // 🖼 IMAGE
-  if (prompt.toLowerCase().includes("image")) {
-    let enhanced = prompt + ", cinematic lighting, glassy glowing background, ultra detailed, 4k";
-
-    let html = "";
-    for (let i = 0; i < 4; i++) {
-      const url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(enhanced + " " + i);
-      html += `<img src="${url}">`;
-    }
-
-    setTimeout(() => {
-      document.querySelector(".bot:last-child").remove();
-      addMessage(html, "bot");
-    }, 1000);
-
-    return;
-  }
-
-  // 🔥 CONVERT CHAT TO OPENROUTER FORMAT
-  const messages = [
-    { role: "system", content: "You are ReelMind AI. Generate viral, engaging, smart content." }
-  ];
-
-  chatHistory.forEach(msg => {
-    if (msg.type === "user") {
-      messages.push({ role: "user", content: msg.text });
-    } else {
-      messages.push({ role: "assistant", content: msg.text });
-    }
-  });
-
-  // 🧠 OPENROUTER REQUEST
-  fetch("https://openrouter.ai/api/v1/chat/completions", {
+  fetch(BACKEND + "/generate", {
     method: "POST",
-    headers: {
-      "Authorization": "Bearer " + API_KEY,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "openai/gpt-4o-mini",
-      messages: messages
-    })
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ prompt })
   })
   .then(res => res.json())
   .then(data => {
-    document.querySelector(".bot:last-child").remove();
-
-    const reply = data.choices?.[0]?.message?.content || "No response";
-    addMessage(reply, "bot");
+    botMsg.innerHTML = "";
+    typeEffect(botMsg, data.result);
   })
   .catch(() => {
-    addMessage("Error connecting to AI", "bot");
+    botMsg.innerHTML = "Error connecting to server";
   });
 }
 
-// 🎤 VOICE
-function startVoice() {
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.start();
+// 🧹 RESET CHAT
+function resetChat() {
+  fetch(BACKEND + "/reset", { method:"POST" });
 
-  recognition.onresult = function(event) {
-    document.getElementById("prompt").value = event.results[0][0].transcript;
-  };
+  document.getElementById("chat").innerHTML = "";
 }
 
 // ENTER KEY
-document.getElementById("prompt").addEventListener("keypress", function(e) {
-  if (e.key === "Enter") generate();
+document.getElementById("prompt").addEventListener("keypress", function(e){
+  if(e.key === "Enter") generate();
 });
 </script>
+
+</body>
+</html>
