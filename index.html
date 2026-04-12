@@ -1,257 +1,301 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelMind AI</title>
 
-  <!-- 💰 ADSENSE -->
-  <script async 
-    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxx"
-    crossorigin="anonymous"></script>
+<style>
+body {
+  background: radial-gradient(circle, #0a0a0a, #000);
+  color: white;
+  font-family: Arial;
+  text-align: center;
+  padding: 15px;
+}
 
-  <!-- 💳 STRIPE -->
-  <script src="https://js.stripe.com/v3/"></script>
+/* GLASS UI */
+.glass {
+  background: rgba(255,255,255,0.05);
+  border-radius: 15px;
+  padding: 15px;
+  margin: 10px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px cyan;
+}
 
-  <style>
-    body {
-      margin:0;
-      background: linear-gradient(135deg,#0a0a0a,#111);
-      color:white;
-      font-family:Arial;
-      text-align:center;
-    }
+input, textarea {
+  width: 90%;
+  padding: 12px;
+  margin: 10px;
+  border-radius: 10px;
+  border: none;
+}
 
-    h1 {
-      text-shadow:0 0 20px cyan;
-    }
+/* ICE BUTTON */
+.generate-btn {
+  width: 80px;
+  height: 80px;
+  margin: 20px auto;
+  background: cyan;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  cursor: pointer;
+  box-shadow: 0 0 30px cyan;
+}
 
-    .glass {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
-      padding: 15px;
-      margin: 10px;
-    }
+/* CHAT UI */
+#chat {
+  max-height: 300px;
+  overflow-y: auto;
+  text-align: left;
+}
 
-    input, textarea {
-      width:90%;
-      padding:12px;
-      margin:10px;
-      border-radius:10px;
-      border:none;
-    }
+.msg {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 10px;
+}
 
-    #chat {
-      height:350px;
-      overflow-y:auto;
-      text-align:left;
-    }
+.user {
+  background: #1a1a1a;
+}
 
-    .msg {
-      padding:10px;
-      margin:8px;
-      border-radius:12px;
-      max-width:80%;
-    }
+.ai {
+  background: #003333;
+}
 
-    .user { background:#222; margin-left:auto; }
-    .ai { background:rgba(0,255,255,0.1); }
-
-    #generateBtn {
-      width:80px;
-      height:80px;
-      border-radius:50%;
-      font-size:30px;
-      background:cyan;
-      border:none;
-      box-shadow:0 0 20px cyan;
-      margin:20px auto;
-      display:block;
-    }
-
-    button {
-      padding:10px;
-      margin:5px;
-      border-radius:10px;
-      border:none;
-      background:cyan;
-      color:black;
-      cursor:pointer;
-    }
-
-    video,img {
-      width:100%;
-      border-radius:10px;
-      margin-top:10px;
-    }
-
-    footer {
-      font-size:12px;
-      opacity:0.7;
-    }
-  </style>
+video, img {
+  width: 90%;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+</style>
 </head>
 
 <body>
 
-<h1>💎 ReelMind AI</h1>
-
-<!-- 💰 TOP AD -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-xxxxxxxxxxxx"
-     data-ad-slot="1111111111"
-     data-ad-format="auto"></ins>
-<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+<h2>🧠 ReelMind AI</h2>
+<p>Powered by Artical Neavy ⚡</p>
 
 <div class="glass">
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
 
-  <button onclick="register()">Register</button>
-  <button onclick="login()">Login</button>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<br>
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
+
+</div>
+
+<div class="glass">
+
+<textarea id="prompt" placeholder="Ask anything..."></textarea>
+
+<div class="generate-btn" onclick="generate()">🧊</div>
+
+<button onclick="generateImage()">🎨 Image</button>
+<button onclick="generateVideo()">🎬 Video</button>
+
 </div>
 
 <div class="glass" id="chat"></div>
 
-<textarea id="prompt" placeholder="Ask anything..."></textarea>
-
-<!-- 🧊 MAIN BUTTON -->
-<button id="generateBtn" onclick="generate()">🧊</button>
-
-<button onclick="generateImage()">🖼️ Image</button>
-<button onclick="generateVideo()">🎬 Video</button>
-
-<input type="file" id="fileInput">
-<button onclick="upload()">📤 Upload</button>
-
-<!-- 💳 SUBSCRIPTION -->
 <div class="glass">
-  <h3>🔥 Upgrade to PRO</h3>
-  <button onclick="subscribe()">💳 Subscribe</button>
+<button onclick="save()">💾 Save</button>
+<button onclick="load()">📂 Load</button>
 </div>
 
-<!-- 💰 MID AD -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-xxxxxxxxxxxx"
-     data-ad-slot="2222222222"
-     data-ad-format="auto"></ins>
-<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+<div class="glass">
+<input type="file" id="fileInput">
+<button onclick="upload()">📤 Upload & AI Edit</button>
+</div>
 
-<footer>
-Powered by <b>Artical Neavy</b> 🧠  
-<br>
-<a href="/terms" style="color:cyan;">Terms</a>
-</footer>
+<div class="glass">
+<video id="camera" autoplay></video><br>
+<button onclick="startCamera()">📸 Camera</button>
+<button onclick="stopCamera()">⛔ Stop</button>
+</div>
+
+<div class="glass">
+<button onclick="startRecording()">🎤 Record</button>
+<button onclick="stopRecording()">⛔ Stop</button>
+</div>
 
 <script>
 const API = "https://reelmindbackend-1.onrender.com";
 let token = localStorage.getItem("token") || "";
 
 // ================= AUTH =================
-
-async function register(){
-  const res = await fetch(API+"/register",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      email:email.value,
-      password:password.value
+async function register() {
+  const res = await fetch(API + "/register", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      email: email.value,
+      password: password.value
     })
   });
   alert((await res.json()).msg);
 }
 
-async function login(){
-  const res = await fetch(API+"/login",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      email:email.value,
-      password:password.value
+async function login() {
+  const res = await fetch(API + "/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      email: email.value,
+      password: password.value
     })
   });
 
   const data = await res.json();
   token = data.token;
   localStorage.setItem("token", token);
-  alert("Logged in");
+  alert("Logged in forever ✅");
 }
 
 // ================= CHAT =================
-
-function addMessage(text,type){
-  const div=document.createElement("div");
-  div.className="msg "+type;
-  div.innerText=text;
+function addMessage(text, type) {
+  const div = document.createElement("div");
+  div.className = "msg " + type;
+  div.innerText = text;
   chat.appendChild(div);
-  chat.scrollTop=999999;
+  chat.scrollTop = chat.scrollHeight;
 }
 
 // ================= AI =================
+async function generate() {
+  const text = prompt.value;
 
-async function generate(){
-  const text = prompt.value.trim();
-  if(!text){ alert("Enter something"); return; }
+  if (!text.trim()) {
+    addMessage("❌ Enter something", "ai");
+    return;
+  }
 
-  addMessage(text,"user");
+  addMessage(text, "user");
+  addMessage("⏳ Thinking...", "ai");
 
-  const res = await fetch(API+"/generate",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt:text})
+  const res = await fetch(API + "/generate", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ prompt: text })
   });
 
   const data = await res.json();
-  addMessage(data.result,"ai");
+  chat.lastChild.innerText = data.result;
 }
 
 // ================= IMAGE =================
+async function generateImage() {
+  const text = prompt.value;
 
-async function generateImage(){
-  const res = await fetch(API+"/image",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt:prompt.value})
+  addMessage("🎨 Generating image...", "ai");
+
+  const res = await fetch(API + "/image", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ prompt: text })
   });
 
   const data = await res.json();
 
-  const img=document.createElement("img");
-  img.src=data.image;
+  const img = document.createElement("img");
+  img.src = data.image;
   chat.appendChild(img);
 }
 
 // ================= VIDEO =================
+async function generateVideo() {
+  const text = prompt.value;
 
-async function generateVideo(){
-  const res = await fetch(API+"/video",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt:prompt.value})
+  addMessage("🎬 Generating video...", "ai");
+
+  const res = await fetch(API + "/video", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ prompt: text })
   });
 
   const data = await res.json();
 
-  const vid=document.createElement("video");
-  vid.src=data.video;
-  vid.controls=true;
+  const vid = document.createElement("video");
+  vid.src = data.video;
+  vid.controls = true;
   chat.appendChild(vid);
 }
 
-// ================= UPLOAD =================
+// ================= SAVE =================
+async function save() {
+  await fetch(API + "/save", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": token
+    },
+    body: JSON.stringify({
+      content: chat.innerText,
+      type: "chat"
+    })
+  });
 
-function upload(){
-  const file=fileInput.files[0];
-  if(!file){alert("Select file");return;}
-  addMessage("📤 "+file.name,"user");
+  alert("Saved!");
 }
 
-// ================= 💳 STRIPE =================
+// ================= LOAD =================
+async function load() {
+  const res = await fetch(API + "/projects", {
+    headers: { "Authorization": token }
+  });
 
-function subscribe(){
-  alert("Connect Stripe backend to activate payments");
+  const data = await res.json();
+  addMessage(JSON.stringify(data, null, 2), "ai");
+}
+
+// ================= UPLOAD =================
+function upload() {
+  const file = fileInput.files[0];
+  if (!file) return alert("Select file");
+
+  addMessage("📤 Uploaded: " + file.name, "ai");
+}
+
+// ================= CAMERA =================
+let stream;
+
+async function startCamera() {
+  stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  camera.srcObject = stream;
+}
+
+function stopCamera() {
+  stream?.getTracks().forEach(t => t.stop());
+}
+
+// ================= VOICE =================
+let recorder;
+let chunks = [];
+
+async function startRecording() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+  recorder = new MediaRecorder(stream);
+
+  recorder.ondataavailable = e => chunks.push(e.data);
+
+  recorder.onstop = () => {
+    addMessage("🎤 Voice recorded", "ai");
+    chunks = [];
+  };
+
+  recorder.start();
+}
+
+function stopRecording() {
+  recorder?.stop();
 }
 </script>
 
