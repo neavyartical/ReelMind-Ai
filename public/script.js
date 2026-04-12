@@ -9,40 +9,15 @@ async function generate(type) {
 
   result.innerHTML = "⏳ Generating...";
 
-  try {
-    const res = await fetch("/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt, type })
-    });
+  const res = await fetch("/generate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ prompt, type })
+  });
 
-    const data = await res.json();
-    result.innerHTML = data.result;
+  const data = await res.json();
 
-  } catch (error) {
-    result.innerHTML = "❌ Server error";
-  }
-}
-
-function askAI() {
-  document.getElementById("result").innerHTML =
-    "🤖 AI assistant coming soon...";
-}
-
-function downloadResult() {
-  const text = document.getElementById("result").innerText;
-
-  if (!text) {
-    alert("Nothing to download!");
-    return;
-  }
-
-  const blob = new Blob([text], { type: "text/plain" });
-  const link = document.createElement("a");
-
-  link.href = URL.createObjectURL(blob);
-  link.download = "result.txt";
-  link.click();
+  result.innerHTML = data.result;
 }
