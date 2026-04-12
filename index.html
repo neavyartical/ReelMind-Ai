@@ -78,6 +78,7 @@ button {
 
 <div id="topBar">
   <button onclick="resetChat()">🧹 Reset</button>
+  <button onclick="toggleVoice()">🔊 Voice ON</button>
 </div>
 
 <div id="chat"></div>
@@ -90,6 +91,24 @@ button {
 <script>
 const BACKEND = "https://reelmindbackend-1.onrender.com";
 
+let voiceEnabled = true;
+
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled;
+  alert("Voice " + (voiceEnabled ? "ON 🔊" : "OFF 🔇"));
+}
+
+function speak(text) {
+  if (!voiceEnabled) return;
+
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.rate = 1;
+  speech.pitch = 1;
+  speech.lang = "en-US";
+
+  window.speechSynthesis.speak(speech);
+}
+
 function addMessage(text, type) {
   const chat = document.getElementById("chat");
   const div = document.createElement("div");
@@ -100,16 +119,17 @@ function addMessage(text, type) {
   return div;
 }
 
-// ✨ TYPING EFFECT
+// ✨ typing effect
 function typeEffect(element, text) {
   let i = 0;
-  const speed = 15;
 
   function type() {
     if (i < text.length) {
       element.innerHTML += text.charAt(i);
       i++;
-      setTimeout(type, speed);
+      setTimeout(type, 15);
+    } else {
+      speak(text); // 🔊 speak after typing
     }
   }
 
@@ -143,11 +163,11 @@ function generate() {
   });
 }
 
-// 🧹 RESET CHAT
+// 🧹 reset
 function resetChat() {
   fetch(BACKEND + "/reset", { method:"POST" });
-
   document.getElementById("chat").innerHTML = "";
+  speechSynthesis.cancel();
 }
 
 // ENTER KEY
