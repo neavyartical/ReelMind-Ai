@@ -3,28 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="stylesheet" href="style.css">
-</head>
 
+  <!-- Google AdSense -->
+  <script async 
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-714638410489429"
+    crossorigin="anonymous">
+  </script>
+
+</head>
 <body>
 
-<div class="container">
-  <h1>🚀 ReelMind AI</h1>
+  <!-- BACKGROUND -->
+  <div class="overlay"></div>
 
-  <textarea id="prompt" placeholder="Enter your idea..."></textarea>
+  <!-- APP -->
+  <div class="app">
 
-  <div class="buttons">
-    <button onclick="generate('story')">📖 Story</button>
-    <button onclick="generate('image')">🖼 Image</button>
-    <button onclick="generate('video')">🎬 Video</button>
+    <!-- LOGO -->
+    <div class="logo">
+      <h1>ReelMind <span>AI</span></h1>
+    </div>
+
+    <p class="powered">Powered by Artical Neavy</p>
+
+    <!-- INPUT -->
+    <textarea id="prompt" placeholder="Enter your idea..."></textarea>
+
+    <!-- GENERATE BUTTON -->
+    <button id="generateBtn" onclick="generate('all')">✨ Generate</button>
+
+    <!-- GRID -->
+    <div class="grid">
+      <button onclick="generate('story')">📖 Story</button>
+      <button onclick="generate('image')">🖼 Image</button>
+      <button onclick="generate('video')">🎬 Video</button>
+      <button onclick="askAI()">🌍 Ask AI</button>
+    </div>
+
+    <!-- RESULT -->
+    <div id="result"></div>
+
+    <!-- DOWNLOAD -->
+    <button id="downloadBtn" onclick="downloadResult()">⬇ Download</button>
+
+    <!-- AD SECTION (important for earning later) -->
+    <div style="margin-top:20px;">
+      <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-714638410489429"
+        data-ad-slot="1234567890"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    </div>
+
   </div>
 
-  <div id="result">Your result will appear here...</div>
-</div>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 
-<script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
 </html>
