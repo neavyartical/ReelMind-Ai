@@ -77,7 +77,6 @@
       margin-top: 5px;
       font-size: 12px;
       color: #38bdf8;
-      cursor: pointer;
     }
   </style>
 </head>
@@ -89,15 +88,16 @@
 <div id="chat"></div>
 
 <div id="inputArea">
-  <input id="prompt" placeholder="Type or use mic 🎤">
+  <input id="prompt" placeholder="Type or speak 🎤">
   <button onclick="startVoice()">🎤</button>
   <button onclick="generate()">🧊</button>
 </div>
 
 <script>
+const API_KEY = "YOUR_OPENROUTER_API_KEY";
+
 let chatHistory = JSON.parse(localStorage.getItem("chat")) || [];
 
-// LOAD CHAT HISTORY
 window.onload = () => {
   chatHistory.forEach(msg => addMessage(msg.text, msg.type));
 };
@@ -119,7 +119,7 @@ function addMessage(text, type) {
 
 function generate() {
   const input = document.getElementById("prompt");
-  let prompt = input.value.trim().toLowerCase();
+  let prompt = input.value.trim();
 
   if (!prompt) return;
 
@@ -128,9 +128,8 @@ function generate() {
 
   addMessage("⏳ Thinking...", "bot");
 
-  // 🖼 IMAGE MODE (ENHANCED PROMPT)
-  if (prompt.includes("image") || prompt.includes("photo")) {
-
+  // 🖼 IMAGE
+  if (prompt.toLowerCase().includes("image") || prompt.toLowerCase().includes("photo")) {
     prompt += ", cinematic lighting, glassy glowing background, ultra detailed, 4k";
 
     let imagesHTML = "";
@@ -141,7 +140,7 @@ function generate() {
       imagesHTML += `
         <div>
           <img src="${url}">
-          <a class="download" href="${url}" download target="_blank">⬇ Download</a>
+          <a class="download" href="${url}" target="_blank">⬇ Download</a>
         </div>
       `;
     }
@@ -154,23 +153,34 @@ function generate() {
     return;
   }
 
-  // 🧠 REAL AI (OpenRouter-ready)
-  fetch("https://reelmindbackend-1.onrender.com/generate", {
+  // 🧠 REAL AI (OPENROUTER)
+  fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ prompt })
+    headers: {
+      "Authorization": "Bearer " + API_KEY,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "openai/gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a powerful AI that creates viral ideas, stories, and content." },
+        { role: "user", content: prompt }
+      ]
+    })
   })
   .then(res => res.json())
   .then(data => {
     document.querySelector(".bot:last-child").remove();
-    addMessage(data.result, "bot");
+
+    const reply = data.choices?.[0]?.message?.content || "No response";
+    addMessage(reply, "bot");
   })
   .catch(() => {
-    addMessage("Error", "bot");
+    addMessage("Error connecting to AI", "bot");
   });
 }
 
-// 🎤 VOICE INPUT
+// 🎤 VOICE
 function startVoice() {
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.start();
