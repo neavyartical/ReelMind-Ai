@@ -21,8 +21,8 @@ async function generate(type) {
     const data = await res.json();
     result.innerHTML = data.result;
 
-  } catch (err) {
-    result.innerHTML = "❌ Error connecting to server";
+  } catch (error) {
+    result.innerHTML = "❌ Server error";
   }
 }
 
@@ -33,6 +33,11 @@ function askAI() {
 
 function downloadResult() {
   const text = document.getElementById("result").innerText;
+
+  if (!text) {
+    alert("Nothing to download!");
+    return;
+  }
 
   const blob = new Blob([text], { type: "text/plain" });
   const link = document.createElement("a");
