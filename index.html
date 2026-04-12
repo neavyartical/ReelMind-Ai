@@ -6,122 +6,142 @@
 
 <style>
 body {
-  background: radial-gradient(circle, #0a0a0a, #000);
-  color: white;
+  margin: 0;
   font-family: Arial;
+  background: #0a0a0a;
+  color: white;
+}
+
+/* HEADER */
+header {
   text-align: center;
   padding: 10px;
-}
-
-/* GLASS UI */
-.glass {
-  background: rgba(255,255,255,0.05);
-  border-radius: 15px;
-  padding: 15px;
-  margin: 10px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 20px cyan;
-}
-
-/* INPUT */
-input, textarea {
-  width: 90%;
-  padding: 12px;
-  margin: 8px;
-  border-radius: 10px;
-  border: none;
-}
-
-/* ICE BUTTON */
-.generate-btn {
-  width: 80px;
-  height: 80px;
-  margin: 20px auto;
-  background: cyan;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  cursor: pointer;
-  box-shadow: 0 0 40px cyan;
+  font-size: 20px;
 }
 
 /* CHAT */
 #chat {
-  max-height: 300px;
+  height: 65vh;
   overflow-y: auto;
-  text-align: left;
+  padding: 15px;
 }
 
 .msg {
+  margin: 10px 0;
   padding: 10px;
-  margin: 5px;
   border-radius: 10px;
 }
 
-.user { background: #111; }
-.ai { background: #003333; }
+.user { background: #111; color: cyan; }
+.ai { background: #1a1a1a; }
 
-video, img, audio {
-  width: 90%;
-  margin-top: 10px;
-  border-radius: 10px;
+/* INPUT BAR */
+#bar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  padding: 10px;
+  background: #111;
+  gap: 10px;
+}
+
+#prompt {
+  flex: 1;
+  border-radius: 20px;
+  padding: 10px;
+  border: none;
+}
+
+/* BUTTONS */
+.btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: none;
+  background: #222;
+  color: white;
+  font-size: 18px;
+}
+
+/* GENERATE BUTTON */
+#generateBtn {
+  position: fixed;
+  bottom: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: cyan;
+  color: black;
+  padding: 15px 35px;
+  border-radius: 30px;
+  font-weight: bold;
+  box-shadow: 0 0 25px cyan;
+}
+
+/* AUTH */
+#auth {
+  text-align: center;
+  padding: 10px;
+}
+
+input {
+  padding: 8px;
+  margin: 5px;
+  border-radius: 8px;
+  border: none;
+}
+
+/* ADMIN */
+#admin {
+  display: none;
+  padding: 10px;
+  background: #111;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🧠 ReelMind AI</h2>
-<p>⚡ Powered by Artical Neavy</p>
+<header>🧠 ReelMind AI</header>
 
-<div class="glass">
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<br>
-<button onclick="register()">Register</button>
-<button onclick="login()">Login</button>
+<div id="auth">
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="register()">Register</button>
+  <button onclick="login()">Login</button>
 </div>
 
-<div class="glass">
-<textarea id="prompt" placeholder="Ask anything (any language)..."></textarea>
+<div id="chat"></div>
 
-<div class="generate-btn" onclick="generate()">🧊</div>
+<button id="generateBtn" onclick="generate()">🧊 GENERATE</button>
 
-<button onclick="generateImage()">🎨 Image</button>
-<button onclick="generateVideo()">🎬 Video</button>
-<button onclick="speak()">🔊 Speak</button>
+<div id="bar">
+  <button class="btn" onclick="fileInput.click()">+</button>
+  <input id="prompt" placeholder="Ask anything...">
+  <button class="btn" onclick="startRecording()">🎤</button>
 </div>
 
-<div class="glass" id="chat"></div>
+<input type="file" id="fileInput" hidden accept="image/*,video/*">
 
-<div class="glass">
-<button onclick="save()">💾 Save</button>
-<button onclick="load()">📂 Load</button>
-</div>
-
-<div class="glass">
-<input type="file" id="fileInput">
-<button onclick="upload()">📤 Upload & AI Edit</button>
-</div>
-
-<div class="glass">
-<video id="camera" autoplay></video><br>
-<button onclick="startCamera()">📸 Camera</button>
-<button onclick="stopCamera()">⛔ Stop</button>
-</div>
-
-<div class="glass">
-<button onclick="startRecording()">🎤 Record</button>
-<button onclick="stopRecording()">⛔ Stop</button>
+<!-- ADMIN -->
+<div id="admin">
+  <h3>📊 Admin Dashboard</h3>
+  <button onclick="loadProjects()">View Users Data</button>
+  <pre id="adminData"></pre>
 </div>
 
 <script>
 const API = "https://reelmindbackend-1.onrender.com";
-let token = localStorage.getItem("token") || "";
 
-// ================= AUTH =================
+let token = localStorage.getItem("token") || "";
+let uploadedFile = null;
+
+// AUTO LOGIN
+if (token) {
+  document.getElementById("auth").style.display = "none";
+}
+
+// AUTH
 async function register() {
   const res = await fetch(API + "/register", {
     method: "POST",
@@ -148,175 +168,107 @@ async function login() {
   token = data.token;
   localStorage.setItem("token", token);
 
-  alert("Logged in forever ✅");
+  alert("Logged in!");
+  location.reload();
 }
 
-// ================= CHAT =================
-function addMessage(text, type) {
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerText = text;
-  chat.appendChild(div);
+// FILE UPLOAD
+fileInput.onchange = () => {
+  uploadedFile = fileInput.files[0];
+  addMsg("user", "📁 " + uploadedFile.name);
+};
+
+// CHAT
+function addMsg(type, text) {
+  chat.innerHTML += `<div class="msg ${type}">${text}</div>`;
   chat.scrollTop = chat.scrollHeight;
 }
 
-// ================= AI TEXT =================
+// GENERATE
 async function generate() {
-  const text = prompt.value;
+  let promptText = prompt.value.trim();
 
-  if (!text.trim()) {
-    addMessage("❌ Enter something", "ai");
+  if (!promptText && !uploadedFile) {
+    alert("Enter something or upload file");
     return;
   }
 
-  addMessage(text, "user");
-  addMessage("⏳ Thinking...", "ai");
+  addMsg("user", promptText || "📁 Editing...");
 
-  const res = await fetch(API + "/generate", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ prompt: text })
-  });
-
-  const data = await res.json();
-  chat.lastChild.innerText = data.result;
-}
-
-// ================= IMAGE =================
-async function generateImage() {
-  const text = prompt.value;
-
-  addMessage("🎨 Generating image...", "ai");
-
-  const res = await fetch(API + "/image", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ prompt: text })
-  });
-
-  const data = await res.json();
-
-  if (data.image) {
-    const img = document.createElement("img");
-    img.src = data.image;
-    chat.appendChild(img);
-  } else {
-    addMessage("❌ Image failed", "ai");
+  // TEXT AI
+  if (promptText && !uploadedFile) {
+    const res = await fetch(API + "/generate", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ prompt: promptText })
+    });
+    const data = await res.json();
+    addMsg("ai", data.result);
   }
-}
 
-// ================= VIDEO =================
-async function generateVideo() {
-  const text = prompt.value;
+  // IMAGE GENERATION / EDIT
+  if (uploadedFile && uploadedFile.type.startsWith("image")) {
+    const res = await fetch(API + "/image", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ prompt: promptText || "Enhance image" })
+    });
 
-  addMessage("🎬 Editing video...", "ai");
-
-  const res = await fetch(API + "/video-edit", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ prompt: text })
-  });
-
-  const data = await res.json();
-
-  if (data.video) {
-    const vid = document.createElement("video");
-    vid.src = data.video;
-    vid.controls = true;
-    chat.appendChild(vid);
-  } else {
-    addMessage(data.edit, "ai");
+    const data = await res.json();
+    if (data.image) {
+      addMsg("ai", `<img src="${data.image}" width="90%">`);
+    }
   }
+
+  // VIDEO EDIT (RUNWAY READY)
+  if (uploadedFile && uploadedFile.type.startsWith("video")) {
+    const res = await fetch(API + "/video-edit", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ prompt: promptText || "Edit video" })
+    });
+
+    const data = await res.json();
+    addMsg("ai", "🎬 " + data.edit);
+  }
+
+  prompt.value = "";
+  uploadedFile = null;
 }
 
-// ================= SPEECH =================
-async function speak() {
-  const text = prompt.value;
-
-  const res = await fetch(API + "/tts", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ text })
-  });
-
-  const data = await res.json();
-
-  const audio = document.createElement("audio");
-  audio.src = data.audio;
-  audio.controls = true;
-  audio.autoplay = true;
-
-  chat.appendChild(audio);
+// VOICE
+function startRecording() {
+  const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  rec.start();
+  rec.onresult = (e) => {
+    prompt.value = e.results[0][0].transcript;
+  };
 }
 
-// ================= SAVE =================
-async function save() {
+// SAVE PROJECT
+async function save(content) {
   await fetch(API + "/save", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": token
     },
-    body: JSON.stringify({
-      content: chat.innerText,
-      type: "chat"
-    })
+    body: JSON.stringify({ content, type: "chat" })
   });
-
-  alert("Saved!");
 }
 
-// ================= LOAD =================
-async function load() {
+// ADMIN
+async function loadProjects() {
   const res = await fetch(API + "/projects", {
-    headers: { "Authorization": token }
+    headers: { Authorization: token }
   });
-
   const data = await res.json();
-  addMessage(JSON.stringify(data, null, 2), "ai");
+  adminData.innerText = JSON.stringify(data, null, 2);
 }
 
-// ================= UPLOAD =================
-function upload() {
-  const file = fileInput.files[0];
-  if (!file) return alert("Select file");
-
-  addMessage("📤 Uploaded: " + file.name, "ai");
-}
-
-// ================= CAMERA =================
-let stream;
-
-async function startCamera() {
-  stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  camera.srcObject = stream;
-}
-
-function stopCamera() {
-  stream?.getTracks().forEach(t => t.stop());
-}
-
-// ================= VOICE RECORD =================
-let recorder;
-let chunks = [];
-
-async function startRecording() {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-  recorder = new MediaRecorder(stream);
-
-  recorder.ondataavailable = e => chunks.push(e.data);
-
-  recorder.onstop = () => {
-    addMessage("🎤 Voice recorded", "ai");
-    chunks = [];
-  };
-
-  recorder.start();
-}
-
-function stopRecording() {
-  recorder?.stop();
+// STRIPE (FRONT READY)
+function subscribe() {
+  alert("Connect Stripe Checkout here");
 }
 </script>
 
