@@ -1,74 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ReelMind AI</title>
+
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+      padding: 40px;
+    }
+
+    input {
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #38bdf8;
+      border: none;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 20px;
+    }
+
+    img {
+      width: 100%;
+      max-width: 300px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>ReelMind AI</h1>
+
+<input id="prompt" placeholder="Enter idea">
+
+<br>
+
+<button onclick="generate()">Generate</button>
+
+<div id="result">Result will appear here</div>
+
 <script>
 function generate() {
-  const input = document.getElementById("prompt");
-  const result = document.getElementById("result");
-
-  if (!input || !result) {
-    console.log("Missing elements");
-    return;
-  }
-
-  const prompt = input.value.trim().toLowerCase();
+  var prompt = document.getElementById("prompt").value;
+  var result = document.getElementById("result");
 
   if (!prompt) {
-    result.textContent = "Please enter something.";
+    result.innerHTML = "Enter something";
     return;
   }
 
-  result.textContent = "Generating...";
-
-  // 🖼 IMAGE MODE
-  if (
-    prompt.includes("image") ||
-    prompt.includes("photo") ||
-    prompt.includes("picture")
-  ) {
-    const imgUrl = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
-
-    result.innerHTML = "<img src='" + imgUrl + "' style='width:100%;border-radius:10px;' />";
+  // IMAGE
+  if (prompt.includes("image") || prompt.includes("photo")) {
+    var url = "https://image.pollinations.ai/prompt/" + prompt;
+    result.innerHTML = "<img src='" + url + "'>";
     return;
   }
 
-  // 🎬 VIDEO MODE
-  if (
-    prompt.includes("video") ||
-    prompt.includes("reel") ||
-    prompt.includes("cinematic")
-  ) {
-    fetch("https://reelmindbackend-1.onrender.com/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        prompt: "Create a cinematic viral video idea about: " + prompt
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        result.textContent = data.result || "No response.";
-      })
-      .catch(() => {
-        result.textContent = "Error generating video idea.";
-      });
-
-    return;
-  }
-
-  // 📖 DEFAULT AI
+  // TEXT / AI
   fetch("https://reelmindbackend-1.onrender.com/generate", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ prompt: prompt })
   })
-    .then(res => res.json())
-    .then(data => {
-      result.textContent = data.result || "No response.";
-    })
-    .catch(() => {
-      result.textContent = "Error connecting to server.";
-    });
+  .then(function(res){ return res.json(); })
+  .then(function(data){
+    result.innerHTML = data.result;
+  })
+  .catch(function(){
+    result.innerHTML = "Error";
+  });
 }
 </script>
+
+</body>
+</html>
