@@ -7,26 +7,18 @@
 </head>
 <body>
 
-  <h1>ReelMind AI</h1>
+  <h1>🔥 ReelMind AI</h1>
 
-  <input id="prompt" placeholder="Describe your idea..." />
+  <input id="prompt" placeholder="Enter your idea..." />
   
-  <br><br>
-
-  <button onclick="generate('story')">📖 Story</button>
-  <button onclick="generate('image')">🖼 Image</button>
-  <button onclick="generate('video')">🎬 Video</button>
-  <button onclick="askAI()">🤖 Ask AI</button>
-
-  <div id="result" style="margin-top:20px;">
-    Your result will appear here...
+  <div>
+    <button onclick="generate('story')">📖 Story</button>
+    <button onclick="generate('image')">🖼 Image</button>
+    <button onclick="generate('video')">🎬 Video</button>
   </div>
 
-  <br>
-  <button onclick="downloadResult()">⬇ Download</button>
+  <div id="result"></div>
 
-  <!-- VERY IMPORTANT -->
   <script src="script.js"></script>
-
 </body>
 </html>
