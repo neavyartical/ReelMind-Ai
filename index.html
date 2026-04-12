@@ -72,12 +72,11 @@
     }
 
     img {
-      width: 100%;
+      width: 48%;
+      margin: 1%;
       border-radius: 10px;
-      margin-top: 10px;
     }
 
-    /* 🔥 Ad placeholder */
     #ad-slot {
       margin: 20px;
       padding: 10px;
@@ -95,7 +94,6 @@
 
 <div id="chat"></div>
 
-<!-- 💰 AD PLACEHOLDER -->
 <div id="ad-slot">Ad will appear here later</div>
 
 <div id="inputArea">
@@ -104,7 +102,7 @@
 </div>
 
 <script>
-let adsEnabled = false; // 🔥 TURN THIS TRUE LATER FOR ADS
+let adsEnabled = false;
 
 function showAd() {
   if (!adsEnabled) return;
@@ -143,14 +141,21 @@ function generate() {
 
   showTyping();
 
-  // 🖼 IMAGE
+  // 🖼 MULTIPLE IMAGES
   if (prompt.includes("image") || prompt.includes("photo")) {
-    const url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
+    let imagesHTML = "";
+
+    for (let i = 0; i < 4; i++) {
+      const url = "https://image.pollinations.ai/prompt/" 
+        + encodeURIComponent(prompt + " " + i);
+
+      imagesHTML += "<img src='" + url + "'>";
+    }
 
     setTimeout(() => {
       removeTyping();
-      addMessage("<img src='" + url + "'>", "bot");
-      showAd(); // 💰 trigger ad
+      addMessage(imagesHTML, "bot");
+      showAd();
     }, 1000);
 
     return;
@@ -197,7 +202,7 @@ function generate() {
   });
 }
 
-// 🔥 ENTER KEY
+// ENTER KEY
 document.getElementById("prompt").addEventListener("keypress", function(e) {
   if (e.key === "Enter") generate();
 });
