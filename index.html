@@ -2,78 +2,29 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ReelMind AI</title>
+<title>ReelMind AI ⚡</title>
 
 <style>
-body {
-  margin:0;
-  font-family: Arial;
-  background:#0f172a;
-  color:white;
-}
-
-h1 {
-  text-align:center;
-  color:#38bdf8;
-}
-
-#chat {
-  height:70vh;
-  overflow-y:auto;
-  padding:15px;
-}
-
-.message {
-  margin:10px 0;
-  padding:12px;
-  border-radius:10px;
-  max-width:80%;
-}
-
-.user {
-  background:#38bdf8;
-  color:black;
-  margin-left:auto;
-}
-
-.bot {
-  background:#1e293b;
-}
-
-#inputArea {
-  display:flex;
-  gap:10px;
-  padding:10px;
-  background:#020617;
-  position:sticky;
-  bottom:0;
-}
-
-input {
-  flex:1;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-}
-
-button {
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#38bdf8;
-  cursor:pointer;
-}
+body {margin:0;font-family:Arial;background:#0f172a;color:white;}
+h1 {text-align:center;color:#38bdf8;}
+#chat {height:70vh;overflow-y:auto;padding:15px;}
+.message {margin:10px 0;padding:12px;border-radius:10px;max-width:80%;}
+.user {background:#38bdf8;color:black;margin-left:auto;}
+.bot {background:#1e293b;}
+#inputArea {display:flex;gap:10px;padding:10px;background:#020617;position:sticky;bottom:0;}
+input {flex:1;padding:12px;border-radius:10px;border:none;}
+button {padding:12px;border:none;border-radius:10px;background:#38bdf8;cursor:pointer;}
 </style>
 </head>
 
 <body>
 
-<h1>ReelMind AI ⚡</h1>
+<h1>ReelMind AI ⚡🧠</h1>
 
 <div id="chat"></div>
 
 <div id="inputArea">
-  <input id="prompt" placeholder="Ask anything fast...">
+  <input id="prompt" placeholder="Ask instantly..." oninput="preloadAI()">
   <button onclick="generate()">⚡</button>
 </div>
 
@@ -81,6 +32,8 @@ button {
 const BACKEND = "https://reelmindbackend-1.onrender.com";
 
 let isLoading = false;
+let cache = {};
+let preloadData = null;
 
 // add message
 function addMessage(text, type) {
@@ -93,23 +46,51 @@ function addMessage(text, type) {
   return div;
 }
 
-// ⚡ streaming effect (fast)
-function streamText(element, text) {
-  element.innerHTML = "";
+// ⚡ streaming effect
+function streamText(el, text) {
+  el.innerHTML = "";
   let i = 0;
 
   function stream() {
     if (i < text.length) {
-      element.innerHTML += text[i];
-      i++;
-      setTimeout(stream, 5); // ultra fast typing
+      el.innerHTML += text[i++];
+      setTimeout(stream, 3);
     }
   }
 
   stream();
 }
 
-// generate
+// ⚡ timeout fetch
+function fetchWithTimeout(url, options, timeout = 8000) {
+  return Promise.race([
+    fetch(url, options),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), timeout)
+    )
+  ]);
+}
+
+// ⚡ PRELOAD AI (starts before click)
+function preloadAI() {
+  const prompt = document.getElementById("prompt").value.trim();
+
+  if (!prompt || prompt.length < 5) return;
+
+  fetchWithTimeout(BACKEND + "/generate", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ prompt })
+  })
+  .then(res => res.json())
+  .then(data => {
+    preloadData = data.result;
+    cache[prompt] = data.result;
+  })
+  .catch(() => {});
+}
+
+// ⚡ GENERATE
 function generate() {
   if (isLoading) return;
 
@@ -118,32 +99,61 @@ function generate() {
 
   if (!prompt) return;
 
-  isLoading = true;
-
   addMessage(prompt, "user");
   input.value = "";
 
   const botMsg = addMessage("⚡ Thinking...", "bot");
 
-  fetch(BACKEND + "/generate", {
+  // ⚡ INSTANT CACHE
+  if (cache[prompt]) {
+    streamText(botMsg, cache[prompt]);
+    return;
+  }
+
+  // ⚡ USE PRELOADED RESULT
+  if (preloadData) {
+    streamText(botMsg, preloadData);
+    preloadData = null;
+    return;
+  }
+
+  isLoading = true;
+
+  fetchWithTimeout(BACKEND + "/generate", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ prompt })
   })
   .then(res => res.json())
   .then(data => {
+    cache[prompt] = data.result;
     streamText(botMsg, data.result);
     isLoading = false;
   })
   .catch(() => {
-    botMsg.innerHTML = "❌ Error connecting to server";
+    botMsg.innerHTML = "⚠️ Slow network... retrying";
+
+    // retry once
+    fetch(BACKEND + "/generate", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ prompt })
+    })
+    .then(res => res.json())
+    .then(data => {
+      streamText(botMsg, data.result);
+    })
+    .catch(() => {
+      botMsg.innerHTML = "❌ Error";
+    });
+
     isLoading = false;
   });
 }
 
-// enter key support
-document.getElementById("prompt").addEventListener("keypress", function(e){
-  if(e.key === "Enter") generate();
+// enter key
+document.getElementById("prompt").addEventListener("keypress", e => {
+  if (e.key === "Enter") generate();
 });
 </script>
 
