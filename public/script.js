@@ -1,32 +1,39 @@
-async function generate(type) {
+// MAIN GENERATE FUNCTION
+function generate(type) {
   const prompt = document.getElementById("prompt").value;
-  const resultDiv = document.getElementById("result");
+  const result = document.getElementById("result");
 
   if (!prompt) {
-    resultDiv.innerHTML = "❌ Enter something first";
+    result.innerHTML = "<p style='color:red;'>❌ Please enter something first</p>";
     return;
   }
 
-  resultDiv.innerHTML = "⏳ Generating...";
+  result.innerHTML = "<p>⏳ Generating...</p>";
 
-  try {
-    const res = await fetch("/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt, type })
-    });
-
-    const data = await res.json();
-
-    if (type === "image") {
-      resultDiv.innerHTML = `<img src="${data.result}" />`;
-    } else {
-      resultDiv.innerHTML = `<p>${data.result}</p>`;
+  setTimeout(() => {
+    if (type === "story") {
+      result.innerHTML = `
+        <h3>📖 Story</h3>
+        <p>Once upon a time, ${prompt} turned into something amazing...</p>
+      `;
+    } 
+    else if (type === "image") {
+      result.innerHTML = `
+        <h3>🖼 Image</h3>
+        <img src="https://picsum.photos/400/300">
+      `;
+    } 
+    else if (type === "video") {
+      result.innerHTML = `
+        <h3>🎬 Video Idea</h3>
+        <p>Create a viral video about "${prompt}"</p>
+      `;
+    } 
+    else {
+      result.innerHTML = `
+        <h3>✨ AI Result</h3>
+        <p>${prompt} can go viral!</p>
+      `;
     }
-
-  } catch (err) {
-    resultDiv.innerHTML = "❌ Error connecting to server";
-  }
+  }, 1500);
 }
