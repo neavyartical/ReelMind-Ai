@@ -73,7 +73,7 @@ button {
 <div id="chat"></div>
 
 <div id="inputArea">
-  <input id="prompt" placeholder="Ask fast...">
+  <input id="prompt" placeholder="Ask anything fast...">
   <button onclick="generate()">⚡</button>
 </div>
 
@@ -82,6 +82,7 @@ const BACKEND = "https://reelmindbackend-1.onrender.com";
 
 let isLoading = false;
 
+// add message
 function addMessage(text, type) {
   const chat = document.getElementById("chat");
   const div = document.createElement("div");
@@ -92,12 +93,23 @@ function addMessage(text, type) {
   return div;
 }
 
-// ⚡ FAST TYPING (almost instant)
-function fastType(element, text) {
-  element.innerHTML = text;
+// ⚡ streaming effect (fast)
+function streamText(element, text) {
+  element.innerHTML = "";
+  let i = 0;
+
+  function stream() {
+    if (i < text.length) {
+      element.innerHTML += text[i];
+      i++;
+      setTimeout(stream, 5); // ultra fast typing
+    }
+  }
+
+  stream();
 }
 
-// ⚡ GENERATE
+// generate
 function generate() {
   if (isLoading) return;
 
@@ -120,16 +132,16 @@ function generate() {
   })
   .then(res => res.json())
   .then(data => {
-    fastType(botMsg, data.result);
+    streamText(botMsg, data.result);
     isLoading = false;
   })
   .catch(() => {
-    botMsg.innerHTML = "❌ Error";
+    botMsg.innerHTML = "❌ Error connecting to server";
     isLoading = false;
   });
 }
 
-// ENTER KEY
+// enter key support
 document.getElementById("prompt").addEventListener("keypress", function(e){
   if(e.key === "Enter") generate();
 });
