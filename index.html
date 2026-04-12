@@ -3,272 +3,99 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReelMind AI</title>
-
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0a0a0a;
-  color: white;
-}
-
-/* HEADER */
-header {
-  text-align: center;
-  padding: 10px;
-  font-size: 20px;
-}
-
-/* CHAT */
-#chat {
-  height: 65vh;
-  overflow-y: auto;
-  padding: 15px;
-}
-
-.msg {
-  margin: 10px 0;
-  padding: 10px;
-  border-radius: 10px;
-}
-
-.user { background: #111; color: cyan; }
-.ai { background: #1a1a1a; }
-
-/* INPUT BAR */
-#bar {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  display: flex;
-  padding: 10px;
-  background: #111;
-  gap: 10px;
-}
-
-#prompt {
-  flex: 1;
-  border-radius: 20px;
-  padding: 10px;
-  border: none;
-}
-
-/* BUTTONS */
-.btn {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  border: none;
-  background: #222;
-  color: white;
-  font-size: 18px;
-}
-
-/* GENERATE BUTTON */
-#generateBtn {
-  position: fixed;
-  bottom: 85px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: cyan;
-  color: black;
-  padding: 15px 35px;
-  border-radius: 30px;
-  font-weight: bold;
-  box-shadow: 0 0 25px cyan;
-}
-
-/* AUTH */
-#auth {
-  text-align: center;
-  padding: 10px;
-}
-
-input {
-  padding: 8px;
-  margin: 5px;
-  border-radius: 8px;
-  border: none;
-}
-
-/* ADMIN */
-#admin {
-  display: none;
-  padding: 10px;
-  background: #111;
-}
+body { background:black;color:white;text-align:center;font-family:Arial }
+input,button { padding:10px;margin:5px;border-radius:8px;border:none }
+button { background:cyan;color:black;font-weight:bold }
+img { margin-top:10px;border-radius:10px }
 </style>
 </head>
 
 <body>
 
-<header>🧠 ReelMind AI</header>
+<h2>🧠 ReelMind AI</h2>
 
-<div id="auth">
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <button onclick="register()">Register</button>
-  <button onclick="login()">Login</button>
-</div>
+<input id="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Password"><br>
 
-<div id="chat"></div>
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
 
-<button id="generateBtn" onclick="generate()">🧊 GENERATE</button>
+<hr>
 
-<div id="bar">
-  <button class="btn" onclick="fileInput.click()">+</button>
-  <input id="prompt" placeholder="Ask anything...">
-  <button class="btn" onclick="startRecording()">🎤</button>
-</div>
+<input id="prompt" placeholder="Ask anything"><br>
 
-<input type="file" id="fileInput" hidden accept="image/*,video/*">
+<button onclick="generate()">Generate</button>
+<button onclick="image()">Image</button>
+<button onclick="video()">Video Edit</button>
+<button onclick="admin()">Admin</button>
 
-<!-- ADMIN -->
-<div id="admin">
-  <h3>📊 Admin Dashboard</h3>
-  <button onclick="loadProjects()">View Users Data</button>
-  <pre id="adminData"></pre>
-</div>
+<div id="out"></div>
 
 <script>
 const API = "https://reelmindbackend-1.onrender.com";
-
-let token = localStorage.getItem("token") || "";
-let uploadedFile = null;
-
-// AUTO LOGIN
-if (token) {
-  document.getElementById("auth").style.display = "none";
-}
+let token = "";
 
 // AUTH
-async function register() {
-  const res = await fetch(API + "/register", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      email: email.value,
-      password: password.value
-    })
+async function register(){
+  const r = await fetch(API+"/register",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({email:email.value,password:password.value})
   });
-  alert((await res.json()).msg);
+  alert((await r.json()).msg);
 }
 
-async function login() {
-  const res = await fetch(API + "/login", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      email: email.value,
-      password: password.value
-    })
+async function login(){
+  const r = await fetch(API+"/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({email:email.value,password:password.value})
   });
-
-  const data = await res.json();
-  token = data.token;
-  localStorage.setItem("token", token);
-
-  alert("Logged in!");
-  location.reload();
+  const d = await r.json();
+  token = d.token;
+  alert("Logged in");
 }
 
-// FILE UPLOAD
-fileInput.onchange = () => {
-  uploadedFile = fileInput.files[0];
-  addMsg("user", "📁 " + uploadedFile.name);
-};
-
-// CHAT
-function addMsg(type, text) {
-  chat.innerHTML += `<div class="msg ${type}">${text}</div>`;
-  chat.scrollTop = chat.scrollHeight;
-}
-
-// GENERATE
-async function generate() {
-  let promptText = prompt.value.trim();
-
-  if (!promptText && !uploadedFile) {
-    alert("Enter something or upload file");
-    return;
-  }
-
-  addMsg("user", promptText || "📁 Editing...");
-
-  // TEXT AI
-  if (promptText && !uploadedFile) {
-    const res = await fetch(API + "/generate", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ prompt: promptText })
-    });
-    const data = await res.json();
-    addMsg("ai", data.result);
-  }
-
-  // IMAGE GENERATION / EDIT
-  if (uploadedFile && uploadedFile.type.startsWith("image")) {
-    const res = await fetch(API + "/image", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ prompt: promptText || "Enhance image" })
-    });
-
-    const data = await res.json();
-    if (data.image) {
-      addMsg("ai", `<img src="${data.image}" width="90%">`);
-    }
-  }
-
-  // VIDEO EDIT (RUNWAY READY)
-  if (uploadedFile && uploadedFile.type.startsWith("video")) {
-    const res = await fetch(API + "/video-edit", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ prompt: promptText || "Edit video" })
-    });
-
-    const data = await res.json();
-    addMsg("ai", "🎬 " + data.edit);
-  }
-
-  prompt.value = "";
-  uploadedFile = null;
-}
-
-// VOICE
-function startRecording() {
-  const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  rec.start();
-  rec.onresult = (e) => {
-    prompt.value = e.results[0][0].transcript;
-  };
-}
-
-// SAVE PROJECT
-async function save(content) {
-  await fetch(API + "/save", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": token
-    },
-    body: JSON.stringify({ content, type: "chat" })
+// TEXT
+async function generate(){
+  out.innerText="Loading...";
+  const r = await fetch(API+"/generate",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt:prompt.value})
   });
+  const d = await r.json();
+  out.innerText=d.result;
+}
+
+// IMAGE
+async function image(){
+  const r = await fetch(API+"/image",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt:prompt.value})
+  });
+  const d = await r.json();
+  out.innerHTML=`<img src="${d.image}" width="300">`;
+}
+
+// VIDEO
+async function video(){
+  const r = await fetch(API+"/video-edit",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt:prompt.value})
+  });
+  const d = await r.json();
+  out.innerText=d.edit;
 }
 
 // ADMIN
-async function loadProjects() {
-  const res = await fetch(API + "/projects", {
-    headers: { Authorization: token }
-  });
-  const data = await res.json();
-  adminData.innerText = JSON.stringify(data, null, 2);
-}
-
-// STRIPE (FRONT READY)
-function subscribe() {
-  alert("Connect Stripe Checkout here");
+async function admin(){
+  const r = await fetch(API+"/admin");
+  const d = await r.json();
+  out.innerText=JSON.stringify(d,null,2);
 }
 </script>
 
