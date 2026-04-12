@@ -18,6 +18,5 @@ async function generate(type) {
   });
 
   const data = await res.json();
-
   result.innerHTML = data.result;
 }
