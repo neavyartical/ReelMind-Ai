@@ -8,33 +8,40 @@ async function generate(type) {
     return;
   }
 
-  result.innerHTML = "Generating...";
-
-  // 🖼️ IMAGE MODE (Pollinations)
+  // 🖼️ IMAGE MODE (STOPS HERE)
   if (type === "image") {
     const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
-    result.innerHTML = `<img src="${imgUrl}" style="width:100%; border-radius:10px;" />`;
-    return;
+    result.innerHTML = `
+      <img src="${imgUrl}" style="width:100%; border-radius:10px;" />
+    `;
+    return; // 🔥 VERY IMPORTANT (stops script here)
   }
 
-  // 🎬 VIDEO MODE (Runway-style idea)
+  // 🎬 VIDEO MODE
   if (type === "video") {
     const videoPrompt = `Create a cinematic viral video idea about: ${prompt}`;
-    
-    const response = await fetch("https://reelmindbackend-1.onrender.com/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt: videoPrompt })
-    });
 
-    const data = await response.json();
-    result.textContent = data.result;
+    try {
+      const response = await fetch("https://reelmindbackend-1.onrender.com/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ prompt: videoPrompt })
+      });
+
+      const data = await response.json();
+      result.textContent = data.result;
+    } catch (error) {
+      result.textContent = "Error generating video idea.";
+    }
+
     return;
   }
 
   // 📖 STORY / NORMAL AI
+  result.textContent = "Generating...";
+
   try {
     const response = await fetch("https://reelmindbackend-1.onrender.com/generate", {
       method: "POST",
