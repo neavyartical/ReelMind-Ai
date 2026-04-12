@@ -12,7 +12,6 @@
       color: white;
       display: flex;
       flex-direction: column;
-      height: 100vh;
     }
 
     h1 {
@@ -22,7 +21,7 @@
     }
 
     #chat {
-      flex: 1;
+      height: 70vh;
       overflow-y: auto;
       padding: 15px;
     }
@@ -46,9 +45,11 @@
 
     #inputArea {
       display: flex;
-      padding: 10px;
       gap: 10px;
+      padding: 10px;
       background: #020617;
+      position: sticky;
+      bottom: 0;
     }
 
     input {
@@ -59,7 +60,7 @@
       font-size: 16px;
     }
 
-    /* 🔥 GLOWING ICE BUTTON */
+    /* 🧊 GLOW BUTTON */
     button {
       padding: 12px 18px;
       border: none;
@@ -68,13 +69,11 @@
       cursor: pointer;
       background: linear-gradient(145deg, #67e8f9, #38bdf8);
       color: black;
-      box-shadow: 0 0 15px #38bdf8, 0 0 30px #0ea5e9;
-      transition: 0.3s;
+      box-shadow: 0 0 15px #38bdf8;
     }
 
     button:hover {
-      box-shadow: 0 0 25px #67e8f9, 0 0 40px #38bdf8;
-      transform: scale(1.05);
+      box-shadow: 0 0 25px #67e8f9;
     }
 
     img {
@@ -93,7 +92,7 @@
 
 <div id="inputArea">
   <input id="prompt" placeholder="Type something...">
-  <button onclick="generate()">🧊 Generate</button>
+  <button onclick="generate()">🧊</button>
 </div>
 
 <script>
@@ -115,46 +114,22 @@ function generate() {
   addMessage(prompt, "user");
   input.value = "";
 
-  // 🖼 IMAGE
+  // IMAGE
   if (prompt.includes("image") || prompt.includes("photo")) {
     const url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
     addMessage("<img src='" + url + "'>", "bot");
     return;
   }
 
-  // 🎬 VIDEO IDEA
-  if (prompt.includes("video") || prompt.includes("reel")) {
-    fetch("https://reelmindbackend-1.onrender.com/generate", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        prompt: "Create a cinematic viral video idea about: " + prompt
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      addMessage(data.result, "bot");
-    })
-    .catch(() => {
-      addMessage("Error generating video idea.", "bot");
-    });
-
-    return;
-  }
-
-  // 📖 AI TEXT
+  // AI TEXT
   fetch("https://reelmindbackend-1.onrender.com/generate", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ prompt: prompt })
   })
   .then(res => res.json())
-  .then(data => {
-    addMessage(data.result, "bot");
-  })
-  .catch(() => {
-    addMessage("Error connecting to server.", "bot");
-  });
+  .then(data => addMessage(data.result, "bot"))
+  .catch(() => addMessage("Error", "bot"));
 }
 </script>
 
