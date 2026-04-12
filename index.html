@@ -7,7 +7,7 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: #0f172a;
       color: white;
       display: flex;
@@ -17,7 +17,6 @@
     h1 {
       text-align: center;
       color: #38bdf8;
-      margin: 10px;
     }
 
     #chat {
@@ -57,18 +56,14 @@
       padding: 12px;
       border-radius: 10px;
       border: none;
-      font-size: 16px;
     }
 
     button {
-      padding: 12px 18px;
+      padding: 12px;
       border: none;
-      border-radius: 12px;
-      font-weight: bold;
+      border-radius: 10px;
+      background: #38bdf8;
       cursor: pointer;
-      background: linear-gradient(145deg, #67e8f9, #38bdf8);
-      color: black;
-      box-shadow: 0 0 15px #38bdf8;
     }
 
     img {
@@ -77,13 +72,12 @@
       border-radius: 10px;
     }
 
-    #ad-slot {
-      margin: 20px;
-      padding: 10px;
-      background: #020617;
-      border-radius: 10px;
-      display: none;
-      text-align: center;
+    .download {
+      display: block;
+      margin-top: 5px;
+      font-size: 12px;
+      color: #38bdf8;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -94,19 +88,23 @@
 
 <div id="chat"></div>
 
-<div id="ad-slot">Ad will appear here later</div>
-
 <div id="inputArea">
-  <input id="prompt" placeholder="Type something...">
+  <input id="prompt" placeholder="Type or use mic 🎤">
+  <button onclick="startVoice()">🎤</button>
   <button onclick="generate()">🧊</button>
 </div>
 
 <script>
-let adsEnabled = false;
+let chatHistory = JSON.parse(localStorage.getItem("chat")) || [];
 
-function showAd() {
-  if (!adsEnabled) return;
-  document.getElementById("ad-slot").style.display = "block";
+// LOAD CHAT HISTORY
+window.onload = () => {
+  chatHistory.forEach(msg => addMessage(msg.text, msg.type));
+};
+
+function saveChat(text, type) {
+  chatHistory.push({ text, type });
+  localStorage.setItem("chat", JSON.stringify(chatHistory));
 }
 
 function addMessage(text, type) {
@@ -116,90 +114,70 @@ function addMessage(text, type) {
   div.innerHTML = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
-}
-
-function showTyping() {
-  addMessage("⏳ Thinking...", "bot");
-}
-
-function removeTyping() {
-  const msgs = document.querySelectorAll(".bot");
-  const last = msgs[msgs.length - 1];
-  if (last && last.innerText === "⏳ Thinking...") {
-    last.remove();
-  }
+  saveChat(text, type);
 }
 
 function generate() {
   const input = document.getElementById("prompt");
-  const prompt = input.value.trim().toLowerCase();
+  let prompt = input.value.trim().toLowerCase();
 
   if (!prompt) return;
 
   addMessage(prompt, "user");
   input.value = "";
 
-  showTyping();
+  addMessage("⏳ Thinking...", "bot");
 
-  // 🖼 MULTIPLE IMAGES
+  // 🖼 IMAGE MODE (ENHANCED PROMPT)
   if (prompt.includes("image") || prompt.includes("photo")) {
+
+    prompt += ", cinematic lighting, glassy glowing background, ultra detailed, 4k";
+
     let imagesHTML = "";
 
     for (let i = 0; i < 4; i++) {
-      const url = "https://image.pollinations.ai/prompt/" 
-        + encodeURIComponent(prompt + " " + i);
+      const url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt + " " + i);
 
-      imagesHTML += "<img src='" + url + "'>";
+      imagesHTML += `
+        <div>
+          <img src="${url}">
+          <a class="download" href="${url}" download target="_blank">⬇ Download</a>
+        </div>
+      `;
     }
 
     setTimeout(() => {
-      removeTyping();
+      document.querySelector(".bot:last-child").remove();
       addMessage(imagesHTML, "bot");
-      showAd();
     }, 1000);
 
     return;
   }
 
-  // 🎬 VIDEO
-  if (prompt.includes("video") || prompt.includes("reel")) {
-    fetch("https://reelmindbackend-1.onrender.com/generate", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        prompt: "Create a cinematic viral video idea about: " + prompt
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      removeTyping();
-      addMessage(data.result, "bot");
-      showAd();
-    })
-    .catch(() => {
-      removeTyping();
-      addMessage("Error generating video idea.", "bot");
-    });
-
-    return;
-  }
-
-  // 📖 AI TEXT
+  // 🧠 REAL AI (OpenRouter-ready)
   fetch("https://reelmindbackend-1.onrender.com/generate", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ prompt: prompt })
+    body: JSON.stringify({ prompt })
   })
   .then(res => res.json())
   .then(data => {
-    removeTyping();
+    document.querySelector(".bot:last-child").remove();
     addMessage(data.result, "bot");
-    showAd();
   })
   .catch(() => {
-    removeTyping();
-    addMessage("Error connecting to server.", "bot");
+    addMessage("Error", "bot");
   });
+}
+
+// 🎤 VOICE INPUT
+function startVoice() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.start();
+
+  recognition.onresult = function(event) {
+    document.getElementById("prompt").value = event.results[0][0].transcript;
+  };
 }
 
 // ENTER KEY
