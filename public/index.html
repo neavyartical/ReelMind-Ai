@@ -1,6 +1,6 @@
 <script>
-async function generate(type) {
-  const prompt = document.getElementById("prompt").value;
+async function generate() {
+  const prompt = document.getElementById("prompt").value.toLowerCase();
   const result = document.getElementById("result");
 
   if (!prompt) {
@@ -8,17 +8,19 @@ async function generate(type) {
     return;
   }
 
-  // 🖼️ IMAGE MODE (STOPS HERE)
-  if (type === "image") {
+  result.textContent = "Generating...";
+
+  // 🖼️ AUTO IMAGE DETECTION
+  if (prompt.includes("image") || prompt.includes("picture") || prompt.includes("photo")) {
     const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
     result.innerHTML = `
       <img src="${imgUrl}" style="width:100%; border-radius:10px;" />
     `;
-    return; // 🔥 VERY IMPORTANT (stops script here)
+    return;
   }
 
-  // 🎬 VIDEO MODE
-  if (type === "video") {
+  // 🎬 AUTO VIDEO DETECTION
+  if (prompt.includes("video") || prompt.includes("reel") || prompt.includes("cinematic")) {
     const videoPrompt = `Create a cinematic viral video idea about: ${prompt}`;
 
     try {
@@ -32,6 +34,7 @@ async function generate(type) {
 
       const data = await response.json();
       result.textContent = data.result;
+
     } catch (error) {
       result.textContent = "Error generating video idea.";
     }
@@ -39,9 +42,7 @@ async function generate(type) {
     return;
   }
 
-  // 📖 STORY / NORMAL AI
-  result.textContent = "Generating...";
-
+  // 📖 DEFAULT = STORY / TEXT
   try {
     const response = await fetch("https://reelmindbackend-1.onrender.com/generate", {
       method: "POST",
