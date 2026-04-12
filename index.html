@@ -1,100 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>ReelMind AI</title>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: white;
-      display: flex;
-      flex-direction: column;
-    }
-
-    h1 {
-      text-align: center;
-      color: #38bdf8;
-      margin: 10px;
-    }
-
-    #chat {
-      height: 70vh;
-      overflow-y: auto;
-      padding: 15px;
-    }
-
-    .message {
-      margin: 10px 0;
-      padding: 12px;
-      border-radius: 10px;
-      max-width: 80%;
-    }
-
-    .user {
-      background: #38bdf8;
-      color: black;
-      margin-left: auto;
-    }
-
-    .bot {
-      background: #1e293b;
-    }
-
-    #inputArea {
-      display: flex;
-      gap: 10px;
-      padding: 10px;
-      background: #020617;
-      position: sticky;
-      bottom: 0;
-    }
-
-    input {
-      flex: 1;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-    }
-
-    /* 🧊 GLOW BUTTON */
-    button {
-      padding: 12px 18px;
-      border: none;
-      border-radius: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      background: linear-gradient(145deg, #67e8f9, #38bdf8);
-      color: black;
-      box-shadow: 0 0 15px #38bdf8;
-    }
-
-    button:hover {
-      box-shadow: 0 0 25px #67e8f9;
-    }
-
-    img {
-      width: 100%;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-
-<body>
-
-<h1>ReelMind AI 🧊</h1>
-
-<div id="chat"></div>
-
-<div id="inputArea">
-  <input id="prompt" placeholder="Type something...">
-  <button onclick="generate()">🧊</button>
-</div>
-
 <script>
 function addMessage(text, type) {
   const chat = document.getElementById("chat");
@@ -103,6 +6,19 @@ function addMessage(text, type) {
   div.innerHTML = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+}
+
+function showTyping() {
+  addMessage("⏳ Thinking...", "bot");
+}
+
+function removeTyping() {
+  const chat = document.getElementById("chat");
+  const msgs = document.querySelectorAll(".bot");
+  const last = msgs[msgs.length - 1];
+  if (last && last.innerText === "⏳ Thinking...") {
+    chat.removeChild(last);
+  }
 }
 
 function generate() {
@@ -114,24 +30,63 @@ function generate() {
   addMessage(prompt, "user");
   input.value = "";
 
-  // IMAGE
+  showTyping();
+
+  // 🖼 IMAGE
   if (prompt.includes("image") || prompt.includes("photo")) {
     const url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
-    addMessage("<img src='" + url + "'>", "bot");
+
+    setTimeout(() => {
+      removeTyping();
+      addMessage("<img src='" + url + "'>", "bot");
+    }, 1000);
+
     return;
   }
 
-  // AI TEXT
+  // 🎬 VIDEO
+  if (prompt.includes("video") || prompt.includes("reel")) {
+    fetch("https://reelmindbackend-1.onrender.com/generate", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        prompt: "Create a cinematic viral video idea about: " + prompt
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      removeTyping();
+      addMessage(data.result, "bot");
+    })
+    .catch(() => {
+      removeTyping();
+      addMessage("Error generating video idea.", "bot");
+    });
+
+    return;
+  }
+
+  // 📖 AI TEXT
   fetch("https://reelmindbackend-1.onrender.com/generate", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ prompt: prompt })
   })
   .then(res => res.json())
-  .then(data => addMessage(data.result, "bot"))
-  .catch(() => addMessage("Error", "bot"));
+  .then(data => {
+    removeTyping();
+    addMessage(data.result, "bot");
+  })
+  .catch(() => {
+    removeTyping();
+    addMessage("Error connecting to server.", "bot");
+  });
 }
-</script>
 
-</body>
-</html>
+// 🔥 ENTER KEY SUPPORT
+document.getElementById("prompt").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    generate();
+  }
+});
+</script>
