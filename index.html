@@ -29,7 +29,7 @@
     }
 
     #chat {
-      height: 60vh;
+      height: 70vh;
       overflow-y: auto;
       padding: 15px;
     }
@@ -85,16 +85,6 @@
     #generateBtn {
       background: #00ffc3;
       color: black;
-      animation: glow 1.5s infinite alternate;
-    }
-
-    @keyframes glow {
-      from { box-shadow: 0 0 5px #00ffc3; }
-      to { box-shadow: 0 0 20px #00ffc3; }
-    }
-
-    #content {
-      padding: 15px;
     }
 
     footer {
@@ -108,7 +98,7 @@
 
 <body>
 
-<!-- ✅ NAVIGATION -->
+<!-- NAV -->
 <div id="nav">
   <a href="/about">About</a> |
   <a href="/privacy">Privacy</a> |
@@ -116,22 +106,7 @@
   <a href="/blog">Blog</a>
 </div>
 
-<!-- ✅ REAL CONTENT (FOR ADSENSE APPROVAL) -->
-<div id="content">
-  <h2>Welcome to ReelMind AI</h2>
-  <p>
-    ReelMind AI helps you generate viral stories, create images, and edit videos using artificial intelligence.
-  </p>
-
-  <ul>
-    <li>AI Story Generator</li>
-    <li>Image Creation</li>
-    <li>Video Editing</li>
-    <li>Content for TikTok, YouTube & Instagram</li>
-  </ul>
-</div>
-
-<!-- 💰 ADSENSE BLOCK -->
+<!-- ADS -->
 <div style="text-align:center; margin:10px;">
   <ins class="adsbygoogle"
        style="display:block"
@@ -178,16 +153,8 @@ async function sendPrompt() {
 
   chat.innerHTML += `<div class="user">${input}</div>`;
 
-  let endpoint = "/generate";
-
-  if (input.toLowerCase().includes("image")) {
-    endpoint = "/image";
-  } else if (input.toLowerCase().includes("video")) {
-    endpoint = "/video-edit";
-  }
-
   try {
-    const res = await fetch(BASE_URL + endpoint, {
+    const res = await fetch(BASE_URL + "/generate-text", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ prompt: input })
@@ -195,16 +162,21 @@ async function sendPrompt() {
 
     const data = await res.json();
 
-    if (data.image) {
-      chat.innerHTML += `<div class="ai"><img src="${data.image}"></div>`;
-    } else if (data.edit) {
-      chat.innerHTML += `<div class="ai">${data.edit}</div>`;
-    } else {
-      chat.innerHTML += `<div class="ai">${data.result}</div>`;
+    if (!res.ok || data.error) {
+      chat.innerHTML += `<div class="ai">⚠️ ${data.error || "Server error"}</div>`;
+      return;
     }
 
-  } catch {
-    chat.innerHTML += `<div class="ai">⚠️ Backend error</div>`;
+    // ✅ OPENROUTER RESPONSE FIX
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      data.result ||
+      "No response";
+
+    chat.innerHTML += `<div class="ai">${reply}</div>`;
+
+  } catch (err) {
+    chat.innerHTML += `<div class="ai">⚠️ Connection error</div>`;
   }
 
   document.getElementById("userInput").value = "";
