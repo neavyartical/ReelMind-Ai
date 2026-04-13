@@ -5,136 +5,42 @@
 <title>ReelMind AI - Powered by Artical Neavy</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ADSENSE -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429" crossorigin="anonymous"></script>
-
 <style>
-body{
-  margin:0;
-  background:#0b0f14;
-  color:white;
-  font-family:Arial;
-  overflow:hidden;
-}
-
-/* CHAT */
-#chat{
-  position:absolute;
-  top:0;
-  bottom:90px;
-  width:100%;
-  overflow:auto;
-  padding:10px;
-}
-
-.msg{
-  margin:10px;
-  padding:12px;
-  border-radius:12px;
-  max-width:80%;
-}
-
-.user{background:#1f1f1f;margin-left:auto;}
-.ai{background:#16212b;}
-
+body{margin:0;background:#0b0f14;color:white;font-family:Arial;overflow:hidden}
+#chat{position:absolute;top:0;bottom:90px;width:100%;overflow:auto;padding:10px}
+.msg{margin:10px;padding:12px;border-radius:12px;max-width:80%}
+.user{background:#1f1f1f;margin-left:auto}
+.ai{background:#16212b}
 img,video{width:100%;border-radius:10px}
+#inputArea{position:fixed;bottom:0;width:100%;display:flex;padding:10px;background:#111}
+input{flex:1;padding:12px;border-radius:25px;border:none}
 
-/* INPUT */
-#inputArea{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  display:flex;
-  padding:10px;
-  background:#111;
+/* Buttons */
+#uploadBtn,#micBtn{
+position:fixed;bottom:100px;width:55px;height:55px;border-radius:50%;
+display:flex;align-items:center;justify-content:center;font-size:22px
 }
+#uploadBtn{left:15px;background:#00ff88}
+#micBtn{right:15px;background:#00ccff}
 
-input{
-  flex:1;
-  padding:12px;
-  border-radius:25px;
-  border:none;
-}
-
-/* LEFT + BUTTON */
-#uploadBtn{
-  position:fixed;
-  bottom:100px;
-  left:15px;
-  width:55px;
-  height:55px;
-  border-radius:50%;
-  background:#00ff88;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:28px;
-}
-
-/* RIGHT MIC */
-#micBtn{
-  position:fixed;
-  bottom:100px;
-  right:15px;
-  width:55px;
-  height:55px;
-  border-radius:50%;
-  background:#00ccff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:20px;
-}
-
-/* CENTER AI CORE */
+/* Core */
 #core{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:130px;
-  height:130px;
-  border-radius:20px;
-  background:rgba(0,255,255,0.1);
-  box-shadow:0 0 40px cyan;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:5px;
-  animation:glow 2s infinite alternate;
+position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+width:130px;height:130px;border-radius:20px;
+background:rgba(0,255,255,0.1);
+box-shadow:0 0 40px cyan;
+display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+animation:glow 2s infinite alternate;
 }
-
-@keyframes glow{
-  from{box-shadow:0 0 20px cyan;}
-  to{box-shadow:0 0 60px cyan;}
-}
-
-.coreBtn{
-  font-size:12px;
-  padding:5px 8px;
-  border:none;
-  border-radius:10px;
-  background:#00ff88;
-}
-
-.footer{
-  position:absolute;
-  top:5px;
-  width:100%;
-  text-align:center;
-  font-size:12px;
-}
+@keyframes glow{from{box-shadow:0 0 20px cyan}to{box-shadow:0 0 60px cyan}}
+.coreBtn{font-size:12px;padding:5px 8px;border:none;border-radius:10px;background:#00ff88}
 </style>
 </head>
 
 <body>
 
-<div class="footer">Powered by Artical Neavy</div>
-
 <div id="chat"></div>
 
-<!-- CORE -->
 <div id="core">
 <button class="coreBtn" onclick="sendText()">Text</button>
 <button class="coreBtn" onclick="generateImage()">Image</button>
@@ -143,14 +49,11 @@ input{
 <button class="coreBtn" onclick="downloadLast()">⬇</button>
 </div>
 
-<!-- UPLOAD -->
 <div id="uploadBtn" onclick="fileInput.click()">+</div>
-<input type="file" id="fileInput" style="display:none" onchange="uploadFile(event)">
+<input type="file" id="fileInput" hidden onchange="uploadFile(event)">
 
-<!-- MIC -->
 <div id="micBtn" onclick="startVoice()">🎤</div>
 
-<!-- INPUT -->
 <div id="inputArea">
 <input id="prompt" placeholder="Ask anything..." />
 <button onclick="sendText()">Send</button>
@@ -167,18 +70,18 @@ function getToken(){return localStorage.getItem("token");}
 
 // AUTO LOGIN
 async function ensureLogin(){
-  if(!getToken()){
-    let r=await fetch(API+"/login",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({email:"guest@user.com"})
-    });
-    let d=await r.json();
-    setToken(d.token);
-  }
+if(!getToken()){
+let r=await fetch(API+"/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({email:"guest@user.com"})
+});
+let d=await r.json();
+setToken(d.data.token);
+}
 }
 
-// ===== MESSAGE =====
+// ===== HELPERS =====
 function addMsg(text,type){
 let d=document.createElement("div");
 d.className="msg "+type;
@@ -187,29 +90,28 @@ chat.appendChild(d);
 return d;
 }
 
-// ===== TYPE EFFECT =====
 function type(el,text){
-let i=0;
-el.innerHTML="";
-function t(){
-if(i<text.length){
-el.innerHTML+=text.charAt(i);
-i++;
-setTimeout(t,5);
+let i=0;el.innerHTML="";
+(function t(){if(i<text.length){el.innerHTML+=text[i++];setTimeout(t,4)}})();
 }
+
+function handleError(d){
+if(d.status==="error"){
+alert(d.message);
+return true;
 }
-t();
+return false;
 }
 
 // ===== TEXT =====
 async function sendText(){
 await ensureLogin();
 
-let p=prompt.value;
+let p=prompt.value.trim();
 if(!p) return;
 
 addMsg(p,"user");
-let box=addMsg("Thinking...","ai");
+let box=addMsg("⚡ Thinking...","ai");
 
 let r=await fetch(API+"/generate-text",{
 method:"POST",
@@ -218,23 +120,24 @@ headers:{
 "Authorization":"Bearer "+getToken()
 },
 body:JSON.stringify({
-prompt:"Answer like Google + Wikipedia + ChatGPT:\n"+p
+prompt:`Answer clearly and accurately:\n${p}`
 })
 });
 
 let d=await r.json();
-lastOutput=d.result;
+if(handleError(d)) return;
 
-type(box,d.result);
+let result=d.data.content;
+lastOutput=result;
+
+type(box,result);
 }
 
-// ===== IMAGE (FIXED) =====
+// ===== IMAGE =====
 async function generateImage(){
 await ensureLogin();
 
-let box=addMsg("Generating image...","ai");
-
-let enhanced = prompt.value + ", ultra realistic, cinematic lighting, 4k";
+let box=addMsg("🎨 Generating image...","ai");
 
 let r=await fetch(API+"/generate-image",{
 method:"POST",
@@ -242,20 +145,25 @@ headers:{
 "Content-Type":"application/json",
 "Authorization":"Bearer "+getToken()
 },
-body:JSON.stringify({prompt:enhanced})
+body:JSON.stringify({
+prompt: prompt.value + ", ultra realistic, cinematic, 4k"
+})
 });
 
 let d=await r.json();
-lastOutput=d.image;
+if(handleError(d)) return;
 
-box.innerHTML=`<img src="${d.image}" onerror="this.src='${d.fallback}'">`;
+let url=d.data.url;
+lastOutput=url;
+
+box.innerHTML=`<img src="${url}" onerror="this.src='https://picsum.photos/800?random=${Math.random()}'">`;
 }
 
 // ===== VIDEO =====
 async function generateVideo(){
 await ensureLogin();
 
-let box=addMsg("Generating video...","ai");
+let box=addMsg("🎥 Generating video...","ai");
 
 let r=await fetch(API+"/generate-video",{
 method:"POST",
@@ -267,16 +175,19 @@ body:JSON.stringify({prompt:prompt.value})
 });
 
 let d=await r.json();
-lastOutput=d.video;
+if(handleError(d)) return;
 
-box.innerHTML=`<video controls src="${d.video}"></video>`;
+let url=d.data.url;
+lastOutput=url;
+
+box.innerHTML=`<video controls src="${url}"></video>`;
 }
 
 // ===== REEL =====
 async function generateReel(){
 await ensureLogin();
 
-let box=addMsg("Creating viral reel...","ai");
+let box=addMsg("🔥 Creating reel...","ai");
 
 let r=await fetch(API+"/generate-reel",{
 method:"POST",
@@ -288,17 +199,21 @@ body:JSON.stringify({prompt:prompt.value})
 });
 
 let d=await r.json();
-lastOutput=d.result;
+if(handleError(d)) return;
 
-type(box,d.result);
+let result=d.data.content;
+lastOutput=result;
+
+type(box,result);
 }
 
 // ===== DOWNLOAD =====
 function downloadLast(){
-if(!lastOutput) return alert("Nothing yet");
+if(!lastOutput) return alert("Nothing to download");
 
 let a=document.createElement("a");
-a.href=lastOutput;
+a.href=lastOutput.startsWith("http") ? lastOutput : 
+"data:text/plain;charset=utf-8,"+encodeURIComponent(lastOutput);
 a.download="reelmind_output";
 a.click();
 }
@@ -306,23 +221,17 @@ a.click();
 // ===== UPLOAD =====
 function uploadFile(e){
 let file=e.target.files[0];
-addMsg("Uploaded: "+file.name,"user");
+addMsg("📁 "+file.name,"user");
 }
 
 // ===== VOICE =====
 function startVoice(){
 if(!('webkitSpeechRecognition' in window)){
-alert("Voice not supported");
-return;
+alert("Voice not supported");return;
 }
-
 let rec=new webkitSpeechRecognition();
 rec.lang="en-US";
-
-rec.onresult=e=>{
-prompt.value=e.results[0][0].transcript;
-};
-
+rec.onresult=e=>{prompt.value=e.results[0][0].transcript};
 rec.start();
 }
 </script>
