@@ -4,20 +4,29 @@
   <title>ReelMind AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- ADSENSE -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429" crossorigin="anonymous"></script>
+
   <style>
     body {
       margin: 0;
       font-family: Arial;
       color: white;
-      background: radial-gradient(circle at center, #00ffc355, #000),
-                  linear-gradient(135deg, #0f2027, #000);
+      background: url('logo.png') center/cover no-repeat fixed;
+      backdrop-filter: blur(8px);
     }
 
     #nav {
+      background: rgba(0,0,0,0.8);
       padding: 12px;
       text-align: center;
-      background: rgba(0,0,0,0.9);
-      box-shadow: 0 0 15px #00ffc3;
+      font-weight: bold;
+    }
+
+    #nav a {
+      color: #00ffc3;
+      margin: 0 8px;
+      text-decoration: none;
     }
 
     #chat {
@@ -41,6 +50,7 @@
 
     .ai {
       background: #2b2b2b;
+      margin-right: auto;
     }
 
     img {
@@ -48,171 +58,219 @@
       border-radius: 10px;
     }
 
-    #controls {
-      text-align: center;
-      margin: 10px;
-    }
-
-    button {
-      margin: 5px;
-      padding: 10px;
-      border: none;
-      border-radius: 20px;
-      background: #00ffc3;
-      font-weight: bold;
-    }
-
-    input {
-      padding: 10px;
-      border-radius: 20px;
-      border: none;
-    }
-
     #inputArea {
       position: fixed;
       bottom: 0;
       width: 100%;
       display: flex;
+      padding: 10px;
       background: #111;
     }
 
-    #inputArea input {
+    input {
       flex: 1;
+      padding: 12px;
+      border-radius: 20px;
+      border: none;
+    }
+
+    button {
+      margin-left: 5px;
+      border-radius: 20px;
+      padding: 10px;
+      border: none;
+      background: #00ffc3;
+      font-weight: bold;
+    }
+
+    .loader {
+      border: 4px solid #333;
+      border-top: 4px solid #00ffc3;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 10px;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: gray;
+    }
+
+    .premium-lock {
+      color: red;
     }
   </style>
 </head>
 
 <body>
 
+<!-- NAV -->
 <div id="nav">
-  <b>ReelMind AI 🚀</b><br>
-  <input id="email" placeholder="Enter email">
-  <button onclick="login()">Login</button>
+  ReelMind AI 🚀 |
+  <a href="#">About</a>
+  <a href="#">Blog</a>
+  <a href="#">Contact</a>
+  <a href="#">Privacy</a>
+  | <span id="userStatus">User</span>
 </div>
 
+<!-- CHAT -->
 <div id="chat"></div>
 
-<div id="controls">
-  <button onclick="mode='text'">AI</button>
-  <button onclick="mode='image'">Image</button>
-  <button onclick="mode='reel'">Reel</button>
-  <button onclick="dashboard()">Dashboard</button>
-  <button onclick="pay()">💰 Upgrade</button>
-</div>
-
-<div id="inputArea">
-  <input id="userInput" placeholder="Ask anything...">
-  <button onclick="send()">Send</button>
+<!-- ADS -->
+<div style="text-align:center;">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-1714638410489429"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
 </div>
 
 <script>
-const API = "https://YOUR-BACKEND-URL.onrender.com"; // 🔥 CHANGE THIS
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 
-let token = localStorage.getItem("token");
-let mode = "text";
+<!-- INPUT -->
+<div id="inputArea">
+  <button onclick="uploadFile()">📎</button>
+  <button onclick="startMic()">🎤</button>
+  <input id="userInput" placeholder="Ask anything..." />
+  <button onclick="sendPrompt()">Send</button>
+</div>
 
-// 🔐 LOGIN
-async function login() {
-  const email = document.getElementById("email").value;
+<input type="file" id="fileInput" hidden />
 
-  const res = await fetch(API + "/login", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email })
-  });
+<!-- FOOTER -->
+<footer>
+  Powered by Artical Neavy ⚡
+</footer>
 
-  const data = await res.json();
+<script>
+const BASE_URL = "https://reelmindbackend-1.onrender.com";
 
-  token = data.token;
-  localStorage.setItem("token", token);
-
-  alert("Logged in successfully ✅");
+// 🔐 PERMANENT LOGIN (NO LOGOUT)
+let TOKEN = localStorage.getItem("token");
+if (!TOKEN) {
+  TOKEN = "demo-user";
+  localStorage.setItem("token", TOKEN);
 }
 
-// 📩 SEND
-async function send() {
+// 💎 PREMIUM
+let IS_PREMIUM = localStorage.getItem("premium") === "true";
+
+// MAIN FUNCTION
+async function sendPrompt() {
   const input = document.getElementById("userInput").value;
   const chat = document.getElementById("chat");
 
-  if (!token) {
-    alert("Login first ❗");
-    return;
-  }
+  if (!input) return;
 
   chat.innerHTML += `<div class="msg user">${input}</div>`;
 
-  let endpoint = "/generate-text";
-  if (mode === "image") endpoint = "/generate-image";
-  if (mode === "reel") endpoint = "/viral-reel";
+  const loader = document.createElement("div");
+  loader.className = "loader";
+  chat.appendChild(loader);
 
   try {
-    const res = await fetch(API + endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
-      },
-      body: JSON.stringify({ prompt: input })
-    });
 
-    const data = await res.json();
+    // 🖼 IMAGE
+    if (input.toLowerCase().includes("image")) {
 
-    if (data.error) {
-      chat.innerHTML += `<div class="msg ai">⚠️ ${data.error}</div>`;
-      return;
+      if (!IS_PREMIUM) {
+        loader.remove();
+        chat.innerHTML += `<div class="msg ai premium-lock">🔒 Premium required</div>`;
+        return;
+      }
+
+      const res = await fetch(BASE_URL + "/generate-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + TOKEN
+        },
+        body: JSON.stringify({ prompt: input })
+      });
+
+      const data = await res.json();
+      loader.remove();
+
+      chat.innerHTML += `
+        <div class="msg ai">
+          <img src="${data.image}">
+          <br><a href="${data.image}" download>⬇ Download</a>
+        </div>`;
     }
 
-    // TEXT
-    if (mode === "text") {
-      const reply = data?.choices?.[0]?.message?.content || "No response";
-      chat.innerHTML += `<div class="msg ai">${reply}</div>`;
-    }
+    // 💬 TEXT
+    else {
+      const res = await fetch(BASE_URL + "/generate-text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + TOKEN
+        },
+        body: JSON.stringify({ prompt: input })
+      });
 
-    // IMAGE
-    if (mode === "image") {
-      chat.innerHTML += `<div class="msg ai"><img src="${data.image}"></div>`;
-    }
+      const data = await res.json();
+      loader.remove();
 
-    // REEL
-    if (mode === "reel") {
-      const reply = data?.choices?.[0]?.message?.content || "No response";
+      const reply =
+        data?.result ||
+        data?.choices?.[0]?.message?.content ||
+        "No response";
+
       chat.innerHTML += `<div class="msg ai">${reply}</div>`;
     }
 
   } catch (err) {
-    chat.innerHTML += `<div class="msg ai">⚠️ Server error</div>`;
+    loader.remove();
+    chat.innerHTML += `<div class="msg ai">⚠️ Backend error</div>`;
   }
 
   document.getElementById("userInput").value = "";
+  chat.scrollTop = chat.scrollHeight;
 }
 
-// 📊 DASHBOARD
-async function dashboard() {
-  const chat = document.getElementById("chat");
-
-  const res = await fetch(API + "/dashboard", {
-    headers: { "Authorization": "Bearer " + token }
-  });
-
-  const data = await res.json();
-
-  chat.innerHTML += `
-  <div class="msg ai">
-  📊 Credits: ${data.credits} <br>
-  Premium: ${data.premium} <br>
-  Earnings: ${data.earnings}
-  </div>`;
+// 📎 FILE UPLOAD
+function uploadFile() {
+  document.getElementById("fileInput").click();
 }
 
-// 💳 PAYMENT
-async function pay() {
-  const res = await fetch(API + "/pay", {
-    method: "POST",
-    headers: { "Authorization": "Bearer " + token }
-  });
+document.getElementById("fileInput").addEventListener("change", function () {
+  const file = this.files[0];
+  if (file) {
+    document.getElementById("chat").innerHTML += `<div class="msg user">📁 ${file.name}</div>`;
+  }
+});
 
-  const data = await res.json();
-  window.location = data.url;
+// 🎤 MIC
+function startMic() {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert("Mic not supported");
+    return;
+  }
+
+  const recognition = new webkitSpeechRecognition();
+  recognition.onresult = e => {
+    document.getElementById("userInput").value = e.results[0][0].transcript;
+  };
+  recognition.start();
+}
+
+// 💎 ACTIVATE PREMIUM (TEMP)
+function subscribe() {
+  localStorage.setItem("premium", "true");
+  alert("Premium activated");
 }
 </script>
 
