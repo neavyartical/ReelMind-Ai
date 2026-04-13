@@ -9,7 +9,19 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429" crossorigin="anonymous"></script>
 
 <style>
-body{margin:0;background:#0b0f14;color:white;font-family:Arial}
+body{
+margin:0;
+background:#0b0f14;
+color:white;
+font-family:Arial;
+
+/* LOGO BACKGROUND */
+background-image:url("logo.png");
+background-repeat:no-repeat;
+background-position:center;
+background-size:60%;
+opacity:1;
+}
 
 /* DASHBOARD */
 #topbar{
@@ -85,8 +97,9 @@ input{flex:1;padding:12px;border-radius:25px;border:none}
 
 <!-- DASHBOARD -->
 <div id="topbar">
-<span id="status">🔴 Not logged</span>
+<span id="status">🔴 Offline</span>
 <span id="user">User: Guest</span>
+<span id="credits">Credits: --</span>
 <span id="ref">Ref: 0</span>
 <span onclick="upgrade()">💰 Upgrade</span>
 </div>
@@ -102,7 +115,7 @@ input{flex:1;padding:12px;border-radius:25px;border:none}
 
 <div id="chat"></div>
 
-<!-- CENTER BUTTON -->
+<!-- GENERATE -->
 <div id="generateBtn" onclick="generate()">GENERATE</div>
 
 <!-- FLOAT BUTTONS -->
@@ -130,7 +143,7 @@ const API="https://reelmindbackend-1.onrender.com";
 const chat=document.getElementById("chat");
 let lastOutput="";
 
-// ===== LOGIN FIX (ALL FORMATS) =====
+// ===== LOGIN =====
 async function ensureLogin(){
 if(!localStorage.token){
 try{
@@ -141,19 +154,32 @@ body:JSON.stringify({email:"guest@user.com"})
 });
 let d=await r.json();
 
-// 🔥 HANDLE ALL TOKEN TYPES
 let token = d.token || d.data?.token || d.access_token;
 
 if(token){
 localStorage.token=token;
 document.getElementById("status").innerText="🟢 Online";
-}else{
-document.getElementById("status").innerText="🔴 Login failed";
+await loadUser();
 }
-
 }catch{
 document.getElementById("status").innerText="❌ Offline";
 }
+}
+}
+
+// ===== LOAD USER =====
+async function loadUser(){
+let r=await fetch(API+"/me",{
+headers:{
+"Authorization":"Bearer "+localStorage.token
+}
+});
+let d=await r.json();
+
+if(d.data){
+document.getElementById("credits").innerText="Credits: "+d.data.credits;
+document.getElementById("user").innerText="User: "+d.data.email;
+document.getElementById("ref").innerText="Ref: "+d.data.referrals;
 }
 }
 
@@ -163,10 +189,11 @@ let d=document.createElement("div");
 d.className="msg "+type;
 d.innerText=text;
 chat.appendChild(d);
+chat.scrollTop=chat.scrollHeight;
 return d;
 }
 
-// ===== SMART GENERATE (UPGRADED) =====
+// ===== GENERATE =====
 async function generate(){
 await ensureLogin();
 
@@ -176,23 +203,26 @@ if(!p) return;
 addMsg(p,"user");
 let box=addMsg("⚡ Generating...","ai");
 
-// ===== BETTER ROUTING =====
+// ROUTING
 let route="/generate-text";
-
 if(/image|picture|photo|art/i.test(p)) route="/generate-image";
 else if(/video|movie|clip/i.test(p)) route="/generate-video";
 else if(/reel|tiktok|short/i.test(p)) route="/generate-reel";
 
-// ===== BOOST STORY QUALITY =====
+// PROMPT BOOST
 let finalPrompt = p;
+
 if(route==="/generate-text"){
 finalPrompt = `
-Write a detailed, long, high-quality response (minimum 200 words).
-Make it engaging, informative, and complete.
+Write a LONG detailed response (300+ words).
+Make it engaging, storytelling, and complete.
 
-User request:
 ${p}
 `;
+}
+
+if(route==="/generate-image"){
+finalPrompt = p + ", ultra realistic, cinematic lighting, 8k, masterpiece";
 }
 
 try{
@@ -207,32 +237,57 @@ body:JSON.stringify({prompt:finalPrompt})
 
 let d=await r.json();
 
-// 🔥 TOKEN AUTO FIX LOOP
-if(d.error==="Invalid token" || d.message==="Invalid token"){
+// TOKEN FIX
+if(d.message==="Invalid token"){
 localStorage.removeItem("token");
 return generate();
 }
 
-// ===== OUTPUT HANDLING =====
+// OUTPUT
 if(route==="/generate-image"){
-let url=d.image || d.data?.url;
+let url=d.data?.url;
 lastOutput=url;
-box.innerHTML=`<img src="${url}" onerror="this.src='https://picsum.photos/800?random='+Math.random()">`;
+box.innerHTML=`<img src="${url}">`;
 }
 else if(route==="/generate-video"){
-let url=d.video || d.data?.url;
+let url=d.data?.url;
 lastOutput=url;
 box.innerHTML=`<video controls src="${url}"></video>`;
 }
 else{
-let text=d.result || d.data?.content;
+let text=d.data?.content;
 lastOutput=text;
 box.innerText=text;
 }
 
-}catch(e){
-box.innerText="⚠️ Slow network or server delay. Try again.";
+loadUser();
+
+}catch{
+box.innerText="⚠️ Server slow, try again";
 }
+}
+
+// ===== MIC FIX =====
+function startVoice(){
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(!SpeechRecognition){
+alert("Mic not supported");
+return;
+}
+
+navigator.mediaDevices.getUserMedia({audio:true})
+.then(()=>{
+let rec=new SpeechRecognition();
+rec.lang="en-US";
+
+rec.onresult=e=>{
+document.getElementById("prompt").value=e.results[0][0].transcript;
+};
+
+rec.start();
+})
+.catch(()=>alert("Allow microphone"));
 }
 
 // ===== UPLOAD =====
@@ -240,24 +295,13 @@ function uploadFile(e){
 addMsg("📁 "+e.target.files[0].name,"user");
 }
 
-// ===== VOICE =====
-function startVoice(){
-if(!('webkitSpeechRecognition' in window)){
-alert("Voice not supported");
-return;
-}
-let r=new webkitSpeechRecognition();
-r.lang="en-US";
-r.onresult=e=>{
-document.getElementById("prompt").value=e.results[0][0].transcript;
-};
-r.start();
-}
-
 // ===== PAYMENT =====
 function upgrade(){
 window.open("https://ko-fi.com/articalneavy","_blank");
 }
+
+// AUTO START
+ensureLogin();
 </script>
 
 </body>
