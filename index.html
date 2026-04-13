@@ -1,238 +1,244 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>ReelMind AI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReelMind AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ✅ ADSENSE (YOUR REAL ID ADDED) -->
-<script async 
-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
-crossorigin="anonymous"></script>
+  <!-- ✅ GOOGLE ADSENSE -->
+  <script async 
+  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
+  crossorigin="anonymous"></script>
 
-<style>
-body {
-  margin: 0;
-  background: #000;
-  color: #fff;
-  font-family: Arial;
-}
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      font-family: Arial;
+      color: white;
+    }
 
-/* HEADER */
-.header {
-  text-align: center;
-  padding: 12px;
-  font-size: 20px;
-  font-weight: bold;
-  background: #111;
-}
+    a {
+      color: #00ffc3;
+      text-decoration: none;
+    }
 
-/* CHAT AREA */
-#chat {
-  height: 65vh;
-  overflow-y: auto;
-  padding: 10px;
-}
+    #nav {
+      background: #111;
+      padding: 10px;
+      text-align: center;
+    }
 
-.msg {
-  margin: 10px;
-  padding: 12px;
-  border-radius: 12px;
-  max-width: 85%;
-}
+    #chat {
+      height: 60vh;
+      overflow-y: auto;
+      padding: 15px;
+    }
 
-.user {
-  background: #222;
-  margin-left: auto;
-}
+    .user, .ai {
+      padding: 12px;
+      margin: 10px;
+      border-radius: 12px;
+      max-width: 80%;
+    }
 
-.bot {
-  background: #111;
-}
+    .user {
+      background: #1f1f1f;
+      margin-left: auto;
+      text-align: right;
+    }
 
-/* INPUT BAR */
-.input-bar {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  background: #111;
-  padding: 10px;
-}
+    .ai {
+      background: #2b2b2b;
+      margin-right: auto;
+    }
 
-/* INPUT */
-#prompt {
-  flex: 1;
-  padding: 10px;
-  border-radius: 20px;
-  border: none;
-}
+    .ai img {
+      width: 100%;
+      border-radius: 10px;
+    }
 
-/* BUTTONS */
-.circle-btn {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  border: none;
-  margin: 5px;
-  font-size: 18px;
-  background: #222;
-  color: white;
-}
+    #inputArea {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      padding: 10px;
+      background: #111;
+    }
 
-/* GENERATE BUTTON */
-.generate {
-  width: 70px;
-  height: 70px;
-  border-radius: 20px;
-  background: cyan;
-  color: black;
-  font-weight: bold;
-  box-shadow: 0 0 20px cyan;
-}
+    #userInput {
+      flex: 1;
+      padding: 12px;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+    }
 
-/* FOOTER */
-.footer {
-  text-align: center;
-  margin: 20px;
-  font-size: 12px;
-}
-</style>
+    .btn {
+      margin-left: 5px;
+      border: none;
+      border-radius: 20px;
+      padding: 10px;
+      font-weight: bold;
+    }
+
+    #generateBtn {
+      background: #00ffc3;
+      color: black;
+      animation: glow 1.5s infinite alternate;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 5px #00ffc3; }
+      to { box-shadow: 0 0 20px #00ffc3; }
+    }
+
+    #content {
+      padding: 15px;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: gray;
+      padding: 20px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="header">
-🧠 ReelMind AI — Powered by Artical Neavy
+<!-- ✅ NAVIGATION -->
+<div id="nav">
+  <a href="/about">About</a> |
+  <a href="/privacy">Privacy</a> |
+  <a href="/contact">Contact</a> |
+  <a href="/blog">Blog</a>
 </div>
 
-<!-- ✅ TOP AD -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-1714638410489429"
-     data-ad-slot="1234567890"
-     data-ad-format="auto"></ins>
+<!-- ✅ REAL CONTENT (FOR ADSENSE APPROVAL) -->
+<div id="content">
+  <h2>Welcome to ReelMind AI</h2>
+  <p>
+    ReelMind AI helps you generate viral stories, create images, and edit videos using artificial intelligence.
+  </p>
+
+  <ul>
+    <li>AI Story Generator</li>
+    <li>Image Creation</li>
+    <li>Video Editing</li>
+    <li>Content for TikTok, YouTube & Instagram</li>
+  </ul>
+</div>
+
+<!-- 💰 ADSENSE BLOCK -->
+<div style="text-align:center; margin:10px;">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-1714638410489429"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+</div>
 
 <script>
-(adsbygoogle = window.adsbygoogle || []).push({});
+  (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
 <!-- CHAT -->
 <div id="chat"></div>
 
-<!-- INPUT BAR -->
-<div class="input-bar">
-
-<!-- UPLOAD BUTTON -->
-<input type="file" id="fileInput" hidden onchange="uploadFile()">
-<button class="circle-btn" onclick="fileInput.click()">＋</button>
-
-<!-- MIC BUTTON -->
-<button class="circle-btn" onclick="startVoice()">🎤</button>
-
-<!-- TEXT INPUT -->
-<input id="prompt" placeholder="Ask anything or create content...">
-
-<!-- GENERATE -->
-<button class="generate" onclick="generate()">🧊</button>
-
+<!-- INPUT -->
+<div id="inputArea">
+  <button class="btn" onclick="triggerUpload()">＋</button>
+  <button class="btn" onclick="startMic()">🎤</button>
+  <input id="userInput" placeholder="Ask anything..." />
+  <button id="generateBtn" onclick="sendPrompt()">Generate</button>
 </div>
 
-<!-- FOOTER LINKS -->
-<div class="footer">
-<a href="/privacy">Privacy</a> |
-<a href="/about">About</a> |
-<a href="/contact">Contact</a> |
-<a href="/blog">Blog</a>
-</div>
+<input type="file" id="fileInput" hidden />
+
+<!-- FOOTER -->
+<footer>
+  © 2026 ReelMind AI <br>
+  <a href="/privacy">Privacy Policy</a> |
+  <a href="/about">About</a> |
+  <a href="/contact">Contact</a>
+</footer>
 
 <script>
-const API = "https://reelmindbackend-1.onrender.com";
+const BASE_URL = "https://reelmindbackend-1.onrender.com";
 
-// ADD MESSAGE TO CHAT
-function addMessage(text, type){
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerText = text;
-  document.getElementById("chat").appendChild(div);
-}
+// SEND PROMPT
+async function sendPrompt() {
+  const input = document.getElementById("userInput").value;
+  const chat = document.getElementById("chat");
 
-// GENERATE TEXT
-async function generate(){
-  const text = document.getElementById("prompt").value;
-  if(!text) return alert("Enter something");
+  if (!input) return;
 
-  addMessage(text, "user");
+  chat.innerHTML += `<div class="user">${input}</div>`;
+
+  let endpoint = "/generate";
+
+  if (input.toLowerCase().includes("image")) {
+    endpoint = "/image";
+  } else if (input.toLowerCase().includes("video")) {
+    endpoint = "/video-edit";
+  }
 
   try {
-    const res = await fetch(API + "/generate", {
+    const res = await fetch(BASE_URL + endpoint, {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({prompt:text})
-    });
-
-    const data = await res.json();
-    addMessage(data.result || "No response", "bot");
-
-  } catch (err) {
-    addMessage("❌ Error connecting to AI", "bot");
-  }
-}
-
-// UPLOAD HANDLER
-async function uploadFile(){
-  const file = document.getElementById("fileInput").files[0];
-  if(!file) return;
-
-  addMessage("📤 Uploaded: " + file.name, "user");
-
-  // IMAGE
-  if(file.type.includes("image")){
-    const res = await fetch(API + "/image", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({prompt: prompt.value || "enhance image"})
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ prompt: input })
     });
 
     const data = await res.json();
 
-    if(data.image){
-      const img = document.createElement("img");
-      img.src = data.image;
-      img.style.width = "90%";
-      document.getElementById("chat").appendChild(img);
+    if (data.image) {
+      chat.innerHTML += `<div class="ai"><img src="${data.image}"></div>`;
+    } else if (data.edit) {
+      chat.innerHTML += `<div class="ai">${data.edit}</div>`;
+    } else {
+      chat.innerHTML += `<div class="ai">${data.result}</div>`;
     }
+
+  } catch {
+    chat.innerHTML += `<div class="ai">⚠️ Backend error</div>`;
   }
 
-  // VIDEO
-  if(file.type.includes("video")){
-    const res = await fetch(API + "/video-edit", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({prompt: prompt.value || "edit video"})
-    });
-
-    const data = await res.json();
-    addMessage(data.edit || "Video processed", "bot");
-  }
+  document.getElementById("userInput").value = "";
+  chat.scrollTop = chat.scrollHeight;
 }
 
-// VOICE INPUT
-function startVoice(){
-  const rec = new(window.SpeechRecognition || window.webkitSpeechRecognition)();
+// FILE UPLOAD
+function triggerUpload() {
+  document.getElementById("fileInput").click();
+}
 
-  rec.lang = "en-US";
+document.getElementById("fileInput").addEventListener("change", function () {
+  const file = this.files[0];
+  if (file) {
+    document.getElementById("chat").innerHTML += `<div class="user">📁 ${file.name}</div>`;
+  }
+});
 
-  rec.onresult = e => {
-    document.getElementById("prompt").value =
-      e.results[0][0].transcript;
+// MIC
+function startMic() {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert("Mic not supported");
+    return;
+  }
+
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-US";
+
+  recognition.onresult = function (event) {
+    document.getElementById("userInput").value =
+      event.results[0][0].transcript;
   };
 
-  rec.onerror = () => {
-    alert("Mic not supported on this device");
-  };
-
-  rec.start();
+  recognition.start();
 }
 </script>
 
