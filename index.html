@@ -1,38 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>ReelMind AI</title>
+<title>ReelMind AI - Powered by Artical Neavy</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- ADSENSE -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429" crossorigin="anonymous"></script>
 
 <style>
-body { margin:0; font-family:Arial; background:#0b0f14; color:white; }
-.topbar { display:flex; flex-wrap:wrap; justify-content:center; gap:5px; background:#111; padding:10px; }
-button { padding:8px 12px; border:none; border-radius:20px; background:#00ff88; cursor:pointer; }
-#chat { height:65vh; overflow-y:auto; padding:10px; }
-.msg { padding:12px; margin:10px; border-radius:12px; max-width:80%; }
-.user { background:#1f1f1f; margin-left:auto; }
-.ai { background:#16212b; }
-video, img { width:100%; border-radius:10px; }
+body{
+  margin:0;
+  background:#0b0f14;
+  color:white;
+  font-family:Arial;
+}
 
-#inputArea {
-  position:fixed;
-  bottom:0;
-  width:100%;
+.topbar{
   display:flex;
+  flex-wrap:wrap;
+  gap:5px;
   padding:10px;
   background:#111;
 }
 
-input { flex:1; padding:12px; border-radius:20px; border:none; }
+button{
+  padding:8px 12px;
+  border:none;
+  border-radius:20px;
+  background:#00ff88;
+  cursor:pointer;
+}
 
-.footer {
-  padding:20px;
+#chat{
+  height:65vh;
+  overflow:auto;
+  padding:10px;
+}
+
+.msg{
+  margin:10px;
+  padding:12px;
+  border-radius:12px;
+  max-width:80%;
+}
+
+.user{
+  background:#1f1f1f;
+  margin-left:auto;
+}
+
+.ai{
+  background:#16212b;
+}
+
+img,video{
+  width:100%;
+  border-radius:10px;
+}
+
+#inputArea{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  gap:5px;
+  padding:10px;
+  background:#111;
+}
+
+input{
+  flex:1;
+  padding:12px;
+  border-radius:20px;
+  border:none;
+}
+
+.footer{
   text-align:center;
   font-size:12px;
+  padding:15px;
   background:#111;
 }
 </style>
@@ -41,16 +88,20 @@ input { flex:1; padding:12px; border-radius:20px; border:none; }
 <body>
 
 <div class="topbar">
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
 <button onclick="sendText()">Text</button>
 <button onclick="generateImage()">Image</button>
 <button onclick="generateVideo()">🎥 Video</button>
 <button onclick="generateReel()">Reel</button>
 <button onclick="dashboard()">Dashboard</button>
+<button onclick="downloadLast()">⬇ Download</button>
 <button onclick="subscribe()">💰 Upgrade</button>
 <button onclick="openPage('about')">About</button>
 <button onclick="openPage('privacy')">Privacy</button>
+<button onclick="openPage('terms')">Terms</button>
 <button onclick="openPage('contact')">Contact</button>
-<button onclick="openPage('blog')">Blog</button>
+<input type="file" onchange="uploadFile(event)">
 </div>
 
 <div id="chat"></div>
@@ -64,106 +115,227 @@ data-ad-format="auto"></ins>
 <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
 <div id="inputArea">
-<input id="prompt" placeholder="Create viral content..." />
+<input id="prompt" placeholder="Ask anything..." />
 <button onclick="sendText()">Send</button>
 </div>
 
 <div class="footer">
-© ReelMind AI | Privacy | Contact
+Powered by Artical Neavy © 2026
 </div>
 
 <script>
 const API="https://reelmindbackend-1.onrender.com";
 const chat=document.getElementById("chat");
+let lastOutput="";
 
-// TOKEN
-async function getToken(){
-let t=localStorage.getItem("token");
-if(!t){
-let r=await fetch(API+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:"guest@user.com"})});
+// ===== TOKEN =====
+function setToken(t){localStorage.setItem("token",t);}
+function getToken(){return localStorage.getItem("token");}
+
+// ===== AUTO LOGIN (GUEST) =====
+async function ensureLogin(){
+  if(!getToken()){
+    let r=await fetch(API+"/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email:"guest@user.com"})
+    });
+    let d=await r.json();
+    setToken(d.token);
+  }
+}
+
+// ===== REGISTER =====
+async function register(){
+let email=prompt("Email");
+let password=prompt("Password");
+
+let r=await fetch(API+"/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({email,password})
+});
 let d=await r.json();
-localStorage.setItem("token",d.token);
-t=d.token;
-}
-return t;
+
+setToken(d.token);
+alert("Registered");
 }
 
-// TEXT
+// ===== LOGIN =====
+async function login(){
+let email=prompt("Email");
+let password=prompt("Password");
+
+let r=await fetch(API+"/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({email,password})
+});
+let d=await r.json();
+
+setToken(d.token);
+alert("Logged in");
+}
+
+// ===== CHAT TEXT =====
 async function sendText(){
-const p=prompt.value;
-chat.innerHTML+=msg(p,"user");
-let box=msg("Thinking...","ai");
+await ensureLogin();
 
-const token=await getToken();
-const res=await fetch(API+"/generate-text",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({prompt:p})});
-const d=await res.json();
+let p=prompt.value;
+if(!p) return;
 
-box.innerText=d.result||d.error;
+addMsg(p,"user");
+
+let box=addMsg("Thinking...","ai");
+
+let r=await fetch(API+"/generate-text",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":"Bearer "+getToken()
+},
+body:JSON.stringify({prompt:p})
+});
+
+let d=await r.json();
+
+lastOutput=d.result;
+typeEffect(box,d.result);
 }
 
-// IMAGE
+// ===== IMAGE =====
 async function generateImage(){
-let box=msg("Generating image...","ai");
+await ensureLogin();
 
-const token=await getToken();
-const res=await fetch(API+"/generate-image",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({prompt:prompt.value})});
-const d=await res.json();
+let box=addMsg("Generating image...","ai");
+
+let r=await fetch(API+"/generate-image",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":"Bearer "+getToken()
+},
+body:JSON.stringify({prompt:prompt.value})
+});
+
+let d=await r.json();
+
+lastOutput=d.image;
 
 box.innerHTML=`<img src="${d.image}" onerror="this.src='${d.fallback}'">`;
 }
 
-// VIDEO
+// ===== VIDEO =====
 async function generateVideo(){
-let box=msg("Rendering video...","ai");
+await ensureLogin();
 
-const token=await getToken();
-const res=await fetch(API+"/generate-video",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({prompt:prompt.value})});
-const d=await res.json();
+let box=addMsg("Generating video...","ai");
+
+let r=await fetch(API+"/generate-video",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":"Bearer "+getToken()
+},
+body:JSON.stringify({prompt:prompt.value})
+});
+
+let d=await r.json();
+
+lastOutput=d.video;
 
 box.innerHTML=`<video controls src="${d.video}"></video>`;
 }
 
-// REEL
+// ===== REEL =====
 async function generateReel(){
-let box=msg("Creating reel...","ai");
+await ensureLogin();
 
-const token=await getToken();
-const res=await fetch(API+"/generate-reel",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({prompt:prompt.value})});
-const d=await res.json();
+let box=addMsg("Creating reel...","ai");
 
-box.innerText=d.result||d.error;
+let r=await fetch(API+"/generate-reel",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":"Bearer "+getToken()
+},
+body:JSON.stringify({prompt:prompt.value})
+});
+
+let d=await r.json();
+
+lastOutput=d.result;
+
+typeEffect(box,d.result);
 }
 
-// DASHBOARD
+// ===== DASHBOARD =====
 async function dashboard(){
-const token=await getToken();
-const res=await fetch(API+"/dashboard",{headers:{"Authorization":"Bearer "+token}});
-const d=await res.json();
+await ensureLogin();
 
-chat.innerHTML=`<div class="msg ai">Credits: ${d.credits}<br>Premium: ${d.premium}<br>Earnings: $${d.earnings}</div>`;
+let r=await fetch(API+"/dashboard",{
+headers:{"Authorization":"Bearer "+getToken()}
+});
+let d=await r.json();
+
+chat.innerHTML=`<div class="msg ai">
+Credits: ${d.credits}<br>
+Premium: ${d.premium}<br>
+Earnings: $${d.earnings}
+</div>`;
 }
 
-// HELPERS
-function msg(t,type){
+// ===== DOWNLOAD =====
+function downloadLast(){
+if(!lastOutput) return alert("Nothing to download");
+
+let a=document.createElement("a");
+a.href=lastOutput;
+a.download="reelmind_output";
+a.click();
+}
+
+// ===== FILE UPLOAD =====
+function uploadFile(e){
+let file=e.target.files[0];
+addMsg("Uploaded: "+file.name,"user");
+}
+
+// ===== HELPERS =====
+function addMsg(text,type){
 let d=document.createElement("div");
 d.className="msg "+type;
-d.innerText=t;
+d.innerText=text;
 chat.appendChild(d);
 return d;
 }
 
-// PAGES
+// ===== TYPE EFFECT =====
+function typeEffect(el,text){
+let i=0;
+el.innerHTML="";
+function t(){
+if(i<text.length){
+el.innerHTML+=text.charAt(i);
+i++;
+setTimeout(t,5);
+}
+}
+t();
+}
+
+// ===== PAGES =====
 function openPage(p){
 const pages={
-about:"ReelMind AI creates viral AI content.",
-privacy:"Your privacy is protected.",
-contact:"Email: neavyartical@gmail.com",
-blog:"Coming soon..."
+about:"ReelMind AI combines ChatGPT, Google & AI tools.",
+privacy:"We respect your privacy.",
+terms:"Use responsibly.",
+contact:"Email: neavyartical@gmail.com"
 };
 chat.innerHTML=`<div class="msg ai">${pages[p]}</div>`;
 }
 
-// PAYMENT
+// ===== PAYMENT =====
 function subscribe(){
 window.open("https://ko-fi.com/articalneavy");
 }
