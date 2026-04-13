@@ -13,28 +13,17 @@
       padding: 20px;
     }
 
-    h2 {
-      color: #00ff88;
-    }
-
     input, button {
       width: 90%;
       padding: 12px;
       margin: 8px;
       border-radius: 8px;
       border: none;
-      font-size: 16px;
     }
 
     button {
       background: #00ff88;
-      color: black;
       font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #00cc6a;
     }
 
     #output {
@@ -44,201 +33,103 @@
 
     img {
       max-width: 100%;
-      margin-top: 10px;
       border-radius: 10px;
-    }
-
-    #history {
-      margin-top: 30px;
-      text-align: left;
-      max-height: 300px;
-      overflow-y: auto;
-      border-top: 1px solid #333;
-      padding-top: 10px;
-    }
-
-    .history-item {
-      margin-bottom: 10px;
-      padding: 10px;
-      background: #1a1a1a;
-      border-radius: 8px;
     }
   </style>
 </head>
 
 <body>
 
-<h2>🚀 ReelMind AI</h2>
+<h2>🚀 ReelMind AI (FAST)</h2>
 
-<!-- LOGIN -->
-<input id="email" placeholder="Enter your email" />
+<input id="email" placeholder="Enter email" />
 <button onclick="login()">Login</button>
 
-<!-- PROMPT -->
-<input id="prompt" placeholder="Type your prompt..." />
+<input id="prompt" placeholder="Type prompt..." />
 
-<button onclick="generateText()">Generate Text</button>
-<button onclick="generateImage()">Generate Image</button>
-<button onclick="loadHistory()">📜 View History</button>
+<button onclick="generateText()">⚡ Text</button>
+<button onclick="generateImage()">🖼 Image</button>
+<button onclick="loadHistory()">📜 History</button>
 
-<!-- OUTPUT -->
 <div id="output"></div>
-
-<!-- HISTORY -->
 <div id="history"></div>
 
 <script>
 const API = "https://reelmindbackend-1.onrender.com";
 
-// ===== LOGIN =====
 async function login() {
   const email = document.getElementById("email").value;
-  const output = document.getElementById("output");
 
-  if (!email) {
-    output.innerText = "⚠️ Enter email";
-    return;
-  }
+  const res = await fetch(API + "/login", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ email })
+  });
 
-  output.innerText = "⏳ Logging in...";
+  const data = await res.json();
+  localStorage.setItem("token", data.token);
 
-  try {
-    const res = await fetch(API + "/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email })
-    });
-
-    const data = await res.json();
-
-    if (data.token) {
-      localStorage.setItem("token", data.token);
-      output.innerText = "✅ Logged in successfully!";
-    } else {
-      output.innerText = "❌ Login failed";
-    }
-
-  } catch (err) {
-    output.innerText = "❌ Server error";
-  }
+  output.innerText = "✅ Logged in";
 }
 
-// ===== GENERATE TEXT =====
 async function generateText() {
   const token = localStorage.getItem("token");
   const prompt = document.getElementById("prompt").value;
-  const output = document.getElementById("output");
 
-  if (!token) {
-    output.innerText = "⚠️ Please login first!";
-    return;
-  }
+  output.innerHTML = "⚡ Thinking...";
 
-  if (!prompt) {
-    output.innerText = "⚠️ Enter a prompt";
-    return;
-  }
+  const res = await fetch(API + "/generate-text", {
+    method: "POST",
+    headers: {
+      "Content-Type":"application/json",
+      "Authorization":"Bearer " + token
+    },
+    body: JSON.stringify({ prompt })
+  });
 
-  output.innerText = "⏳ Generating text...";
+  const data = await res.json();
 
-  try {
-    const res = await fetch(API + "/generate-text", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
-      },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      output.innerText = "❌ " + data.error;
-    } else {
-      output.innerText = data.result + "\n\n💎 Credits: " + data.credits;
-    }
-
-  } catch (err) {
-    output.innerText = "❌ Error generating text";
+  if(data.error){
+    output.innerText = data.error;
+  } else {
+    output.innerText = data.result + "\n\n💎 " + data.credits;
   }
 }
 
-// ===== GENERATE IMAGE =====
 async function generateImage() {
   const token = localStorage.getItem("token");
   const prompt = document.getElementById("prompt").value;
-  const output = document.getElementById("output");
 
-  if (!token) {
-    output.innerText = "⚠️ Please login first!";
-    return;
-  }
+  output.innerHTML = "⚡ Creating image...";
 
-  if (!prompt) {
-    output.innerText = "⚠️ Enter a prompt";
-    return;
-  }
+  const res = await fetch(API + "/generate-image", {
+    method: "POST",
+    headers: {
+      "Content-Type":"application/json",
+      "Authorization":"Bearer " + token
+    },
+    body: JSON.stringify({ prompt })
+  });
 
-  output.innerText = "⏳ Generating image...";
+  const data = await res.json();
 
-  try {
-    const res = await fetch(API + "/generate-image", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
-      },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      output.innerText = "❌ " + data.error;
-    } else {
-      output.innerHTML =
-        `<p>💎 Credits: ${data.credits}</p><img src="${data.image}" />`;
-    }
-
-  } catch (err) {
-    output.innerText = "❌ Error generating image";
-  }
+  output.innerHTML = `<img src="${data.image}"><br>💎 ${data.credits}`;
 }
 
-// ===== LOAD HISTORY =====
 async function loadHistory() {
   const token = localStorage.getItem("token");
-  const historyDiv = document.getElementById("history");
 
-  if (!token) {
-    historyDiv.innerHTML = "⚠️ Login first";
-    return;
-  }
+  const res = await fetch(API + "/history", {
+    headers: {
+      "Authorization":"Bearer " + token
+    }
+  });
 
-  historyDiv.innerHTML = "⏳ Loading history...";
+  const data = await res.json();
 
-  try {
-    const res = await fetch(API + "/history", {
-      headers: {
-        "Authorization": "Bearer " + token
-      }
-    });
-
-    const data = await res.json();
-
-    historyDiv.innerHTML = data.map(p => `
-      <div class="history-item">
-        <b>${p.prompt}</b><br/>
-        ${p.result}
-      </div>
-    `).join("");
-
-  } catch {
-    historyDiv.innerHTML = "❌ Failed to load history";
-  }
+  history.innerHTML = data.map(p => `
+    <p><b>${p.prompt}</b><br>${p.result}</p>
+  `).join("");
 }
 </script>
 
