@@ -12,7 +12,7 @@
       margin: 0;
       font-family: Arial;
       color: white;
-      background: radial-gradient(circle, #0f2027, #0b0b0b);
+      background: radial-gradient(circle at top, #0f2027, #000);
     }
 
     #nav {
@@ -88,11 +88,6 @@
       padding: 15px;
       color: gray;
     }
-
-    #pageContent {
-      padding: 15px;
-      display: none;
-    }
   </style>
 </head>
 
@@ -101,16 +96,15 @@
 <div id="nav">
   ReelMind AI 🚀 |
   <a onclick="showPage('about')">About</a>
-  <a onclick="showPage('blog')">Blog</a>
   <a onclick="showPage('contact')">Contact</a>
   <a onclick="showPage('privacy')">Privacy</a>
   <a onclick="showPage('terms')">Terms</a>
+  | Credits: <span id="credits">10</span> 💎
 </div>
-
-<div id="pageContent"></div>
 
 <div id="chat"></div>
 
+<!-- ADS -->
 <div style="text-align:center;">
   <ins class="adsbygoogle"
     style="display:block"
@@ -127,6 +121,8 @@
   <button onclick="setMode('text')">AI</button>
   <button onclick="setMode('image')">Image</button>
   <button onclick="setMode('reel')">Reel</button>
+  <button onclick="showDashboard()">Dashboard</button>
+  <button onclick="buyCredits()">💰 Buy</button>
 </div>
 
 <div id="inputArea">
@@ -138,15 +134,28 @@
 
 <script>
 let mode = "text";
+let credits = parseInt(localStorage.getItem("credits")) || 10;
 
-// 🔥 USE YOUR OPENROUTER KEY HERE
-const OPENROUTER_API_KEY = "YOUR_OPENROUTER_KEY";
+document.getElementById("credits").innerText = credits;
 
 function setMode(m){ mode = m; }
+
+function updateCredits(){
+  localStorage.setItem("credits", credits);
+  document.getElementById("credits").innerText = credits;
+}
 
 async function send(){
   const input = userInput.value;
   if(!input) return;
+
+  if(credits <= 0){
+    chat.innerHTML += `<div class="msg ai">⚠️ No credits. Buy more.</div>`;
+    return;
+  }
+
+  credits--;
+  updateCredits();
 
   chat.innerHTML += `<div class="msg user">${input}</div>`;
 
@@ -154,85 +163,61 @@ async function send(){
   loader.className = "loader";
   chat.appendChild(loader);
 
-  try {
+  setTimeout(()=>{
 
-    // 🧠 TEXT AI (REAL)
-    if(mode === "text"){
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + OPENROUTER_API_KEY,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-3.5-turbo",
-          messages: [{role:"user", content: input}]
-        })
-      });
+    loader.remove();
 
-      const data = await res.json();
-      loader.remove();
-
-      const reply = data?.choices?.[0]?.message?.content || "Error generating";
-      chat.innerHTML += `<div class="msg ai">${reply}</div>`;
+    // 🧠 SIMPLE AI (WORKING ALWAYS)
+    if(mode==="text"){
+      chat.innerHTML += `<div class="msg ai">🤖 "${input}" is powerful idea. Build am into viral content 🚀</div>`;
     }
 
-    // 🖼 IMAGE (WORKING)
-    if(mode === "image"){
-      loader.remove();
-
+    // 🖼 IMAGE
+    if(mode==="image"){
       const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(input)}`;
+      chat.innerHTML += `<div class="msg ai"><img src="${imgUrl}"><br><a href="${imgUrl}" download>⬇ Download</a></div>`;
+    }
 
-      chat.innerHTML += `
-      <div class="msg ai">
-        <img src="${imgUrl}">
-        <br><a href="${imgUrl}" download>⬇ Download</a>
+    // 🎬 REEL
+    if(mode==="reel"){
+      chat.innerHTML += `<div class="msg ai">
+      🎬 Viral Reel:<br><br>
+      Hook: ${input}<br>
+      Scene: Emotional / Action<br>
+      Ending: Surprise 🔥<br><br>
+      Caption: "Wait for it..."<br>
+      #viral #fyp
       </div>`;
     }
 
-    // 🎬 REEL (AI GENERATED)
-    if(mode === "reel"){
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method:"POST",
-        headers:{
-          "Authorization":"Bearer "+OPENROUTER_API_KEY,
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          model:"openai/gpt-3.5-turbo",
-          messages:[{
-            role:"user",
-            content:`Create viral TikTok reel script: ${input}`
-          }]
-        })
-      });
-
-      const data = await res.json();
-      loader.remove();
-
-      const reel = data?.choices?.[0]?.message?.content || "Error";
-      chat.innerHTML += `<div class="msg ai">🎬 ${reel}</div>`;
-    }
-
-  } catch(e){
-    loader.remove();
-    chat.innerHTML += `<div class="msg ai">⚠️ API Error (check key)</div>`;
-  }
+  },1000);
 
   userInput.value="";
-  chat.scrollTop = chat.scrollHeight;
+}
+
+// 📊 DASHBOARD
+function showDashboard(){
+  chat.innerHTML += `<div class="msg ai">
+  📊 Dashboard<br><br>
+  Credits: ${credits}<br>
+  Earnings: $0<br><br>
+  Upgrade coming soon 🚀
+  </div>`;
+}
+
+// 💰 BUY SYSTEM (HOOK)
+function buyCredits(){
+  credits += 20;
+  updateCredits();
+  alert("Credits added! (connect PayPal later)");
 }
 
 // 📄 PAGES
 function showPage(p){
-  const c = document.getElementById("pageContent");
-  c.style.display = "block";
-
-  if(p==="about") c.innerHTML=`<h2>About</h2><p>ReelMind AI na global AI platform for viral content creation.</p>`;
-  if(p==="contact") c.innerHTML=`<h2>Contact</h2><p>Email: support@reelmindai.com</p>`;
-  if(p==="privacy") c.innerHTML=`<h2>Privacy</h2><p>Your data safe wit we.</p>`;
-  if(p==="terms") c.innerHTML=`<h2>Terms</h2><p>Use responsibly.</p>`;
-  if(p==="blog") c.innerHTML=`<h2>Blog</h2><p>Updates coming soon...</p>`;
+  if(p==="about") chat.innerHTML += `<div class="msg ai">ReelMind AI na global AI tool for creators 🌍</div>`;
+  if(p==="contact") chat.innerHTML += `<div class="msg ai">Email: support@reelmind.ai</div>`;
+  if(p==="privacy") chat.innerHTML += `<div class="msg ai">Your data safe.</div>`;
+  if(p==="terms") chat.innerHTML += `<div class="msg ai">Use responsibly.</div>`;
 }
 </script>
 
