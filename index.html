@@ -2,65 +2,28 @@
 <html>
 <head>
   <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <style>
     body {
-      margin: 0;
-      font-family: Arial;
-      background: #111;
+      background: #0f172a;
       color: white;
+      font-family: Arial;
+      padding: 20px;
     }
-
-    #chat {
-      height: 80vh;
-      overflow-y: auto;
+    input, button {
       padding: 10px;
-    }
-
-    .msg {
-      padding: 10px;
-      margin: 8px;
-      border-radius: 10px;
-      max-width: 80%;
-    }
-
-    .user {
-      background: #333;
-      margin-left: auto;
-    }
-
-    .ai {
-      background: #222;
-      margin-right: auto;
-    }
-
-    #inputArea {
-      display: flex;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #000;
-      padding: 10px;
-    }
-
-    input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 20px;
+      margin: 5px;
+      width: 90%;
+      border-radius: 8px;
       border: none;
     }
-
     button {
-      margin-left: 5px;
-      padding: 10px;
-      border-radius: 20px;
-      border: none;
-      background: #00ffc3;
+      background: #22c55e;
+      color: white;
+      font-weight: bold;
     }
-
     img {
       width: 100%;
+      margin-top: 10px;
       border-radius: 10px;
     }
   </style>
@@ -68,72 +31,104 @@
 
 <body>
 
-<div id="chat"></div>
+<h2>🚀 ReelMind AI</h2>
 
-<div id="inputArea">
-  <input id="userInput" placeholder="Ask anything..." />
-  <button onclick="sendPrompt()">Send</button>
-</div>
+<!-- LOGIN -->
+<input id="email" placeholder="Enter your email">
+<button onclick="login()">Login</button>
+
+<hr>
+
+<!-- PROMPT -->
+<input id="prompt" placeholder="Tell me a story...">
+
+<button onclick="generateText()">Generate Text</button>
+<button onclick="generateImage()">Generate Image</button>
+
+<p id="result"></p>
+<img id="image"/>
 
 <script>
-const BASE_URL = "https://reelmindbackend-1.onrender.com";
+const API = "https://reelmindbackend-1.onrender.com";
 
-let TOKEN = localStorage.getItem("token");
+// LOGIN
+async function login() {
+  const email = document.getElementById("email").value;
 
-// AUTO LOGIN
-async function autoLogin() {
-  if (TOKEN) return;
+  if (!email) {
+    alert("Enter email");
+    return;
+  }
 
-  const res = await fetch(BASE_URL + "/login", {
+  const res = await fetch(API + "/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      email: "neavyartical@gmail.com"
-    })
+    body: JSON.stringify({ email })
   });
 
   const data = await res.json();
-  TOKEN = data.token;
-  localStorage.setItem("token", TOKEN);
+
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+    alert("✅ Logged in successfully");
+  } else {
+    alert("Login failed");
+  }
 }
 
-// SEND PROMPT
-async function sendPrompt() {
-  const input = document.getElementById("userInput").value;
-  const chat = document.getElementById("chat");
+// GENERATE TEXT
+async function generateText() {
+  const prompt = document.getElementById("prompt").value;
+  const token = localStorage.getItem("token");
 
-  if (!input) return;
-
-  chat.innerHTML += `<div class="msg user">${input}</div>`;
-
-  await autoLogin();
-
-  let endpoint = "/generate-text";
-
-  if (input.toLowerCase().includes("image")) {
-    endpoint = "/generate-image";
+  if (!token) {
+    alert("⚠️ Please login first");
+    return;
   }
 
-  const res = await fetch(BASE_URL + endpoint, {
+  const res = await fetch(API + "/generate-text", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + TOKEN
+      "Authorization": "Bearer " + token
     },
-    body: JSON.stringify({ prompt: input })
+    body: JSON.stringify({ prompt })
+  });
+
+  const data = await res.json();
+
+  document.getElementById("result").innerText =
+    data.result || data.error || "Error";
+}
+
+// GENERATE IMAGE
+async function generateImage() {
+  const prompt = document.getElementById("prompt").value;
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    alert("⚠️ Please login first");
+    return;
+  }
+
+  const res = await fetch(API + "/generate-image", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ prompt })
   });
 
   const data = await res.json();
 
   if (data.image) {
-    chat.innerHTML += `<div class="msg ai"><img src="${data.image}"></div>`;
+    document.getElementById("image").src = data.image;
   } else {
-    chat.innerHTML += `<div class="msg ai">${data.result || data.error}</div>`;
+    alert(data.error || "Image failed");
   }
-
-  document.getElementById("userInput").value = "";
 }
 </script>
 
