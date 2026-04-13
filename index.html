@@ -10,24 +10,72 @@
     crossorigin="anonymous"></script>
 
   <style>
-    body { margin:0; font-family:Arial; background:#0b0f14; color:white; }
-    #chat { height:75vh; overflow-y:auto; padding:10px; }
+    body {
+      margin:0;
+      font-family:Arial;
+      background:#0b0f14;
+      color:white;
+    }
 
-    .msg { padding:12px; margin:10px; border-radius:12px; max-width:80%; }
+    #chat {
+      height:75vh;
+      overflow-y:auto;
+      padding:10px;
+    }
+
+    .msg {
+      padding:12px;
+      margin:10px;
+      border-radius:12px;
+      max-width:80%;
+      line-height:1.4;
+    }
+
     .user { background:#1f1f1f; margin-left:auto; }
     .ai { background:#16212b; }
 
     #inputArea {
-      position:fixed; bottom:0; width:100%;
-      display:flex; padding:10px; background:#111;
+      position:fixed;
+      bottom:0;
+      width:100%;
+      display:flex;
+      padding:10px;
+      background:#111;
     }
 
-    input { flex:1; padding:12px; border-radius:20px; border:none; }
-    button { margin-left:5px; padding:10px; border-radius:20px; border:none; background:#00ff88; }
+    input {
+      flex:1;
+      padding:12px;
+      border-radius:20px;
+      border:none;
+      outline:none;
+    }
+
+    button {
+      margin-left:5px;
+      padding:10px 15px;
+      border-radius:20px;
+      border:none;
+      background:#00ff88;
+      cursor:pointer;
+    }
 
     img { width:100%; border-radius:10px; }
 
-    .topbar { display:flex; justify-content:space-around; background:#111; padding:10px; }
+    .topbar {
+      display:flex;
+      justify-content:space-around;
+      background:#111;
+      padding:10px;
+      font-size:12px;
+    }
+
+    .status {
+      text-align:center;
+      font-size:12px;
+      padding:5px;
+      color:#00ff88;
+    }
   </style>
 </head>
 
@@ -38,7 +86,10 @@
   <button onclick="generateImage()">Image</button>
   <button onclick="loadHistory()">History</button>
   <button onclick="upgrade()">💰 Upgrade</button>
+  <button onclick="confirmPayment()">✅ Paid</button>
 </div>
+
+<div id="status" class="status">🔴 Not logged in</div>
 
 <div id="chat"></div>
 
@@ -76,19 +127,32 @@ async function login(){
 
   if(data.token){
     localStorage.setItem("token", data.token);
-    alert("✅ Logged in");
+
+    if(email === "neavyartical@gmail.com"){
+      document.getElementById("status").innerText = "👑 Admin Mode (Unlimited)";
+    } else {
+      document.getElementById("status").innerText = "🟢 Logged in: " + email;
+    }
+
   } else {
     alert("Login failed");
   }
 }
 
-// ===== TEXT =====
+// ===== SEND TEXT =====
 async function send(){
-  const input = document.getElementById("prompt").value;
+  const input = document.getElementById("prompt").value.trim();
   const token = localStorage.getItem("token");
 
-  if(!token) return alert("Login first");
-  if(!input) return alert("Type something");
+  if(!token){
+    alert("Login first!");
+    return;
+  }
+
+  if(!input){
+    alert("Type something!");
+    return;
+  }
 
   chat.innerHTML += `<div class="msg user">${input}</div>`;
 
@@ -97,73 +161,106 @@ async function send(){
   ai.innerHTML="⚡ Thinking...";
   chat.appendChild(ai);
 
-  document.getElementById("prompt").value="";
+  document.getElementById("prompt").value = "";
+  chat.scrollTop = chat.scrollHeight;
 
-  const res = await fetch(API+"/generate-text",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer "+token
-    },
-    body: JSON.stringify({prompt:input})
-  });
+  try{
+    const res = await fetch(API+"/generate-text",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+token
+      },
+      body: JSON.stringify({prompt:input})
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if(data.error){
-    ai.innerHTML = "❌ " + data.error;
+    if(data.error){
+      ai.innerHTML = "❌ " + data.error;
+      return;
+    }
+
+    let i = 0;
+    ai.innerHTML = "";
+
+    function type(){
+      if(i < data.result.length){
+        ai.innerHTML += data.result.charAt(i);
+        i++;
+        setTimeout(type, 5);
+      }
+    }
+
+    type();
+
+  } catch(err){
+    ai.innerHTML = "❌ Network error";
+  }
+}
+
+// ===== IMAGE (FIXED) =====
+async function generateImage(){
+  const token = localStorage.getItem("token");
+  const input = document.getElementById("prompt").value.trim();
+
+  if(!token){
+    alert("Login first!");
     return;
   }
 
-  // typing effect
-  let i=0;
-  ai.innerHTML="";
-  function type(){
-    if(i < data.result.length){
-      ai.innerHTML += data.result.charAt(i);
-      i++;
-      setTimeout(type,5);
-    }
+  if(!input){
+    alert("Enter a prompt for image!");
+    return;
   }
-  type();
-}
-
-// ===== IMAGE =====
-async function generateImage(){
-  const token = localStorage.getItem("token");
-  const input = document.getElementById("prompt").value;
-
-  if(!token) return alert("Login first");
 
   let ai = document.createElement("div");
   ai.className="msg ai";
-  ai.innerHTML="🖼️ Generating...";
+  ai.innerHTML="🖼️ Generating image...";
   chat.appendChild(ai);
 
-  const res = await fetch(API+"/generate-image",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer "+token
-    },
-    body: JSON.stringify({prompt:input})
-  });
+  chat.scrollTop = chat.scrollHeight;
 
-  const data = await res.json();
+  try {
+    const res = await fetch(API+"/generate-image",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+token
+      },
+      body: JSON.stringify({prompt:input})
+    });
 
-  if(data.error){
-    ai.innerHTML = "❌ " + data.error;
-    return;
+    const data = await res.json();
+    console.log("IMAGE:", data);
+
+    if(!res.ok || data.error){
+      ai.innerHTML = "❌ " + (data.error || "Image failed");
+      return;
+    }
+
+    if(!data.image){
+      ai.innerHTML = "❌ No image returned";
+      return;
+    }
+
+    ai.innerHTML = `
+      <img src="${data.image}" />
+      <p style="font-size:12px;color:gray;">
+        Credits: ${data.credits ?? "∞"}
+      </p>
+    `;
+
+  } catch(err){
+    ai.innerHTML = "❌ Network error";
   }
-
-  ai.innerHTML = `<img src="${data.image}">`;
 }
 
 // ===== HISTORY =====
 async function loadHistory(){
   const token = localStorage.getItem("token");
 
-  chat.innerHTML = "Loading...";
+  chat.innerHTML = "<div class='msg ai'>📜 Loading...</div>";
 
   const res = await fetch(API+"/history",{
     headers:{ "Authorization":"Bearer "+token }
@@ -184,6 +281,18 @@ async function loadHistory(){
 // ===== PAYMENT =====
 function upgrade(){
   window.open("https://ko-fi.com/articalneavy","_blank");
+}
+
+async function confirmPayment(){
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(API+"/verify-payment",{
+    method:"POST",
+    headers:{ "Authorization":"Bearer "+token }
+  });
+
+  const data = await res.json();
+  alert(data.message);
 }
 </script>
 
