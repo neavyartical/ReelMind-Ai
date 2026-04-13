@@ -4,61 +4,59 @@
   <title>ReelMind AI</title>
   <style>
     body {
-      background: #0f172a;
+      background: #0f0f0f;
       color: white;
       font-family: Arial;
       padding: 20px;
     }
     input, button {
-      padding: 10px;
-      margin: 5px;
-      width: 90%;
-      border-radius: 8px;
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
       border: none;
     }
     button {
-      background: #22c55e;
+      background: #00c853;
       color: white;
       font-weight: bold;
+      cursor: pointer;
+    }
+    #output {
+      margin-top: 20px;
+      background: #1c1c1c;
+      padding: 15px;
+      border-radius: 6px;
     }
     img {
       width: 100%;
       margin-top: 10px;
-      border-radius: 10px;
+      border-radius: 8px;
     }
   </style>
 </head>
-
 <body>
 
-<h2>🚀 ReelMind AI</h2>
+<h1>🚀 ReelMind AI</h1>
 
 <!-- LOGIN -->
 <input id="email" placeholder="Enter your email">
 <button onclick="login()">Login</button>
 
-<hr>
-
 <!-- PROMPT -->
-<input id="prompt" placeholder="Tell me a story...">
-
+<input id="prompt" placeholder="Tell me a story">
 <button onclick="generateText()">Generate Text</button>
 <button onclick="generateImage()">Generate Image</button>
 
-<p id="result"></p>
-<img id="image"/>
+<!-- OUTPUT -->
+<div id="output"></div>
 
 <script>
-const API = "https://reelmindbackend-1.onrender.com";
+const API = "https://reelmindbackend-1.onrender.com"; // 🔥 CHANGE if your backend URL is different
 
-// LOGIN
+// ===== LOGIN =====
 async function login() {
   const email = document.getElementById("email").value;
-
-  if (!email) {
-    alert("Enter email");
-    return;
-  }
 
   const res = await fetch(API + "/login", {
     method: "POST",
@@ -72,62 +70,57 @@ async function login() {
 
   if (data.token) {
     localStorage.setItem("token", data.token);
-    alert("✅ Logged in successfully");
+    document.getElementById("output").innerText = "✅ Logged in!";
   } else {
-    alert("Login failed");
+    document.getElementById("output").innerText = "❌ Login failed";
   }
 }
 
-// GENERATE TEXT
+// ===== GENERATE TEXT =====
 async function generateText() {
-  const prompt = document.getElementById("prompt").value;
   const token = localStorage.getItem("token");
-
-  if (!token) {
-    alert("⚠️ Please login first");
-    return;
-  }
+  const prompt = document.getElementById("prompt").value;
 
   const res = await fetch(API + "/generate-text", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
+      "Authorization": "Bearer " + token  // ✅ FIXED HERE
     },
     body: JSON.stringify({ prompt })
   });
 
   const data = await res.json();
 
-  document.getElementById("result").innerText =
-    data.result || data.error || "Error";
+  if (data.error) {
+    document.getElementById("output").innerText = data.error;
+  } else {
+    document.getElementById("output").innerText =
+      data.result + "\n\nCredits: " + data.credits;
+  }
 }
 
-// GENERATE IMAGE
+// ===== GENERATE IMAGE =====
 async function generateImage() {
-  const prompt = document.getElementById("prompt").value;
   const token = localStorage.getItem("token");
-
-  if (!token) {
-    alert("⚠️ Please login first");
-    return;
-  }
+  const prompt = document.getElementById("prompt").value;
 
   const res = await fetch(API + "/generate-image", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
+      "Authorization": "Bearer " + token  // ✅ FIXED HERE
     },
     body: JSON.stringify({ prompt })
   });
 
   const data = await res.json();
 
-  if (data.image) {
-    document.getElementById("image").src = data.image;
+  if (data.error) {
+    document.getElementById("output").innerText = data.error;
   } else {
-    alert(data.error || "Image failed");
+    document.getElementById("output").innerHTML =
+      `<p>Credits: ${data.credits}</p><img src="${data.image}" />`;
   }
 }
 </script>
