@@ -4,90 +4,66 @@
   <title>ReelMind AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ADSENSE -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429" crossorigin="anonymous"></script>
-
   <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      color: white;
-      background: radial-gradient(circle at top, #0f2027, #000);
+    body{
+      margin:0;
+      font-family:Arial;
+      color:white;
+      background: radial-gradient(circle at top,#0f2027,#000);
     }
 
-    #nav {
-      background: rgba(0,0,0,0.9);
-      padding: 12px;
-      text-align: center;
-      font-weight: bold;
+    #nav{
+      background:#111;
+      padding:10px;
+      text-align:center;
     }
 
-    #nav a {
-      color: #00ffc3;
-      margin: 0 6px;
-      cursor: pointer;
+    #chat{
+      height:60vh;
+      overflow:auto;
+      padding:10px;
     }
 
-    #chat {
-      height: 55vh;
-      overflow-y: auto;
-      padding: 15px;
+    .msg{
+      margin:10px;
+      padding:10px;
+      border-radius:10px;
     }
 
-    .msg {
-      padding: 12px;
-      margin: 10px;
-      border-radius: 12px;
-      max-width: 80%;
+    .user{background:#1f1f1f;text-align:right;}
+    .ai{background:#2b2b2b;}
+
+    input{
+      width:70%;
+      padding:10px;
+      border-radius:20px;
+      border:none;
     }
 
-    .user { background: #1f1f1f; margin-left: auto; }
-    .ai { background: #2b2b2b; }
-
-    img { width: 100%; border-radius: 10px; }
-
-    #inputArea {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      display: flex;
-      padding: 10px;
-      background: #111;
+    button{
+      padding:10px;
+      border:none;
+      border-radius:20px;
+      background:#00ffc3;
+      margin:3px;
     }
 
-    input {
-      flex: 1;
-      padding: 12px;
-      border-radius: 20px;
-      border: none;
+    img{
+      width:100%;
+      border-radius:10px;
     }
 
-    button {
-      margin-left: 5px;
-      border-radius: 20px;
-      padding: 10px;
-      border: none;
-      background: #00ffc3;
-      font-weight: bold;
+    .loader{
+      border:4px solid #333;
+      border-top:4px solid #00ffc3;
+      border-radius:50%;
+      width:20px;
+      height:20px;
+      animation:spin 1s linear infinite;
+      margin:10px auto;
     }
 
-    .loader {
-      border: 4px solid #333;
-      border-top: 4px solid #00ffc3;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      margin: 10px;
-    }
-
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-
-    footer {
-      text-align: center;
-      padding: 15px;
-      color: gray;
-    }
+    @keyframes spin{100%{transform:rotate(360deg);}}
   </style>
 </head>
 
@@ -95,67 +71,78 @@
 
 <div id="nav">
   ReelMind AI 🚀 |
-  <a onclick="showPage('about')">About</a>
-  <a onclick="showPage('contact')">Contact</a>
-  <a onclick="showPage('privacy')">Privacy</a>
-  <a onclick="showPage('terms')">Terms</a>
-  | Credits: <span id="credits">10</span> 💎
+  Credits: <span id="credits">0</span>
+</div>
+
+<div style="text-align:center">
+  <input id="email" placeholder="Enter Email">
+  <button onclick="login()">Login</button>
 </div>
 
 <div id="chat"></div>
 
-<!-- ADS -->
-<div style="text-align:center;">
-  <ins class="adsbygoogle"
-    style="display:block"
-    data-ad-client="ca-pub-1714638410489429"
-    data-ad-slot="1234567890"
-    data-ad-format="auto"></ins>
-</div>
-
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-
-<div style="text-align:center; margin:10px;">
+<div style="text-align:center">
   <button onclick="setMode('text')">AI</button>
   <button onclick="setMode('image')">Image</button>
   <button onclick="setMode('reel')">Reel</button>
-  <button onclick="showDashboard()">Dashboard</button>
-  <button onclick="buyCredits()">💰 Buy</button>
+  <button onclick="loadDashboard()">Dashboard</button>
 </div>
 
-<div id="inputArea">
-  <input id="userInput" placeholder="Ask anything..." />
+<div style="text-align:center;margin-top:10px;">
+  <input id="input" placeholder="Ask anything...">
   <button onclick="send()">Send</button>
 </div>
 
-<footer>Powered by Artical Neavy ⚡</footer>
-
 <script>
+const API = "https://reelmindbackend-1.onrender.com";
+
+let token = localStorage.getItem("token");
 let mode = "text";
-let credits = parseInt(localStorage.getItem("credits")) || 10;
 
-document.getElementById("credits").innerText = credits;
+// LOGIN
+async function login(){
+  const email = document.getElementById("email").value;
 
-function setMode(m){ mode = m; }
+  const res = await fetch(API + "/login", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ email })
+  });
 
-function updateCredits(){
-  localStorage.setItem("credits", credits);
-  document.getElementById("credits").innerText = credits;
+  const data = await res.json();
+
+  token = data.token;
+  localStorage.setItem("token", token);
+
+  alert("✅ Logged in");
+
+  loadDashboard();
 }
 
+// DASHBOARD (REAL)
+async function loadDashboard(){
+  const res = await fetch(API + "/dashboard", {
+    headers:{
+      "Authorization":"Bearer " + token
+    }
+  });
+
+  const data = await res.json();
+
+  document.getElementById("credits").innerText = data.credits;
+}
+
+// MODE
+function setMode(m){
+  mode = m;
+}
+
+// SEND (REAL)
 async function send(){
-  const input = userInput.value;
+  const input = document.getElementById("input").value;
   if(!input) return;
 
-  if(credits <= 0){
-    chat.innerHTML += `<div class="msg ai">⚠️ No credits. Buy more.</div>`;
-    return;
-  }
-
-  credits--;
-  updateCredits();
+  const chat = document.getElementById("chat");
 
   chat.innerHTML += `<div class="msg user">${input}</div>`;
 
@@ -163,61 +150,61 @@ async function send(){
   loader.className = "loader";
   chat.appendChild(loader);
 
-  setTimeout(()=>{
+  let endpoint = "/generate-text";
 
+  if(mode==="image") endpoint="/generate-image";
+  if(mode==="reel") endpoint="/viral-reel";
+
+  try{
+
+    const res = await fetch(API + endpoint,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + token
+      },
+      body:JSON.stringify({ prompt: input })
+    });
+
+    const data = await res.json();
     loader.remove();
 
-    // 🧠 SIMPLE AI (WORKING ALWAYS)
+    // ❌ ERROR HANDLING
+    if(data.error){
+      chat.innerHTML += `<div class="msg ai">⚠️ ${data.error}</div>`;
+      return;
+    }
+
+    // 🧠 TEXT
     if(mode==="text"){
-      chat.innerHTML += `<div class="msg ai">🤖 "${input}" is powerful idea. Build am into viral content 🚀</div>`;
+      const reply = data?.choices?.[0]?.message?.content || "No response";
+      chat.innerHTML += `<div class="msg ai">${reply}</div>`;
     }
 
     // 🖼 IMAGE
     if(mode==="image"){
-      const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(input)}`;
-      chat.innerHTML += `<div class="msg ai"><img src="${imgUrl}"><br><a href="${imgUrl}" download>⬇ Download</a></div>`;
+      chat.innerHTML += `
+      <div class="msg ai">
+        <img src="${data.image}">
+        <br><a href="${data.image}" download>⬇ Download</a>
+      </div>`;
     }
 
     // 🎬 REEL
     if(mode==="reel"){
-      chat.innerHTML += `<div class="msg ai">
-      🎬 Viral Reel:<br><br>
-      Hook: ${input}<br>
-      Scene: Emotional / Action<br>
-      Ending: Surprise 🔥<br><br>
-      Caption: "Wait for it..."<br>
-      #viral #fyp
-      </div>`;
+      const reel = data?.choices?.[0]?.message?.content || "No reel generated";
+      chat.innerHTML += `<div class="msg ai">🎬 ${reel}</div>`;
     }
 
-  },1000);
+    loadDashboard();
 
-  userInput.value="";
-}
+  }catch(e){
+    loader.remove();
+    chat.innerHTML += `<div class="msg ai">⚠️ Server error</div>`;
+  }
 
-// 📊 DASHBOARD
-function showDashboard(){
-  chat.innerHTML += `<div class="msg ai">
-  📊 Dashboard<br><br>
-  Credits: ${credits}<br>
-  Earnings: $0<br><br>
-  Upgrade coming soon 🚀
-  </div>`;
-}
-
-// 💰 BUY SYSTEM (HOOK)
-function buyCredits(){
-  credits += 20;
-  updateCredits();
-  alert("Credits added! (connect PayPal later)");
-}
-
-// 📄 PAGES
-function showPage(p){
-  if(p==="about") chat.innerHTML += `<div class="msg ai">ReelMind AI na global AI tool for creators 🌍</div>`;
-  if(p==="contact") chat.innerHTML += `<div class="msg ai">Email: support@reelmind.ai</div>`;
-  if(p==="privacy") chat.innerHTML += `<div class="msg ai">Your data safe.</div>`;
-  if(p==="terms") chat.innerHTML += `<div class="msg ai">Use responsibly.</div>`;
+  document.getElementById("input").value="";
+  chat.scrollTop = chat.scrollHeight;
 }
 </script>
 
