@@ -29,7 +29,7 @@ text-align:center;font-size:11px;
 
 /* CHAT */
 #chat{
-position:absolute;top:70px;bottom:120px;
+position:absolute;top:70px;bottom:140px;
 width:100%;overflow:auto;padding:10px;
 }
 
@@ -56,6 +56,21 @@ justify-content:center;
 box-shadow:0 0 50px cyan;
 cursor:pointer;
 }
+
+/* FLOAT BUTTONS */
+#uploadBtn,#micBtn{
+position:fixed;
+bottom:140px;
+width:55px;height:55px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+z-index:999;
+}
+#uploadBtn{left:15px;background:#00ff88}
+#micBtn{right:15px;background:#00ccff}
 
 /* INPUT */
 #inputArea{
@@ -90,6 +105,11 @@ input{flex:1;padding:12px;border-radius:25px;border:none}
 <!-- CENTER BUTTON -->
 <div id="generateBtn" onclick="generate()">GENERATE</div>
 
+<!-- FLOAT BUTTONS -->
+<div id="uploadBtn" onclick="fileInput.click()">+</div>
+<input type="file" id="fileInput" hidden onchange="uploadFile(event)">
+<div id="micBtn" onclick="startVoice()">🎤</div>
+
 <!-- ADS -->
 <div style="position:fixed;bottom:90px;width:100%;text-align:center;">
 <ins class="adsbygoogle"
@@ -110,9 +130,10 @@ const API="https://reelmindbackend-1.onrender.com";
 const chat=document.getElementById("chat");
 let lastOutput="";
 
-// ===== LOGIN FIX =====
+// ===== LOGIN FIX (ALL FORMATS) =====
 async function ensureLogin(){
 if(!localStorage.token){
+try{
 let r=await fetch(API+"/login",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
@@ -120,12 +141,18 @@ body:JSON.stringify({email:"guest@user.com"})
 });
 let d=await r.json();
 
-// 🔥 FIX FOR BOTH FORMATS
-let token = d.token || d.data?.token;
+// 🔥 HANDLE ALL TOKEN TYPES
+let token = d.token || d.data?.token || d.access_token;
 
 if(token){
 localStorage.token=token;
 document.getElementById("status").innerText="🟢 Online";
+}else{
+document.getElementById("status").innerText="🔴 Login failed";
+}
+
+}catch{
+document.getElementById("status").innerText="❌ Offline";
 }
 }
 }
@@ -139,7 +166,7 @@ chat.appendChild(d);
 return d;
 }
 
-// ===== SMART GENERATE =====
+// ===== SMART GENERATE (UPGRADED) =====
 async function generate(){
 await ensureLogin();
 
@@ -149,11 +176,24 @@ if(!p) return;
 addMsg(p,"user");
 let box=addMsg("⚡ Generating...","ai");
 
-// ROUTING
+// ===== BETTER ROUTING =====
 let route="/generate-text";
-if(/image|picture/i.test(p)) route="/generate-image";
-if(/video/i.test(p)) route="/generate-video";
-if(/reel/i.test(p)) route="/generate-reel";
+
+if(/image|picture|photo|art/i.test(p)) route="/generate-image";
+else if(/video|movie|clip/i.test(p)) route="/generate-video";
+else if(/reel|tiktok|short/i.test(p)) route="/generate-reel";
+
+// ===== BOOST STORY QUALITY =====
+let finalPrompt = p;
+if(route==="/generate-text"){
+finalPrompt = `
+Write a detailed, long, high-quality response (minimum 200 words).
+Make it engaging, informative, and complete.
+
+User request:
+${p}
+`;
+}
 
 try{
 let r=await fetch(API+route,{
@@ -162,22 +202,22 @@ headers:{
 "Content-Type":"application/json",
 "Authorization":"Bearer "+localStorage.token
 },
-body:JSON.stringify({prompt:p})
+body:JSON.stringify({prompt:finalPrompt})
 });
 
 let d=await r.json();
 
-// FIX TOKEN LOOP
+// 🔥 TOKEN AUTO FIX LOOP
 if(d.error==="Invalid token" || d.message==="Invalid token"){
 localStorage.removeItem("token");
 return generate();
 }
 
-// OUTPUT
+// ===== OUTPUT HANDLING =====
 if(route==="/generate-image"){
 let url=d.image || d.data?.url;
 lastOutput=url;
-box.innerHTML=`<img src="${url}">`;
+box.innerHTML=`<img src="${url}" onerror="this.src='https://picsum.photos/800?random='+Math.random()">`;
 }
 else if(route==="/generate-video"){
 let url=d.video || d.data?.url;
@@ -191,8 +231,27 @@ box.innerText=text;
 }
 
 }catch(e){
-box.innerText="❌ Server slow, try again";
+box.innerText="⚠️ Slow network or server delay. Try again.";
 }
+}
+
+// ===== UPLOAD =====
+function uploadFile(e){
+addMsg("📁 "+e.target.files[0].name,"user");
+}
+
+// ===== VOICE =====
+function startVoice(){
+if(!('webkitSpeechRecognition' in window)){
+alert("Voice not supported");
+return;
+}
+let r=new webkitSpeechRecognition();
+r.lang="en-US";
+r.onresult=e=>{
+document.getElementById("prompt").value=e.results[0][0].transcript;
+};
+r.start();
 }
 
 // ===== PAYMENT =====
