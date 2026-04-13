@@ -13,7 +13,7 @@
       font-family: Arial;
       color: white;
       background: url('logo.png') center/cover no-repeat fixed;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(8px);
     }
 
     #nav {
@@ -119,7 +119,7 @@
   <a href="#">Blog</a>
   <a href="#">Contact</a>
   <a href="#">Privacy</a>
-  | <span id="userStatus">Guest</span>
+  | <span id="userStatus">User</span>
 </div>
 
 <!-- CHAT -->
@@ -157,10 +157,12 @@
 <script>
 const BASE_URL = "https://reelmindbackend-1.onrender.com";
 
-// 🔐 AUTO LOGIN (PERMANENT)
-let TOKEN = localStorage.getItem("token") || "demo-user";
-localStorage.setItem("token", TOKEN);
-document.getElementById("userStatus").innerText = "User";
+// 🔐 PERMANENT LOGIN (NO LOGOUT)
+let TOKEN = localStorage.getItem("token");
+if (!TOKEN) {
+  TOKEN = "demo-user";
+  localStorage.setItem("token", TOKEN);
+}
 
 // 💎 PREMIUM
 let IS_PREMIUM = localStorage.getItem("premium") === "true";
@@ -180,32 +182,20 @@ async function sendPrompt() {
 
   try {
 
-    // 🖼 IMAGE (Pollinations)
+    // 🖼 IMAGE
     if (input.toLowerCase().includes("image")) {
 
       if (!IS_PREMIUM) {
         loader.remove();
-        chat.innerHTML += `<div class="msg ai premium-lock">🔒 Premium only (click subscribe)</div>`;
+        chat.innerHTML += `<div class="msg ai premium-lock">🔒 Premium required</div>`;
         return;
       }
 
-      const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(input)}`;
-
-      loader.remove();
-
-      chat.innerHTML += `
-        <div class="msg ai">
-          <img src="${imgUrl}">
-          <br><a href="${imgUrl}" download>⬇ Download</a>
-        </div>`;
-    }
-
-    // 💬 TEXT (Backend OpenRouter)
-    else {
-      const res = await fetch(BASE_URL + "/generate-text", {
+      const res = await fetch(BASE_URL + "/generate-image", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + TOKEN
         },
         body: JSON.stringify({ prompt: input })
       });
@@ -213,7 +203,31 @@ async function sendPrompt() {
       const data = await res.json();
       loader.remove();
 
-      const reply = data?.result || data?.choices?.[0]?.message?.content || "No response";
+      chat.innerHTML += `
+        <div class="msg ai">
+          <img src="${data.image}">
+          <br><a href="${data.image}" download>⬇ Download</a>
+        </div>`;
+    }
+
+    // 💬 TEXT
+    else {
+      const res = await fetch(BASE_URL + "/generate-text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + TOKEN
+        },
+        body: JSON.stringify({ prompt: input })
+      });
+
+      const data = await res.json();
+      loader.remove();
+
+      const reply =
+        data?.result ||
+        data?.choices?.[0]?.message?.content ||
+        "No response";
 
       chat.innerHTML += `<div class="msg ai">${reply}</div>`;
     }
@@ -253,7 +267,7 @@ function startMic() {
   recognition.start();
 }
 
-// 💎 SUBSCRIBE (TEMP)
+// 💎 ACTIVATE PREMIUM (TEMP)
 function subscribe() {
   localStorage.setItem("premium", "true");
   alert("Premium activated");
