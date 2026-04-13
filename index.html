@@ -5,8 +5,9 @@
 <title>ReelMind AI - Powered by Artical Neavy</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ✅ ADSENSE -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
+<!-- ✅ ADSENSE (YOUR ID ADDED) -->
+<script async 
+src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
 crossorigin="anonymous"></script>
 
 <style>
@@ -82,12 +83,11 @@ input{flex:1;padding:12px;border-radius:25px;border:none}
 
 <body>
 
-<!-- DASHBOARD -->
 <div id="topbar">
 <span id="status">🔴 Offline</span>
-<span id="user">User: --</span>
+<span id="user">User: Guest</span>
 <span id="credits">Credits: --</span>
-<span id="ref">Ref: --</span>
+<span id="ref">Ref: 0</span>
 <span onclick="upgrade()">💰 Upgrade</span>
 </div>
 
@@ -95,25 +95,24 @@ input{flex:1;padding:12px;border-radius:25px;border:none}
 
 <div id="generateBtn" onclick="generate()">GENERATE</div>
 
-<!-- FLOAT -->
 <div id="uploadBtn" onclick="fileInput.click()">+</div>
 <input type="file" id="fileInput" hidden onchange="uploadFile(event)">
 <div id="micBtn" onclick="startVoice()">🎤</div>
 
 <!-- ✅ ADS BLOCK -->
-<div style="position:fixed;bottom:70px;width:100%;text-align:center;">
+<div style="position:fixed;bottom:80px;width:100%;text-align:center;">
 <ins class="adsbygoogle"
 style="display:block"
 data-ad-client="ca-pub-1714638410489429"
-data-ad-slot="1234567890"
-data-ad-format="auto"></ins>
+data-ad-slot="1714638410"
+data-ad-format="auto"
+data-full-width-responsive="true"></ins>
 </div>
 
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-<!-- INPUT -->
 <div id="inputArea">
 <input id="prompt" placeholder="Ask anything..." />
 </div>
@@ -121,6 +120,19 @@ data-ad-format="auto"></ins>
 <script>
 const API="https://reelmindbackend-1.onrender.com";
 const chat=document.getElementById("chat");
+
+// ===== MEMORY AI =====
+let memory = JSON.parse(localStorage.getItem("reelmind_memory") || "[]");
+
+function saveMemory(user, ai){
+memory.push({user, ai});
+if(memory.length > 10) memory.shift(); // keep last 10
+localStorage.setItem("reelmind_memory", JSON.stringify(memory));
+}
+
+function buildMemoryContext(){
+return memory.map(m => `User: ${m.user}\nAI: ${m.ai}`).join("\n");
+}
 
 // ===== LOGIN =====
 async function ensureLogin(){
@@ -159,7 +171,13 @@ chat.scrollTop=chat.scrollHeight;
 return d;
 }
 
-// ===== GENERATE (ULTRA STORY MODE) =====
+// ===== SPEAK =====
+function speak(text){
+let u=new SpeechSynthesisUtterance(text);
+speechSynthesis.speak(u);
+}
+
+// ===== GENERATE (MEMORY + LIMITLESS) =====
 async function generate(){
 await ensureLogin();
 
@@ -169,14 +187,20 @@ if(!p) return;
 addMsg(p,"user");
 let box=addMsg("⚡ Generating...","ai");
 
-let finalPrompt=`
-Write a VERY LONG cinematic story (1000+ words).
-Make it emotional, immersive, detailed and complete.
+// 🧠 MEMORY CONTEXT
+let context = buildMemoryContext();
+
+// 🔥 ULTRA PROMPT
+let finalPrompt = `
+Use previous conversation memory:
+
+${context}
+
+Now generate 3 DIFFERENT long cinematic stories (1000+ words each).
 
 ${p}
 `;
 
-try{
 let r=await fetch(API+"/generate-text",{
 method:"POST",
 headers:{
@@ -187,43 +211,36 @@ body:JSON.stringify({prompt:finalPrompt})
 });
 
 let d=await r.json();
-box.innerText=d.data.content;
+let text=d.data.content;
+
+box.innerText=text;
+
+// SAVE MEMORY
+saveMemory(p, text);
+
+// SPEAK
+speak(text);
 
 loadUser();
-
-}catch{
-box.innerText="⚠️ Server slow, try again";
-}
 }
 
-// ===== MIC (BEST FIX POSSIBLE) =====
+// ===== MIC =====
 function startVoice(){
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if(!SpeechRecognition){
-alert("❌ Use Chrome browser for mic");
+alert("Use Chrome browser");
 return;
 }
 
-navigator.mediaDevices.getUserMedia({audio:true})
-.then(()=>{
 let rec=new SpeechRecognition();
 rec.lang="en-US";
-rec.continuous=false;
 
 rec.onresult=e=>{
-document.getElementById("prompt").value=e.results[0][0].transcript;
-};
-
-rec.onerror=e=>{
-alert("Mic error: "+e.error);
+prompt.value=e.results[0][0].transcript;
 };
 
 rec.start();
-})
-.catch(()=>{
-alert("⚠️ Allow microphone permission");
-});
 }
 
 // ===== UPLOAD =====
