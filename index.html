@@ -5,6 +5,9 @@
 <title>ReelMind AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- ADSENSE -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429" crossorigin="anonymous"></script>
+
 <style>
 body {
   margin:0;
@@ -39,7 +42,7 @@ button {
 }
 
 #chat {
-  height:70vh;
+  height:65vh;
   overflow-y:auto;
   padding:10px;
 }
@@ -82,17 +85,20 @@ input {
 <button onclick="generateImage()">Image</button>
 <button onclick="generateReel()">🎬 Reel</button>
 <button onclick="dashboard()">📊 Dashboard</button>
-<button onclick="subscribe()">💎 Subscribe</button>
-<button onclick="referral()">👥 Refer</button>
-<button onclick="openPage('about')">About</button>
-<button onclick="openPage('privacy')">Privacy</button>
-<button onclick="openPage('contact')">Contact</button>
-<button onclick="openPage('blog')">Blog</button>
+<button onclick="subscribe()">💰 Subscribe</button>
 </div>
 
 <div id="status">🔄 Connecting...</div>
 
 <div id="chat"></div>
+
+<!-- ADS -->
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-1714638410489429"
+data-ad-slot="1234567890"
+data-ad-format="auto"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
 <div id="inputArea">
 <input id="prompt" placeholder="Ask anything..." />
@@ -104,7 +110,7 @@ const API = "https://reelmindbackend-1.onrender.com";
 const chat = document.getElementById("chat");
 const statusBox = document.getElementById("status");
 
-// ===== LOGIN SYSTEM =====
+// ===== LOGIN =====
 async function login(){
   try{
     const res = await fetch(API+"/login",{
@@ -118,16 +124,16 @@ async function login(){
     if(data.token){
       localStorage.setItem("token", data.token);
       statusBox.innerText = "🟢 Connected";
-    }else{
+    } else {
       statusBox.innerText = "❌ Login failed";
     }
 
-  }catch{
+  } catch {
     statusBox.innerText = "❌ Server offline";
   }
 }
 
-// ===== GET TOKEN =====
+// ===== TOKEN =====
 async function getToken(){
   let token = localStorage.getItem("token");
 
@@ -142,14 +148,13 @@ async function getToken(){
 // ===== TEXT =====
 async function sendText(){
   const prompt = document.getElementById("prompt").value;
-
   if(!prompt) return;
 
   chat.innerHTML += `<div class="msg user">${prompt}</div>`;
 
   let box = document.createElement("div");
   box.className="msg ai";
-  box.innerText="Thinking...";
+  box.innerText="⚡ Thinking...";
   chat.appendChild(box);
 
   try{
@@ -173,7 +178,7 @@ async function sendText(){
 
     box.innerText = data.result || data.error;
 
-  }catch{
+  } catch {
     box.innerText="❌ Network error";
   }
 }
@@ -181,14 +186,13 @@ async function sendText(){
 // ===== IMAGE =====
 async function generateImage(){
   const prompt = document.getElementById("prompt").value;
-
   if(!prompt) return;
 
   chat.innerHTML += `<div class="msg user">${prompt}</div>`;
 
   let box = document.createElement("div");
   box.className="msg ai";
-  box.innerText="Generating image...";
+  box.innerText="🖼️ Generating image...";
   chat.appendChild(box);
 
   try{
@@ -210,24 +214,24 @@ async function generateImage(){
       return generateImage();
     }
 
-    if(data.image){
-      box.innerHTML = `<img src="${data.image}" />`;
-    } else {
-      box.innerText="❌ Image failed";
-    }
+    box.innerHTML = `
+      <img src="${data.image}" 
+           onerror="this.src='${data.fallback || 'https://picsum.photos/800'}'">
+    `;
 
-  }catch{
-    box.innerText="❌ Image error";
+  } catch {
+    box.innerHTML = `<img src="https://picsum.photos/800">`;
   }
 }
 
 // ===== REEL =====
 async function generateReel(){
   const prompt = document.getElementById("prompt").value;
+  if(!prompt) return;
 
   let box = document.createElement("div");
   box.className="msg ai";
-  box.innerText="Creating reel...";
+  box.innerText="🎬 Creating reel...";
   chat.appendChild(box);
 
   try{
@@ -251,7 +255,7 @@ async function generateReel(){
 
     box.innerText = data.result || data.error;
 
-  }catch{
+  } catch {
     box.innerText="❌ Reel error";
   }
 }
@@ -271,38 +275,13 @@ async function dashboard(){
   <h3>📊 Dashboard</h3>
   Credits: ${data.credits}<br>
   Premium: ${data.premium}<br>
-  Earnings: $${data.earnings}<br>
-  Referrals: ${data.referrals}
+  Earnings: $${data.earnings}
   </div>`;
 }
 
-// ===== SUBSCRIBE =====
+// ===== PAYMENT =====
 function subscribe(){
   window.open("https://ko-fi.com/articalneavy","_blank");
-}
-
-// ===== REFERRAL =====
-function referral(){
-  let email = prompt("Enter your email:");
-  fetch(API+"/referral",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({refEmail:email})
-  });
-
-  alert("Referral sent");
-}
-
-// ===== PAGES =====
-function openPage(page){
-  let content = "";
-
-  if(page==="about") content = "<h3>About</h3>ReelMind AI creates viral content using AI.";
-  if(page==="privacy") content = "<h3>Privacy</h3>Your data is safe.";
-  if(page==="contact") content = "<h3>Contact</h3>neavyartical@gmail.com";
-  if(page==="blog") content = "<h3>Blog</h3>Coming soon...";
-
-  chat.innerHTML = `<div class="msg ai">${content}</div>`;
 }
 
 // ===== INIT =====
