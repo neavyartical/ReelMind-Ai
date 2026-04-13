@@ -14,26 +14,15 @@ body{
   background:#0b0f14;
   color:white;
   font-family:Arial;
+  overflow:hidden;
 }
 
-.topbar{
-  display:flex;
-  flex-wrap:wrap;
-  gap:5px;
-  padding:10px;
-  background:#111;
-}
-
-button{
-  padding:8px 12px;
-  border:none;
-  border-radius:20px;
-  background:#00ff88;
-  cursor:pointer;
-}
-
+/* CHAT */
 #chat{
-  height:65vh;
+  position:absolute;
+  top:0;
+  bottom:90px;
+  width:100%;
   overflow:auto;
   padding:10px;
 }
@@ -45,26 +34,17 @@ button{
   max-width:80%;
 }
 
-.user{
-  background:#1f1f1f;
-  margin-left:auto;
-}
+.user{background:#1f1f1f;margin-left:auto;}
+.ai{background:#16212b;}
 
-.ai{
-  background:#16212b;
-}
+img,video{width:100%;border-radius:10px}
 
-img,video{
-  width:100%;
-  border-radius:10px;
-}
-
+/* INPUT */
 #inputArea{
   position:fixed;
   bottom:0;
   width:100%;
   display:flex;
-  gap:5px;
   padding:10px;
   background:#111;
 }
@@ -72,55 +52,108 @@ img,video{
 input{
   flex:1;
   padding:12px;
-  border-radius:20px;
+  border-radius:25px;
   border:none;
 }
 
+/* LEFT + BUTTON */
+#uploadBtn{
+  position:fixed;
+  bottom:100px;
+  left:15px;
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  background:#00ff88;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+}
+
+/* RIGHT MIC */
+#micBtn{
+  position:fixed;
+  bottom:100px;
+  right:15px;
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  background:#00ccff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+}
+
+/* CENTER AI CORE */
+#core{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:130px;
+  height:130px;
+  border-radius:20px;
+  background:rgba(0,255,255,0.1);
+  box-shadow:0 0 40px cyan;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  animation:glow 2s infinite alternate;
+}
+
+@keyframes glow{
+  from{box-shadow:0 0 20px cyan;}
+  to{box-shadow:0 0 60px cyan;}
+}
+
+.coreBtn{
+  font-size:12px;
+  padding:5px 8px;
+  border:none;
+  border-radius:10px;
+  background:#00ff88;
+}
+
 .footer{
+  position:absolute;
+  top:5px;
+  width:100%;
   text-align:center;
   font-size:12px;
-  padding:15px;
-  background:#111;
 }
 </style>
 </head>
 
 <body>
 
-<div class="topbar">
-<button onclick="register()">Register</button>
-<button onclick="login()">Login</button>
-<button onclick="sendText()">Text</button>
-<button onclick="generateImage()">Image</button>
-<button onclick="generateVideo()">🎥 Video</button>
-<button onclick="generateReel()">Reel</button>
-<button onclick="dashboard()">Dashboard</button>
-<button onclick="downloadLast()">⬇ Download</button>
-<button onclick="subscribe()">💰 Upgrade</button>
-<button onclick="openPage('about')">About</button>
-<button onclick="openPage('privacy')">Privacy</button>
-<button onclick="openPage('terms')">Terms</button>
-<button onclick="openPage('contact')">Contact</button>
-<input type="file" onchange="uploadFile(event)">
-</div>
+<div class="footer">Powered by Artical Neavy</div>
 
 <div id="chat"></div>
 
-<!-- ADS -->
-<ins class="adsbygoogle"
-style="display:block"
-data-ad-client="ca-pub-1714638410489429"
-data-ad-slot="1234567890"
-data-ad-format="auto"></ins>
-<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+<!-- CORE -->
+<div id="core">
+<button class="coreBtn" onclick="sendText()">Text</button>
+<button class="coreBtn" onclick="generateImage()">Image</button>
+<button class="coreBtn" onclick="generateVideo()">Video</button>
+<button class="coreBtn" onclick="generateReel()">Reel</button>
+<button class="coreBtn" onclick="downloadLast()">⬇</button>
+</div>
 
+<!-- UPLOAD -->
+<div id="uploadBtn" onclick="fileInput.click()">+</div>
+<input type="file" id="fileInput" style="display:none" onchange="uploadFile(event)">
+
+<!-- MIC -->
+<div id="micBtn" onclick="startVoice()">🎤</div>
+
+<!-- INPUT -->
 <div id="inputArea">
 <input id="prompt" placeholder="Ask anything..." />
 <button onclick="sendText()">Send</button>
-</div>
-
-<div class="footer">
-Powered by Artical Neavy © 2026
 </div>
 
 <script>
@@ -132,7 +165,7 @@ let lastOutput="";
 function setToken(t){localStorage.setItem("token",t);}
 function getToken(){return localStorage.getItem("token");}
 
-// ===== AUTO LOGIN (GUEST) =====
+// AUTO LOGIN
 async function ensureLogin(){
   if(!getToken()){
     let r=await fetch(API+"/login",{
@@ -145,39 +178,30 @@ async function ensureLogin(){
   }
 }
 
-// ===== REGISTER =====
-async function register(){
-let email=prompt("Email");
-let password=prompt("Password");
-
-let r=await fetch(API+"/register",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({email,password})
-});
-let d=await r.json();
-
-setToken(d.token);
-alert("Registered");
+// ===== MESSAGE =====
+function addMsg(text,type){
+let d=document.createElement("div");
+d.className="msg "+type;
+d.innerText=text;
+chat.appendChild(d);
+return d;
 }
 
-// ===== LOGIN =====
-async function login(){
-let email=prompt("Email");
-let password=prompt("Password");
-
-let r=await fetch(API+"/login",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({email,password})
-});
-let d=await r.json();
-
-setToken(d.token);
-alert("Logged in");
+// ===== TYPE EFFECT =====
+function type(el,text){
+let i=0;
+el.innerHTML="";
+function t(){
+if(i<text.length){
+el.innerHTML+=text.charAt(i);
+i++;
+setTimeout(t,5);
+}
+}
+t();
 }
 
-// ===== CHAT TEXT =====
+// ===== TEXT =====
 async function sendText(){
 await ensureLogin();
 
@@ -185,7 +209,6 @@ let p=prompt.value;
 if(!p) return;
 
 addMsg(p,"user");
-
 let box=addMsg("Thinking...","ai");
 
 let r=await fetch(API+"/generate-text",{
@@ -194,20 +217,24 @@ headers:{
 "Content-Type":"application/json",
 "Authorization":"Bearer "+getToken()
 },
-body:JSON.stringify({prompt:p})
+body:JSON.stringify({
+prompt:"Answer like Google + Wikipedia + ChatGPT:\n"+p
+})
 });
 
 let d=await r.json();
-
 lastOutput=d.result;
-typeEffect(box,d.result);
+
+type(box,d.result);
 }
 
-// ===== IMAGE =====
+// ===== IMAGE (FIXED) =====
 async function generateImage(){
 await ensureLogin();
 
 let box=addMsg("Generating image...","ai");
+
+let enhanced = prompt.value + ", ultra realistic, cinematic lighting, 4k";
 
 let r=await fetch(API+"/generate-image",{
 method:"POST",
@@ -215,11 +242,10 @@ headers:{
 "Content-Type":"application/json",
 "Authorization":"Bearer "+getToken()
 },
-body:JSON.stringify({prompt:prompt.value})
+body:JSON.stringify({prompt:enhanced})
 });
 
 let d=await r.json();
-
 lastOutput=d.image;
 
 box.innerHTML=`<img src="${d.image}" onerror="this.src='${d.fallback}'">`;
@@ -241,7 +267,6 @@ body:JSON.stringify({prompt:prompt.value})
 });
 
 let d=await r.json();
-
 lastOutput=d.video;
 
 box.innerHTML=`<video controls src="${d.video}"></video>`;
@@ -251,7 +276,7 @@ box.innerHTML=`<video controls src="${d.video}"></video>`;
 async function generateReel(){
 await ensureLogin();
 
-let box=addMsg("Creating reel...","ai");
+let box=addMsg("Creating viral reel...","ai");
 
 let r=await fetch(API+"/generate-reel",{
 method:"POST",
@@ -263,31 +288,14 @@ body:JSON.stringify({prompt:prompt.value})
 });
 
 let d=await r.json();
-
 lastOutput=d.result;
 
-typeEffect(box,d.result);
-}
-
-// ===== DASHBOARD =====
-async function dashboard(){
-await ensureLogin();
-
-let r=await fetch(API+"/dashboard",{
-headers:{"Authorization":"Bearer "+getToken()}
-});
-let d=await r.json();
-
-chat.innerHTML=`<div class="msg ai">
-Credits: ${d.credits}<br>
-Premium: ${d.premium}<br>
-Earnings: $${d.earnings}
-</div>`;
+type(box,d.result);
 }
 
 // ===== DOWNLOAD =====
 function downloadLast(){
-if(!lastOutput) return alert("Nothing to download");
+if(!lastOutput) return alert("Nothing yet");
 
 let a=document.createElement("a");
 a.href=lastOutput;
@@ -295,49 +303,27 @@ a.download="reelmind_output";
 a.click();
 }
 
-// ===== FILE UPLOAD =====
+// ===== UPLOAD =====
 function uploadFile(e){
 let file=e.target.files[0];
 addMsg("Uploaded: "+file.name,"user");
 }
 
-// ===== HELPERS =====
-function addMsg(text,type){
-let d=document.createElement("div");
-d.className="msg "+type;
-d.innerText=text;
-chat.appendChild(d);
-return d;
+// ===== VOICE =====
+function startVoice(){
+if(!('webkitSpeechRecognition' in window)){
+alert("Voice not supported");
+return;
 }
 
-// ===== TYPE EFFECT =====
-function typeEffect(el,text){
-let i=0;
-el.innerHTML="";
-function t(){
-if(i<text.length){
-el.innerHTML+=text.charAt(i);
-i++;
-setTimeout(t,5);
-}
-}
-t();
-}
+let rec=new webkitSpeechRecognition();
+rec.lang="en-US";
 
-// ===== PAGES =====
-function openPage(p){
-const pages={
-about:"ReelMind AI combines ChatGPT, Google & AI tools.",
-privacy:"We respect your privacy.",
-terms:"Use responsibly.",
-contact:"Email: neavyartical@gmail.com"
+rec.onresult=e=>{
+prompt.value=e.results[0][0].transcript;
 };
-chat.innerHTML=`<div class="msg ai">${pages[p]}</div>`;
-}
 
-// ===== PAYMENT =====
-function subscribe(){
-window.open("https://ko-fi.com/articalneavy");
+rec.start();
 }
 </script>
 
