@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <title>ReelMind AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ✅ GOOGLE ADSENSE -->
+  <!-- GOOGLE ADSENSE -->
   <script async 
   src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
   crossorigin="anonymous"></script>
@@ -15,11 +16,6 @@
       background: #0b0b0b;
       font-family: Arial;
       color: white;
-    }
-
-    a {
-      color: #00ffc3;
-      text-decoration: none;
     }
 
     #nav {
@@ -50,11 +46,6 @@
     .ai {
       background: #2b2b2b;
       margin-right: auto;
-    }
-
-    .ai img {
-      width: 100%;
-      border-radius: 10px;
     }
 
     #inputArea {
@@ -100,10 +91,7 @@
 
 <!-- NAV -->
 <div id="nav">
-  <a href="/about">About</a> |
-  <a href="/privacy">Privacy</a> |
-  <a href="/contact">Contact</a> |
-  <a href="/blog">Blog</a>
+  ReelMind AI
 </div>
 
 <!-- ADS -->
@@ -133,18 +121,14 @@
 
 <input type="file" id="fileInput" hidden />
 
-<!-- FOOTER -->
 <footer>
-  © 2026 ReelMind AI <br>
-  <a href="/privacy">Privacy Policy</a> |
-  <a href="/about">About</a> |
-  <a href="/contact">Contact</a>
+  © 2026 ReelMind AI
 </footer>
 
 <script>
 const BASE_URL = "https://reelmindbackend-1.onrender.com";
 
-// SEND PROMPT
+// SEND PROMPT (FIXED)
 async function sendPrompt() {
   const input = document.getElementById("userInput").value;
   const chat = document.getElementById("chat");
@@ -162,21 +146,16 @@ async function sendPrompt() {
 
     const data = await res.json();
 
-    if (!res.ok || data.error) {
-      chat.innerHTML += `<div class="ai">⚠️ ${data.error || "Server error"}</div>`;
-      return;
-    }
-
-    // ✅ OPENROUTER RESPONSE FIX
+    // FIXED RESPONSE HANDLING
     const reply =
       data?.choices?.[0]?.message?.content ||
-      data.result ||
-      "No response";
+      data?.result ||
+      "⚠️ No response";
 
     chat.innerHTML += `<div class="ai">${reply}</div>`;
 
   } catch (err) {
-    chat.innerHTML += `<div class="ai">⚠️ Connection error</div>`;
+    chat.innerHTML += `<div class="ai">⚠️ Backend connection failed</div>`;
   }
 
   document.getElementById("userInput").value = "";
