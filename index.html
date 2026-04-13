@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>ReelMind AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -12,13 +13,36 @@
   <style>
     body {
       margin:0;
-      font-family:Arial;
+      font-family:Arial, sans-serif;
       background:#0b0f14;
       color:white;
     }
 
+    .topbar {
+      display:flex;
+      justify-content:space-around;
+      background:#111;
+      padding:10px;
+    }
+
+    button {
+      padding:10px;
+      border:none;
+      border-radius:20px;
+      background:#00ff88;
+      cursor:pointer;
+      font-size:12px;
+    }
+
+    #status {
+      text-align:center;
+      font-size:12px;
+      padding:5px;
+      color:#00ff88;
+    }
+
     #chat {
-      height:75vh;
+      height:70vh;
       overflow-y:auto;
       padding:10px;
     }
@@ -28,11 +52,22 @@
       margin:10px;
       border-radius:12px;
       max-width:80%;
-      line-height:1.4;
+      word-wrap:break-word;
     }
 
-    .user { background:#1f1f1f; margin-left:auto; }
-    .ai { background:#16212b; }
+    .user {
+      background:#1f1f1f;
+      margin-left:auto;
+    }
+
+    .ai {
+      background:#16212b;
+    }
+
+    img {
+      width:100%;
+      border-radius:10px;
+    }
 
     #inputArea {
       position:fixed;
@@ -50,32 +85,6 @@
       border:none;
       outline:none;
     }
-
-    button {
-      margin-left:5px;
-      padding:10px 15px;
-      border-radius:20px;
-      border:none;
-      background:#00ff88;
-      cursor:pointer;
-    }
-
-    img { width:100%; border-radius:10px; }
-
-    .topbar {
-      display:flex;
-      justify-content:space-around;
-      background:#111;
-      padding:10px;
-      font-size:12px;
-    }
-
-    .status {
-      text-align:center;
-      font-size:12px;
-      padding:5px;
-      color:#00ff88;
-    }
   </style>
 </head>
 
@@ -83,13 +92,13 @@
 
 <div class="topbar">
   <button onclick="login()">Login</button>
+  <button onclick="send()">Text</button>
   <button onclick="generateImage()">Image</button>
   <button onclick="loadHistory()">History</button>
   <button onclick="upgrade()">💰 Upgrade</button>
-  <button onclick="confirmPayment()">✅ Paid</button>
 </div>
 
-<div id="status" class="status">🔴 Not logged in</div>
+<div id="status">🔴 Not logged in</div>
 
 <div id="chat"></div>
 
@@ -101,7 +110,10 @@
     data-ad-slot="1234567890"
     data-ad-format="auto"></ins>
 </div>
-<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 
 <div id="inputArea">
   <input id="prompt" placeholder="Ask anything..." />
@@ -111,57 +123,64 @@
 <script>
 const API = "https://reelmindbackend-1.onrender.com";
 const chat = document.getElementById("chat");
+const statusBox = document.getElementById("status");
+const inputBox = document.getElementById("prompt");
 
 // ===== LOGIN =====
 async function login(){
   let email = prompt("Enter email:");
   if(!email) return;
 
-  const res = await fetch(API+"/login",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({email})
-  });
+  try{
+    const res = await fetch(API+"/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({email})
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if(data.token){
-    localStorage.setItem("token", data.token);
+    if(data.token){
+      localStorage.setItem("token", data.token);
 
-    if(email === "neavyartical@gmail.com"){
-      document.getElementById("status").innerText = "👑 Admin Mode (Unlimited)";
+      if(email === "neavyartical@gmail.com"){
+        statusBox.innerText = "👑 Admin (Unlimited)";
+      } else {
+        statusBox.innerText = "🟢 Logged in: " + email;
+      }
+
     } else {
-      document.getElementById("status").innerText = "🟢 Logged in: " + email;
+      alert("Login failed");
     }
 
-  } else {
-    alert("Login failed");
+  } catch {
+    alert("Server error");
   }
 }
 
 // ===== SEND TEXT =====
 async function send(){
-  const input = document.getElementById("prompt").value.trim();
   const token = localStorage.getItem("token");
+  const text = inputBox.value.trim();
 
   if(!token){
-    alert("Login first!");
+    alert("Login first");
     return;
   }
 
-  if(!input){
-    alert("Type something!");
+  if(!text){
+    alert("Type something");
     return;
   }
 
-  chat.innerHTML += `<div class="msg user">${input}</div>`;
+  chat.innerHTML += `<div class="msg user">${text}</div>`;
 
-  let ai = document.createElement("div");
-  ai.className="msg ai";
-  ai.innerHTML="⚡ Thinking...";
-  chat.appendChild(ai);
+  let aiBox = document.createElement("div");
+  aiBox.className = "msg ai";
+  aiBox.innerText = "⚡ Thinking...";
+  chat.appendChild(aiBox);
 
-  document.getElementById("prompt").value = "";
+  inputBox.value = "";
   chat.scrollTop = chat.scrollHeight;
 
   try{
@@ -169,90 +188,80 @@ async function send(){
       method:"POST",
       headers:{
         "Content-Type":"application/json",
-        "Authorization":"Bearer "+token
+        "Authorization":"Bearer " + token
       },
-      body: JSON.stringify({prompt:input})
+      body: JSON.stringify({prompt:text})
     });
 
     const data = await res.json();
 
     if(data.error){
-      ai.innerHTML = "❌ " + data.error;
+      aiBox.innerText = "❌ " + data.error;
       return;
     }
 
+    // typing effect
     let i = 0;
-    ai.innerHTML = "";
+    aiBox.innerHTML = "";
 
     function type(){
       if(i < data.result.length){
-        ai.innerHTML += data.result.charAt(i);
+        aiBox.innerHTML += data.result.charAt(i);
         i++;
-        setTimeout(type, 5);
+        setTimeout(type,5);
       }
     }
 
     type();
 
-  } catch(err){
-    ai.innerHTML = "❌ Network error";
+  } catch {
+    aiBox.innerText = "❌ Network error";
   }
 }
 
-// ===== IMAGE (FIXED) =====
+// ===== IMAGE =====
 async function generateImage(){
   const token = localStorage.getItem("token");
-  const input = document.getElementById("prompt").value.trim();
+  const text = inputBox.value.trim();
 
   if(!token){
-    alert("Login first!");
+    alert("Login first");
     return;
   }
 
-  if(!input){
-    alert("Enter a prompt for image!");
+  if(!text){
+    alert("Enter image prompt");
     return;
   }
 
-  let ai = document.createElement("div");
-  ai.className="msg ai";
-  ai.innerHTML="🖼️ Generating image...";
-  chat.appendChild(ai);
+  let aiBox = document.createElement("div");
+  aiBox.className = "msg ai";
+  aiBox.innerText = "🖼️ Generating image...";
+  chat.appendChild(aiBox);
 
   chat.scrollTop = chat.scrollHeight;
 
-  try {
+  try{
     const res = await fetch(API+"/generate-image",{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
-        "Authorization":"Bearer "+token
+        "Authorization":"Bearer " + token
       },
-      body: JSON.stringify({prompt:input})
+      body: JSON.stringify({prompt:text})
     });
 
     const data = await res.json();
-    console.log("IMAGE:", data);
 
-    if(!res.ok || data.error){
-      ai.innerHTML = "❌ " + (data.error || "Image failed");
+    if(data.error){
+      aiBox.innerText = "❌ " + data.error;
       return;
     }
 
-    if(!data.image){
-      ai.innerHTML = "❌ No image returned";
-      return;
-    }
+    aiBox.innerHTML = `<img src="${data.image}" />`;
 
-    ai.innerHTML = `
-      <img src="${data.image}" />
-      <p style="font-size:12px;color:gray;">
-        Credits: ${data.credits ?? "∞"}
-      </p>
-    `;
-
-  } catch(err){
-    ai.innerHTML = "❌ Network error";
+  } catch {
+    aiBox.innerText = "❌ Image failed";
   }
 }
 
@@ -263,7 +272,7 @@ async function loadHistory(){
   chat.innerHTML = "<div class='msg ai'>📜 Loading...</div>";
 
   const res = await fetch(API+"/history",{
-    headers:{ "Authorization":"Bearer "+token }
+    headers:{ "Authorization":"Bearer " + token }
   });
 
   const data = await res.json();
@@ -281,18 +290,6 @@ async function loadHistory(){
 // ===== PAYMENT =====
 function upgrade(){
   window.open("https://ko-fi.com/articalneavy","_blank");
-}
-
-async function confirmPayment(){
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(API+"/verify-payment",{
-    method:"POST",
-    headers:{ "Authorization":"Bearer "+token }
-  });
-
-  const data = await res.json();
-  alert(data.message);
 }
 </script>
 
