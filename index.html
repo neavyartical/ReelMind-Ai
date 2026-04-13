@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html>
 <head>
   <title>ReelMind AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- GOOGLE ADSENSE -->
+  <!-- ADSENSE -->
   <script async 
   src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
   crossorigin="anonymous"></script>
@@ -48,6 +47,11 @@
       margin-right: auto;
     }
 
+    .ai img {
+      width: 100%;
+      border-radius: 10px;
+    }
+
     #inputArea {
       position: fixed;
       bottom: 0;
@@ -62,40 +66,27 @@
       padding: 12px;
       border-radius: 20px;
       border: none;
-      outline: none;
-    }
-
-    .btn {
-      margin-left: 5px;
-      border: none;
-      border-radius: 20px;
-      padding: 10px;
-      font-weight: bold;
     }
 
     #generateBtn {
       background: #00ffc3;
       color: black;
-    }
-
-    footer {
-      text-align: center;
-      font-size: 12px;
-      color: gray;
-      padding: 20px;
+      border: none;
+      border-radius: 20px;
+      padding: 10px;
+      margin-left: 5px;
     }
   </style>
 </head>
 
 <body>
 
-<!-- NAV -->
 <div id="nav">
-  ReelMind AI
+  ReelMind AI 🚀
 </div>
 
 <!-- ADS -->
-<div style="text-align:center; margin:10px;">
+<div style="text-align:center;">
   <ins class="adsbygoogle"
        style="display:block"
        data-ad-client="ca-pub-1714638410489429"
@@ -105,30 +96,20 @@
 </div>
 
 <script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
+(adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-<!-- CHAT -->
 <div id="chat"></div>
 
-<!-- INPUT -->
 <div id="inputArea">
-  <button class="btn" onclick="triggerUpload()">＋</button>
-  <button class="btn" onclick="startMic()">🎤</button>
-  <input id="userInput" placeholder="Ask anything..." />
+  <input id="userInput" placeholder="Ask or generate image..." />
   <button id="generateBtn" onclick="sendPrompt()">Generate</button>
 </div>
 
-<input type="file" id="fileInput" hidden />
-
-<footer>
-  © 2026 ReelMind AI
-</footer>
-
 <script>
-const BASE_URL = "https://reelmindbackend-1.onrender.com";
+const TEXT_API = "https://reelmindbackend-1.onrender.com/generate-text";
 
-// SEND PROMPT (FIXED)
+// MAIN FUNCTION
 async function sendPrompt() {
   const input = document.getElementById("userInput").value;
   const chat = document.getElementById("chat");
@@ -138,58 +119,45 @@ async function sendPrompt() {
   chat.innerHTML += `<div class="user">${input}</div>`;
 
   try {
-    const res = await fetch(BASE_URL + "/generate-text", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ prompt: input })
-    });
 
-    const data = await res.json();
+    // 🖼 IMAGE (POLLINATIONS)
+    if (input.toLowerCase().includes("image")) {
 
-    // FIXED RESPONSE HANDLING
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      data?.result ||
-      "⚠️ No response";
+      const cleanPrompt = encodeURIComponent(input);
 
-    chat.innerHTML += `<div class="ai">${reply}</div>`;
+      const imgURL = `https://image.pollinations.ai/prompt/${cleanPrompt}`;
+
+      chat.innerHTML += `
+        <div class="ai">
+          <img src="${imgURL}" />
+        </div>
+      `;
+
+    } else {
+
+      // 🤖 TEXT (OPENROUTER BACKEND)
+      const res = await fetch(TEXT_API, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ prompt: input })
+      });
+
+      const data = await res.json();
+
+      const reply =
+        data?.choices?.[0]?.message?.content ||
+        data?.result ||
+        "No response";
+
+      chat.innerHTML += `<div class="ai">${reply}</div>`;
+    }
 
   } catch (err) {
-    chat.innerHTML += `<div class="ai">⚠️ Backend connection failed</div>`;
+    chat.innerHTML += `<div class="ai">⚠️ Error: ${err.message}</div>`;
   }
 
   document.getElementById("userInput").value = "";
   chat.scrollTop = chat.scrollHeight;
-}
-
-// FILE UPLOAD
-function triggerUpload() {
-  document.getElementById("fileInput").click();
-}
-
-document.getElementById("fileInput").addEventListener("change", function () {
-  const file = this.files[0];
-  if (file) {
-    document.getElementById("chat").innerHTML += `<div class="user">📁 ${file.name}</div>`;
-  }
-});
-
-// MIC
-function startMic() {
-  if (!('webkitSpeechRecognition' in window)) {
-    alert("Mic not supported");
-    return;
-  }
-
-  const recognition = new webkitSpeechRecognition();
-  recognition.lang = "en-US";
-
-  recognition.onresult = function (event) {
-    document.getElementById("userInput").value =
-      event.results[0][0].transcript;
-  };
-
-  recognition.start();
 }
 </script>
 
