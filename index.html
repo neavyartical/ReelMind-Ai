@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>ReelMind AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       background: #0d0d0d;
@@ -9,6 +11,10 @@
       font-family: Arial;
       text-align: center;
       padding: 20px;
+    }
+
+    h2 {
+      color: #00ff88;
     }
 
     input, button {
@@ -24,6 +30,11 @@
       background: #00ff88;
       color: black;
       font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #00cc6a;
     }
 
     #output {
@@ -36,6 +47,22 @@
       margin-top: 10px;
       border-radius: 10px;
     }
+
+    #history {
+      margin-top: 30px;
+      text-align: left;
+      max-height: 300px;
+      overflow-y: auto;
+      border-top: 1px solid #333;
+      padding-top: 10px;
+    }
+
+    .history-item {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #1a1a1a;
+      border-radius: 8px;
+    }
   </style>
 </head>
 
@@ -43,15 +70,22 @@
 
 <h2>🚀 ReelMind AI</h2>
 
+<!-- LOGIN -->
 <input id="email" placeholder="Enter your email" />
 <button onclick="login()">Login</button>
 
-<input id="prompt" placeholder="Tell me a story..." />
+<!-- PROMPT -->
+<input id="prompt" placeholder="Type your prompt..." />
 
 <button onclick="generateText()">Generate Text</button>
 <button onclick="generateImage()">Generate Image</button>
+<button onclick="loadHistory()">📜 View History</button>
 
+<!-- OUTPUT -->
 <div id="output"></div>
+
+<!-- HISTORY -->
+<div id="history"></div>
 
 <script>
 const API = "https://reelmindbackend-1.onrender.com";
@@ -60,6 +94,11 @@ const API = "https://reelmindbackend-1.onrender.com";
 async function login() {
   const email = document.getElementById("email").value;
   const output = document.getElementById("output");
+
+  if (!email) {
+    output.innerText = "⚠️ Enter email";
+    return;
+  }
 
   output.innerText = "⏳ Logging in...";
 
@@ -73,7 +112,6 @@ async function login() {
     });
 
     const data = await res.json();
-    console.log("LOGIN RESPONSE:", data);
 
     if (data.token) {
       localStorage.setItem("token", data.token);
@@ -83,7 +121,6 @@ async function login() {
     }
 
   } catch (err) {
-    console.error(err);
     output.innerText = "❌ Server error";
   }
 }
@@ -96,6 +133,11 @@ async function generateText() {
 
   if (!token) {
     output.innerText = "⚠️ Please login first!";
+    return;
+  }
+
+  if (!prompt) {
+    output.innerText = "⚠️ Enter a prompt";
     return;
   }
 
@@ -112,12 +154,11 @@ async function generateText() {
     });
 
     const data = await res.json();
-    console.log(data);
 
     if (data.error) {
       output.innerText = "❌ " + data.error;
     } else {
-      output.innerText = data.result + "\nCredits: " + data.credits;
+      output.innerText = data.result + "\n\n💎 Credits: " + data.credits;
     }
 
   } catch (err) {
@@ -136,6 +177,11 @@ async function generateImage() {
     return;
   }
 
+  if (!prompt) {
+    output.innerText = "⚠️ Enter a prompt";
+    return;
+  }
+
   output.innerText = "⏳ Generating image...";
 
   try {
@@ -149,16 +195,49 @@ async function generateImage() {
     });
 
     const data = await res.json();
-    console.log(data);
 
     if (data.error) {
       output.innerText = "❌ " + data.error;
     } else {
-      output.innerHTML = `<p>Credits: ${data.credits}</p><img src="${data.image}" />`;
+      output.innerHTML =
+        `<p>💎 Credits: ${data.credits}</p><img src="${data.image}" />`;
     }
 
   } catch (err) {
     output.innerText = "❌ Error generating image";
+  }
+}
+
+// ===== LOAD HISTORY =====
+async function loadHistory() {
+  const token = localStorage.getItem("token");
+  const historyDiv = document.getElementById("history");
+
+  if (!token) {
+    historyDiv.innerHTML = "⚠️ Login first";
+    return;
+  }
+
+  historyDiv.innerHTML = "⏳ Loading history...";
+
+  try {
+    const res = await fetch(API + "/history", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    });
+
+    const data = await res.json();
+
+    historyDiv.innerHTML = data.map(p => `
+      <div class="history-item">
+        <b>${p.prompt}</b><br/>
+        ${p.result}
+      </div>
+    `).join("");
+
+  } catch {
+    historyDiv.innerHTML = "❌ Failed to load history";
   }
 }
 </script>
