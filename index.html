@@ -17,9 +17,9 @@ body {
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
+  gap:5px;
   background:#111;
   padding:10px;
-  gap:5px;
 }
 
 button {
@@ -78,7 +78,6 @@ input {
 <body>
 
 <div class="topbar">
-<button onclick="login()">Login</button>
 <button onclick="sendText()">Text</button>
 <button onclick="generateImage()">Image</button>
 <button onclick="generateReel()">🎬 Reel</button>
@@ -91,7 +90,7 @@ input {
 <button onclick="openPage('blog')">Blog</button>
 </div>
 
-<div id="status">🔴 Not logged in</div>
+<div id="status">🔄 Connecting...</div>
 
 <div id="chat"></div>
 
@@ -105,9 +104,9 @@ const API = "https://reelmindbackend-1.onrender.com";
 const chat = document.getElementById("chat");
 const statusBox = document.getElementById("status");
 
-// ===== AUTO LOGIN =====
-async function autoLogin(){
-  if(!localStorage.getItem("token")){
+// ===== LOGIN SYSTEM =====
+async function login(){
+  try{
     const res = await fetch(API+"/login",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
@@ -115,42 +114,36 @@ async function autoLogin(){
     });
 
     const data = await res.json();
-    localStorage.setItem("token", data.token);
-    statusBox.innerText = "🟢 Guest mode";
-  } else {
-    statusBox.innerText = "🟢 Logged in";
+
+    if(data.token){
+      localStorage.setItem("token", data.token);
+      statusBox.innerText = "🟢 Connected";
+    }else{
+      statusBox.innerText = "❌ Login failed";
+    }
+
+  }catch{
+    statusBox.innerText = "❌ Server offline";
   }
 }
-autoLogin();
 
-// ===== LOGIN =====
-async function login(){
-  let email = prompt("Enter email:");
-  if(!email) return;
+// ===== GET TOKEN =====
+async function getToken(){
+  let token = localStorage.getItem("token");
 
-  const res = await fetch(API+"/login",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({email})
-  });
-
-  const data = await res.json();
-
-  if(data.token){
-    localStorage.setItem("token", data.token);
-
-    if(email === "neavyartical@gmail.com"){
-      statusBox.innerText = "👑 Admin Mode";
-    } else {
-      statusBox.innerText = "🟢 Logged in: " + email;
-    }
+  if(!token){
+    await login();
+    token = localStorage.getItem("token");
   }
+
+  return token;
 }
 
 // ===== TEXT =====
 async function sendText(){
-  const token = localStorage.getItem("token");
   const prompt = document.getElementById("prompt").value;
+
+  if(!prompt) return;
 
   chat.innerHTML += `<div class="msg user">${prompt}</div>`;
 
@@ -160,6 +153,8 @@ async function sendText(){
   chat.appendChild(box);
 
   try{
+    const token = await getToken();
+
     const res = await fetch(API+"/generate-text",{
       method:"POST",
       headers:{
@@ -170,6 +165,12 @@ async function sendText(){
     });
 
     const data = await res.json();
+
+    if(data.error === "Invalid token"){
+      localStorage.removeItem("token");
+      return sendText();
+    }
+
     box.innerText = data.result || data.error;
 
   }catch{
@@ -177,10 +178,11 @@ async function sendText(){
   }
 }
 
-// ===== IMAGE (FIXED) =====
+// ===== IMAGE =====
 async function generateImage(){
-  const token = localStorage.getItem("token");
   const prompt = document.getElementById("prompt").value;
+
+  if(!prompt) return;
 
   chat.innerHTML += `<div class="msg user">${prompt}</div>`;
 
@@ -190,6 +192,8 @@ async function generateImage(){
   chat.appendChild(box);
 
   try{
+    const token = await getToken();
+
     const res = await fetch(API+"/generate-image",{
       method:"POST",
       headers:{
@@ -201,20 +205,24 @@ async function generateImage(){
 
     const data = await res.json();
 
+    if(data.error === "Invalid token"){
+      localStorage.removeItem("token");
+      return generateImage();
+    }
+
     if(data.image){
       box.innerHTML = `<img src="${data.image}" />`;
     } else {
-      box.innerText="❌ Failed";
+      box.innerText="❌ Image failed";
     }
 
   }catch{
-    box.innerText="❌ Network error (image)";
+    box.innerText="❌ Image error";
   }
 }
 
 // ===== REEL =====
 async function generateReel(){
-  const token = localStorage.getItem("token");
   const prompt = document.getElementById("prompt").value;
 
   let box = document.createElement("div");
@@ -222,22 +230,35 @@ async function generateReel(){
   box.innerText="Creating reel...";
   chat.appendChild(box);
 
-  const res = await fetch(API+"/generate-reel",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer "+token
-    },
-    body: JSON.stringify({prompt})
-  });
+  try{
+    const token = await getToken();
 
-  const data = await res.json();
-  box.innerText = data.result || data.error;
+    const res = await fetch(API+"/generate-reel",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+token
+      },
+      body: JSON.stringify({prompt})
+    });
+
+    const data = await res.json();
+
+    if(data.error === "Invalid token"){
+      localStorage.removeItem("token");
+      return generateReel();
+    }
+
+    box.innerText = data.result || data.error;
+
+  }catch{
+    box.innerText="❌ Reel error";
+  }
 }
 
 // ===== DASHBOARD =====
 async function dashboard(){
-  const token = localStorage.getItem("token");
+  const token = await getToken();
 
   const res = await fetch(API+"/dashboard",{
     headers:{ "Authorization":"Bearer "+token }
@@ -247,7 +268,7 @@ async function dashboard(){
 
   chat.innerHTML = `
   <div class="msg ai">
-  <h3>Dashboard</h3>
+  <h3>📊 Dashboard</h3>
   Credits: ${data.credits}<br>
   Premium: ${data.premium}<br>
   Earnings: $${data.earnings}<br>
@@ -269,20 +290,23 @@ function referral(){
     body: JSON.stringify({refEmail:email})
   });
 
-  alert("Referral submitted");
+  alert("Referral sent");
 }
 
 // ===== PAGES =====
 function openPage(page){
   let content = "";
 
-  if(page==="about") content = "ReelMind AI helps create viral content using AI.";
-  if(page==="privacy") content = "We respect your privacy. No sensitive data stored.";
-  if(page==="contact") content = "Contact: neavyartical@gmail.com";
-  if(page==="blog") content = "AI tips and updates coming soon.";
+  if(page==="about") content = "<h3>About</h3>ReelMind AI creates viral content using AI.";
+  if(page==="privacy") content = "<h3>Privacy</h3>Your data is safe.";
+  if(page==="contact") content = "<h3>Contact</h3>neavyartical@gmail.com";
+  if(page==="blog") content = "<h3>Blog</h3>Coming soon...";
 
   chat.innerHTML = `<div class="msg ai">${content}</div>`;
 }
+
+// ===== INIT =====
+login();
 </script>
 
 </body>
