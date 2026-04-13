@@ -4,19 +4,20 @@
   <title>ReelMind AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ✅ ADSENSE (YOUR ID ALREADY USED) -->
+  <!-- ADSENSE -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429" crossorigin="anonymous"></script>
 
   <style>
     body {
       margin: 0;
-      background: #0b0b0b;
       font-family: Arial;
       color: white;
+      background: url('logo.png') center/cover no-repeat fixed;
+      backdrop-filter: blur(10px);
     }
 
     #nav {
-      background: #111;
+      background: rgba(0,0,0,0.8);
       padding: 12px;
       text-align: center;
       font-weight: bold;
@@ -96,21 +97,15 @@
       100% { transform: rotate(360deg); }
     }
 
-    #loginBox {
-      text-align: center;
-      padding: 15px;
-    }
-
-    .premium-lock {
-      color: red;
-      font-size: 12px;
-    }
-
     footer {
       text-align: center;
       padding: 20px;
       font-size: 12px;
       color: gray;
+    }
+
+    .premium-lock {
+      color: red;
     }
   </style>
 </head>
@@ -120,19 +115,11 @@
 <!-- NAV -->
 <div id="nav">
   ReelMind AI 🚀 |
-  <a href="about.html">About</a>
-  <a href="blog.html">Blog</a>
-  <a href="contact.html">Contact</a>
-  <a href="privacy.html">Privacy</a>
+  <a href="#">About</a>
+  <a href="#">Blog</a>
+  <a href="#">Contact</a>
+  <a href="#">Privacy</a>
   | <span id="userStatus">Guest</span>
-</div>
-
-<!-- LOGIN -->
-<div id="loginBox">
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-  <button onclick="subscribe()">💎 Go Premium</button>
 </div>
 
 <!-- CHAT -->
@@ -154,9 +141,13 @@
 
 <!-- INPUT -->
 <div id="inputArea">
+  <button onclick="uploadFile()">📎</button>
+  <button onclick="startMic()">🎤</button>
   <input id="userInput" placeholder="Ask anything..." />
   <button onclick="sendPrompt()">Send</button>
 </div>
+
+<input type="file" id="fileInput" hidden />
 
 <!-- FOOTER -->
 <footer>
@@ -165,38 +156,14 @@
 
 <script>
 const BASE_URL = "https://reelmindbackend-1.onrender.com";
-let TOKEN = localStorage.getItem("token");
+
+// 🔐 AUTO LOGIN (PERMANENT)
+let TOKEN = localStorage.getItem("token") || "demo-user";
+localStorage.setItem("token", TOKEN);
+document.getElementById("userStatus").innerText = "User";
+
+// 💎 PREMIUM
 let IS_PREMIUM = localStorage.getItem("premium") === "true";
-
-// LOGIN
-async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const res = await fetch(BASE_URL + "/login", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email, password })
-  });
-
-  const data = await res.json();
-
-  if (data.token) {
-    TOKEN = data.token;
-    localStorage.setItem("token", TOKEN);
-    document.getElementById("userStatus").innerText = "Logged In";
-    document.getElementById("loginBox").style.display = "none";
-  } else {
-    alert("Login failed");
-  }
-}
-
-// 💰 FAKE SUBSCRIBE (HOOK FOR REAL BACKEND)
-function subscribe() {
-  alert("Redirecting to payment...");
-  localStorage.setItem("premium", "true");
-  IS_PREMIUM = true;
-}
 
 // MAIN FUNCTION
 async function sendPrompt() {
@@ -213,12 +180,12 @@ async function sendPrompt() {
 
   try {
 
-    // IMAGE (PREMIUM LOCK)
+    // 🖼 IMAGE (Pollinations)
     if (input.toLowerCase().includes("image")) {
 
       if (!IS_PREMIUM) {
         loader.remove();
-        chat.innerHTML += `<div class="msg ai premium-lock">🔒 Image generation is Premium</div>`;
+        chat.innerHTML += `<div class="msg ai premium-lock">🔒 Premium only (click subscribe)</div>`;
         return;
       }
 
@@ -233,13 +200,12 @@ async function sendPrompt() {
         </div>`;
     }
 
-    // TEXT
+    // 💬 TEXT (Backend OpenRouter)
     else {
       const res = await fetch(BASE_URL + "/generate-text", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": TOKEN ? "Bearer " + TOKEN : ""
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ prompt: input })
       });
@@ -247,18 +213,50 @@ async function sendPrompt() {
       const data = await res.json();
       loader.remove();
 
-      const reply = data.choices?.[0]?.message?.content || "No response";
+      const reply = data?.result || data?.choices?.[0]?.message?.content || "No response";
 
       chat.innerHTML += `<div class="msg ai">${reply}</div>`;
     }
 
-  } catch {
+  } catch (err) {
     loader.remove();
-    chat.innerHTML += `<div class="msg ai">⚠️ Server error</div>`;
+    chat.innerHTML += `<div class="msg ai">⚠️ Backend error</div>`;
   }
 
   document.getElementById("userInput").value = "";
   chat.scrollTop = chat.scrollHeight;
+}
+
+// 📎 FILE UPLOAD
+function uploadFile() {
+  document.getElementById("fileInput").click();
+}
+
+document.getElementById("fileInput").addEventListener("change", function () {
+  const file = this.files[0];
+  if (file) {
+    document.getElementById("chat").innerHTML += `<div class="msg user">📁 ${file.name}</div>`;
+  }
+});
+
+// 🎤 MIC
+function startMic() {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert("Mic not supported");
+    return;
+  }
+
+  const recognition = new webkitSpeechRecognition();
+  recognition.onresult = e => {
+    document.getElementById("userInput").value = e.results[0][0].transcript;
+  };
+  recognition.start();
+}
+
+// 💎 SUBSCRIBE (TEMP)
+function subscribe() {
+  localStorage.setItem("premium", "true");
+  alert("Premium activated");
 }
 </script>
 
