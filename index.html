@@ -1,130 +1,95 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #000;
-      color: white;
-    }
-
-    #chat {
-      height: 70vh;
-      overflow-y: auto;
-      padding: 10px;
-    }
-
-    .msg {
-      padding: 10px;
-      margin: 8px;
-      border-radius: 10px;
-    }
-
-    .user { background: #1f1f1f; text-align: right; }
-    .ai { background: #2b2b2b; }
-
-    #inputArea {
-      display: flex;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #111;
-      padding: 10px;
-    }
-
-    input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 20px;
-      border: none;
-    }
-
-    button {
-      margin-left: 5px;
-      padding: 10px;
-      border-radius: 20px;
-      border: none;
-      background: #00ffc3;
-    }
-
-    img { width: 100%; border-radius: 10px; }
-  </style>
-</head>
-
-<body>
-
-<div id="chat"></div>
-
-<div style="text-align:center; margin:10px;">
-  <button onclick="mode='text'">AI</button>
-  <button onclick="mode='image'">Image</button>
-  <button onclick="buy()">💰 Buy Credits</button>
-</div>
-
-<div id="inputArea">
-  <input id="input" placeholder="Ask anything..." />
-  <button onclick="send()">Send</button>
-</div>
-
 <script>
-const BASE = "https://reelmindbackend-1.onrender.com";
-let TOKEN = localStorage.getItem("token");
-let mode = "text";
+const BASE_URL = "https://reelmindbackend-1.onrender.com";
 
-// AUTO LOGIN
-async function login() {
+let TOKEN = localStorage.getItem("token");
+
+// ✅ AUTO LOGIN
+async function autoLogin() {
   if (TOKEN) return;
 
-  const res = await fetch(BASE + "/login", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ email: "user" + Date.now() + "@app.com" })
-  });
+  try {
+    const res = await fetch(BASE_URL + "/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: "neavyartical@gmail.com"
+      })
+    });
 
-  const data = await res.json();
-  TOKEN = data.token;
-  localStorage.setItem("token", TOKEN);
+    const data = await res.json();
+    TOKEN = data.token;
+
+    localStorage.setItem("token", TOKEN);
+
+    console.log("✅ Logged in");
+  } catch (err) {
+    console.log("Login error", err);
+    alert("Login failed");
+  }
 }
 
-login();
+// Run login on load
+autoLogin();
 
-async function send() {
-  const text = input.value;
-  if (!text) return;
+// 🚀 SEND PROMPT
+async function sendPrompt() {
+  const input = document.getElementById("userInput").value;
+  const chat = document.getElementById("chat");
 
-  chat.innerHTML += `<div class="msg user">${text}</div>`;
+  if (!input) return;
 
-  let url = mode === "image" ? "/generate-image" : "/generate-text";
+  chat.innerHTML += `<div class="msg user">${input}</div>`;
 
-  const res = await fetch(BASE + url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + TOKEN
-    },
-    body: JSON.stringify({ prompt: text })
-  });
+  const loader = document.createElement("div");
+  loader.className = "loader";
+  chat.appendChild(loader);
 
-  const data = await res.json();
+  try {
+    await autoLogin();
 
-  if (mode === "image") {
-    chat.innerHTML += `<div class="msg ai"><img src="${data.image}"></div>`;
-  } else {
-    chat.innerHTML += `<div class="msg ai">${data.result || "No response"}</div>`;
+    let endpoint = "/generate-text";
+
+    // 🖼 detect image request
+    if (input.toLowerCase().includes("image")) {
+      endpoint = "/generate-image";
+    }
+
+    const res = await fetch(BASE_URL + endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + TOKEN
+      },
+      body: JSON.stringify({ prompt: input })
+    });
+
+    const data = await res.json();
+    loader.remove();
+
+    // 🖼 IMAGE RESPONSE
+    if (data.image) {
+      chat.innerHTML += `
+        <div class="msg ai">
+          <img src="${data.image}">
+        </div>`;
+    } 
+    
+    // 💬 TEXT RESPONSE
+    else {
+      chat.innerHTML += `
+        <div class="msg ai">
+          ${data.result || data.error || "No response"}
+        </div>`;
+    }
+
+  } catch (err) {
+    loader.remove();
+    chat.innerHTML += `<div class="msg ai">⚠️ Backend error</div>`;
   }
 
-  input.value = "";
+  document.getElementById("userInput").value = "";
   chat.scrollTop = chat.scrollHeight;
 }
-
-function buy() {
-  window.open("https://ko-fi.com/articalneavy", "_blank");
-}
 </script>
-
-</body>
-</html>
