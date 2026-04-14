@@ -5,7 +5,7 @@
 <title>ReelMind AI - Powered by Artical Neavy</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ✅ ADSENSE (FIXED WITH YOUR PUB ID) -->
+<!-- ADSENSE -->
 <script async 
 src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
 crossorigin="anonymous"></script>
@@ -16,16 +16,13 @@ margin:0;
 background:#0b0f14;
 color:white;
 font-family:Arial;
-
-/* ✅ FIXED BACKGROUND */
 background-image:url("logo.png");
 background-repeat:no-repeat;
 background-position:center;
 background-size:60%;
-background-color:#0b0f14;
 }
 
-/* DASHBOARD */
+/* TOP BAR */
 #topbar{
 position:fixed;top:0;width:100%;
 background:#111;padding:10px;
@@ -34,54 +31,92 @@ font-size:12px;z-index:999;
 }
 #topbar span{color:#00ff88}
 
-/* CHAT */
-#chat{
-position:absolute;top:70px;bottom:160px;
-width:100%;overflow:auto;padding:10px;
-}
-
-.msg{margin:10px;padding:12px;border-radius:12px;max-width:80%}
-.user{background:#1f1f1f;margin-left:auto}
-.ai{background:#16212b}
-
-/* GENERATE BUTTON */
-#generateBtn{
+/* FEED */
+#feed{
 position:absolute;
-top:50%;left:50%;
-transform:translate(-50%,-50%);
-width:130px;height:130px;
-border-radius:50%;
-background:cyan;color:black;
-font-weight:bold;
-display:flex;align-items:center;justify-content:center;
-box-shadow:0 0 50px cyan;
-cursor:pointer;
+top:60px;
+bottom:140px;
+width:100%;
+overflow-y:scroll;
+scroll-snap-type:y mandatory;
 }
 
-/* FLOAT */
-#uploadBtn,#micBtn{
+/* CARD */
+.card{
+height:100vh;
+scroll-snap-align:start;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.card img, .card video{
+max-width:90%;
+border-radius:15px;
+}
+
+.card p{
+max-width:90%;
+font-size:14px;
+line-height:1.5;
+}
+
+/* CONTROLS */
+#controls{
 position:fixed;
-bottom:160px;
+bottom:0;
+width:100%;
+height:70px;
+display:flex;
+justify-content:space-around;
+align-items:center;
+background:#111;
+}
+
+/* BUTTONS */
+.btn{
 width:55px;height:55px;
 border-radius:50%;
-display:flex;align-items:center;justify-content:center;
+display:flex;
+align-items:center;
+justify-content:center;
 font-size:22px;
-z-index:999;
+background:#222;
 }
-#uploadBtn{left:15px;background:#00ff88}
-#micBtn{right:15px;background:#00ccff}
+
+#generate{
+background:cyan;
+color:black;
+font-weight:bold;
+width:70px;height:70px;
+}
 
 /* INPUT */
-#inputArea{
-position:fixed;bottom:0;width:100%;
-display:flex;padding:10px;background:#111
+#prompt{
+position:fixed;
+bottom:80px;
+width:90%;
+left:5%;
+padding:12px;
+border-radius:25px;
+border:none;
 }
-input{flex:1;padding:12px;border-radius:25px;border:none}
+
+/* ADS */
+#ad{
+position:fixed;
+bottom:80px;
+width:100%;
+text-align:center;
+}
 </style>
 </head>
 
 <body>
 
+<!-- DASHBOARD -->
 <div id="topbar">
 <span id="status">🔴 Offline</span>
 <span id="user">User: neavyartical@gmail.com</span>
@@ -90,20 +125,25 @@ input{flex:1;padding:12px;border-radius:25px;border:none}
 <span onclick="upgrade()">💰 Upgrade</span>
 </div>
 
-<div id="chat"></div>
+<!-- FEED -->
+<div id="feed"></div>
 
-<div id="generateBtn" onclick="generate()">GENERATE</div>
+<!-- INPUT -->
+<input id="prompt" placeholder="Create anything..." />
 
-<div id="uploadBtn" onclick="fileInput.click()">+</div>
-<input type="file" id="fileInput" hidden onchange="uploadFile(event)">
-<div id="micBtn" onclick="startVoice()">🎤</div>
+<!-- CONTROLS -->
+<div id="controls">
+<div class="btn" onclick="upload()">+</div>
+<div id="generate" class="btn" onclick="generate()">⚡</div>
+<div class="btn" onclick="startVoice()">🎤</div>
+</div>
 
-<!-- ✅ ADS BLOCK (FIXED) -->
-<div style="position:fixed;bottom:80px;width:100%;text-align:center;">
+<!-- ADS -->
+<div id="ad">
 <ins class="adsbygoogle"
 style="display:block"
 data-ad-client="ca-pub-1714638410489429"
-data-ad-slot="1234567890"
+data-ad-slot="1714638410"
 data-ad-format="auto"
 data-full-width-responsive="true"></ins>
 </div>
@@ -112,15 +152,11 @@ data-full-width-responsive="true"></ins>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-<div id="inputArea">
-<input id="prompt" placeholder="Ask anything..." />
-</div>
-
 <script>
 const API="https://reelmindbackend-1.onrender.com";
-const chat=document.getElementById("chat");
+const feed=document.getElementById("feed");
 
-// ===== MEMORY AI (FIXED) =====
+// ===== MEMORY AI =====
 let memory = JSON.parse(localStorage.getItem("reelmind_memory") || "[]");
 
 function saveMemory(user, ai){
@@ -133,7 +169,7 @@ function buildMemoryContext(){
 return memory.map(m => `User: ${m.user}\nAI: ${m.ai}`).join("\n");
 }
 
-// ===== LOGIN (FORCE ADMIN) =====
+// ===== LOGIN =====
 async function ensureLogin(){
 if(!localStorage.token){
 let r=await fetch(API+"/login",{
@@ -155,40 +191,44 @@ headers:{Authorization:"Bearer "+localStorage.token}
 let d=await r.json();
 
 document.getElementById("status").innerText="🟢 Online";
-document.getElementById("user").innerText="User: neavyartical@gmail.com";
 document.getElementById("credits").innerText="Credits: "+d.data.credits;
 document.getElementById("ref").innerText="Ref: "+d.data.referrals;
 }
 
-// ===== MESSAGE =====
-function addMsg(t,c){
-let d=document.createElement("div");
-d.className="msg "+c;
-d.innerText=t;
-chat.appendChild(d);
-chat.scrollTop=chat.scrollHeight;
-return d;
+// ===== ADD CARD =====
+function addCard(content,type){
+let c=document.createElement("div");
+c.className="card";
+
+if(type==="image"){
+c.innerHTML=`<img src="${content}">`;
+}
+else if(type==="video"){
+c.innerHTML=`<video controls src="${content}"></video>`;
+}
+else{
+c.innerHTML=`<p>${content}</p>`;
 }
 
-// ===== SPEAK (MULTI LANGUAGE) =====
+feed.prepend(c);
+}
+
+// ===== SPEAK (ALL LANGUAGES) =====
 function speak(text){
 let u=new SpeechSynthesisUtterance(text);
 let voices = speechSynthesis.getVoices();
-u.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+u.voice = voices.find(v => v.lang) || voices[0];
 speechSynthesis.speak(u);
 }
 
-// ===== GENERATE (FIXED ROUTING) =====
+// ===== GENERATE =====
 async function generate(){
 await ensureLogin();
 
 let p=document.getElementById("prompt").value;
 if(!p) return;
 
-addMsg(p,"user");
-let box=addMsg("⚡ Generating...","ai");
-
-// ROUTE FIX
+// ROUTING
 let route="/generate-text";
 if(/image|photo|picture|art/i.test(p)) route="/generate-image";
 else if(/video|clip|movie/i.test(p)) route="/generate-video";
@@ -203,7 +243,7 @@ finalPrompt = `
 Use memory:
 ${context}
 
-Generate 3 DIFFERENT long cinematic stories (1000+ words each).
+Generate 3 DIFFERENT cinematic stories (1000+ words each).
 
 ${p}
 `;
@@ -214,6 +254,7 @@ if(route==="/generate-image"){
 finalPrompt = p + ", ultra realistic, cinematic lighting, 8k";
 }
 
+// CALL API
 let r=await fetch(API+route,{
 method:"POST",
 headers:{
@@ -225,17 +266,17 @@ body:JSON.stringify({prompt:finalPrompt})
 
 let d=await r.json();
 
-// OUTPUT FIX
+// OUTPUT
 if(route==="/generate-image"){
-box.innerHTML=`<img src="${d.data.url}">`;
+addCard(d.data.url,"image");
 saveMemory(p,d.data.url);
 }
 else if(route==="/generate-video"){
-box.innerHTML=`<video controls src="${d.data.url}"></video>`;
+addCard(d.data.url,"video");
 saveMemory(p,d.data.url);
 }
 else{
-box.innerText=d.data.content;
+addCard(d.data.content,"text");
 saveMemory(p,d.data.content);
 speak(d.data.content);
 }
@@ -256,15 +297,15 @@ let rec=new SpeechRecognition();
 rec.lang="en-US";
 
 rec.onresult=e=>{
-prompt.value=e.results[0][0].transcript;
+document.getElementById("prompt").value=e.results[0][0].transcript;
 };
 
 rec.start();
 }
 
 // ===== UPLOAD =====
-function uploadFile(e){
-addMsg("📁 "+e.target.files[0].name,"user");
+function upload(){
+alert("Upload coming soon");
 }
 
 // ===== PAYMENT =====
