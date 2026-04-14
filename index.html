@@ -60,7 +60,7 @@ background:#222;font-size:22px;cursor:pointer
 #generate{background:cyan;color:black}
 
 /* INPUT */
-#prompt{
+#promptInput{
 position:fixed;bottom:90px;width:90%;
 left:5%;padding:12px;border-radius:25px;border:none;
 z-index:999
@@ -121,11 +121,17 @@ margin-bottom:100px;
 </button>
 </div>
 
-<input id="prompt" placeholder="Create anything..." />
+<!-- INPUT -->
+<input id="promptInput" placeholder="Create anything..." />
 
+<!-- CONTROLS -->
 <div id="controls">
+<div class="btn" onclick="startVoice()">🎤</div>
 <div id="generate" class="btn" onclick="generate()">⚡</div>
+<div class="btn" onclick="document.getElementById('fileInput').click()">📁</div>
 </div>
+
+<input type="file" id="fileInput" style="display:none" onchange="uploadFile(event)">
 
 <div id="footer">Powered by Artical Neavy</div>
 
@@ -143,7 +149,7 @@ projectId: "reelmind-ai-a11eb"
 const auth = firebase.auth();
 let USER_CREDITS = 0;
 
-/* TOKEN FIX */
+/* TOKEN */
 async function getToken(){
 const user = auth.currentUser;
 if(!user) return null;
@@ -152,8 +158,8 @@ return await user.getIdToken(true);
 
 /* LOGIN */
 async function emailLogin(){
-let email=prompt("Email");
-let pass=prompt("Password");
+let email=window.prompt("Email");
+let pass=window.prompt("Password");
 try{
 await auth.signInWithEmailAndPassword(email,pass);
 }catch{
@@ -168,7 +174,7 @@ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 /* AUTH */
 auth.onAuthStateChanged(user=>{
 if(user){
-loginBox.style.display="none";
+document.getElementById("loginBox").style.display="none";
 
 welcome.classList.add("active");
 setTimeout(()=>welcome.classList.remove("active"),2000);
@@ -188,10 +194,7 @@ async function loadProfile(){
 const token = await getToken();
 if(!token) return;
 
-let r = await fetch(API+"/me",{
-headers:{Authorization:"Bearer "+token}
-});
-
+let r = await fetch(API+"/me",{headers:{Authorization:"Bearer "+token}});
 let d = await r.json();
 
 USER_CREDITS = d.data?.credits || 0;
@@ -204,7 +207,7 @@ function showProfile(){
 show('profileSection');
 }
 
-/* USE CREDIT */
+/* CREDIT */
 async function useCredit(amount){
 if(USER_CREDITS < amount){
 alert("💳 Not enough credits");
@@ -231,22 +234,21 @@ return true;
 
 /* GENERATE */
 async function generate(){
+try{
 const token = await getToken();
 if(!token) return alert("Login first");
 
-let p = prompt.value;
+let p = document.getElementById("promptInput").value;
 if(!p) return;
 
-/* COST LOGIC */
+/* COST */
 let cost = 1;
 if(/image/i.test(p)) cost = 2;
 if(/video/i.test(p)) cost = 5;
 
-/* PAYWALL */
 let ok = await useCredit(cost);
 if(!ok) return;
 
-/* ROUTE */
 let route = "/generate-text";
 if(cost === 2) route = "/generate-image";
 if(cost === 5) route = "/generate-video";
@@ -262,12 +264,13 @@ body:JSON.stringify({prompt:p})
 
 let d = await r.json();
 
-if(d.error){
-alert(d.error);
-return;
-}
+if(d.error) return alert(d.error);
 
 addCard(d.data?.content || d.data?.url);
+
+}catch(e){
+alert("Error: " + e.message);
+}
 }
 
 /* CARD */
@@ -275,6 +278,24 @@ function addCard(content){
 let c=document.createElement("div");
 c.innerHTML=`<div style="padding:10px">${content}</div>`;
 feed.prepend(c);
+}
+
+/* VOICE */
+function startVoice(){
+try{
+const rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();
+rec.start();
+rec.onresult=e=>{
+document.getElementById("promptInput").value=e.results[0][0].transcript;
+};
+}catch{
+alert("Voice not supported");
+}
+}
+
+/* UPLOAD */
+async function uploadFile(e){
+alert("Upload coming soon 🚀");
 }
 
 /* UPGRADE */
