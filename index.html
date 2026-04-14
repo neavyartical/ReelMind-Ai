@@ -1,188 +1,11 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>ReelMind AI PRO</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- ADSENSE -->
-<script async 
-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
-crossorigin="anonymous"></script>
-
-<style>
-body{
-margin:0;
-background:#0b0f14;
-color:white;
-font-family:Arial;
-overflow:hidden;
-
-/* LOGO BACKGROUND FIX */
-background-image:url("logo.png");
-background-repeat:no-repeat;
-background-position:center;
-background-size:60%;
-}
-
-/* TOP BAR */
-#topbar{
-position:fixed;
-top:0;
-width:100%;
-background:#111;
-padding:10px;
-display:flex;
-justify-content:space-around;
-font-size:12px;
-z-index:999;
-}
-#topbar span{color:#00ff88}
-
-/* FEED */
-#feed{
-position:absolute;
-top:50px;
-bottom:140px;
-width:100%;
-overflow-y:scroll;
-scroll-snap-type:y mandatory;
-}
-
-/* CARD */
-.card{
-height:100vh;
-scroll-snap-align:start;
-position:relative;
-display:flex;
-align-items:center;
-justify-content:center;
-}
-
-/* MEDIA */
-.card img,.card video{
-width:100%;
-height:100%;
-object-fit:cover;
-}
-
-/* TEXT */
-.overlay{
-position:absolute;
-bottom:100px;
-left:10px;
-right:80px;
-font-size:14px;
-}
-
-/* ACTIONS */
-.actions{
-position:absolute;
-right:10px;
-bottom:120px;
-display:flex;
-flex-direction:column;
-gap:20px;
-}
-
-.action{
-font-size:22px;
-}
-
-/* INPUT */
-#prompt{
-position:fixed;
-bottom:90px;
-width:90%;
-left:5%;
-padding:12px;
-border-radius:25px;
-border:none;
-z-index:999;
-}
-
-/* CONTROLS */
-#controls{
-position:fixed;
-bottom:0;
-width:100%;
-height:70px;
-display:flex;
-justify-content:space-around;
-align-items:center;
-background:#111;
-}
-
-.btn{
-width:55px;height:55px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:22px;
-background:#222;
-}
-
-#generate{
-background:cyan;
-color:black;
-font-weight:bold;
-width:70px;height:70px;
-}
-
-/* ADS */
-#ad{
-position:fixed;
-bottom:70px;
-width:100%;
-text-align:center;
-}
-</style>
-</head>
-
-<body>
-
-<!-- DASHBOARD -->
-<div id="topbar">
-<span id="status">🔴 Offline</span>
-<span id="user">User: neavyartical@gmail.com</span>
-<span id="credits">Credits: --</span>
-<span id="ref">Ref: 0</span>
-<span onclick="upgrade()">💰 Upgrade</span>
-</div>
-
-<!-- FEED -->
-<div id="feed"></div>
-
-<!-- INPUT -->
-<input id="prompt" placeholder="Create anything..." />
-
-<!-- CONTROLS -->
-<div id="controls">
-<div class="btn" onclick="upload()">+</div>
-<div id="generate" class="btn" onclick="generate()">⚡</div>
-<div class="btn" onclick="startVoice()">🎤</div>
-</div>
-
-<!-- ADS -->
-<div id="ad">
-<ins class="adsbygoogle"
-style="display:block"
-data-ad-client="ca-pub-1714638410489429"
-data-ad-slot="1714638410"
-data-ad-format="auto"
-data-full-width-responsive="true"></ins>
-</div>
-
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-
 <script>
 const API="https://reelmindbackend-1.onrender.com";
 const feed=document.getElementById("feed");
 
-// ===== MEMORY AI =====
+// ===== STATE =====
+let isLive = false;
+
+// ===== MEMORY =====
 let memory = JSON.parse(localStorage.getItem("reelmind_memory") || "[]");
 
 function saveMemory(user, ai){
@@ -197,6 +20,7 @@ return memory.map(m => `User: ${m.user}\nAI: ${m.ai}`).join("\n");
 
 // ===== LOGIN =====
 async function ensureLogin(){
+try{
 if(!localStorage.token){
 let r=await fetch(API+"/login",{
 method:"POST",
@@ -206,7 +30,10 @@ body:JSON.stringify({email:"neavyartical@gmail.com"})
 let d=await r.json();
 localStorage.token=d.data.token;
 }
-loadUser();
+await loadUser();
+}catch{
+alert("Server offline");
+}
 }
 
 // ===== USER =====
@@ -217,8 +44,8 @@ headers:{Authorization:"Bearer "+localStorage.token}
 let d=await r.json();
 
 document.getElementById("status").innerText="🟢 Online";
-document.getElementById("credits").innerText="Credits: "+d.data.credits;
-document.getElementById("ref").innerText="Ref: "+d.data.referrals;
+document.getElementById("credits").innerText="Credits: "+(d.data?.credits || 0);
+document.getElementById("ref").innerText="Ref: "+(d.data?.referrals || 0);
 }
 
 // ===== ADD CARD =====
@@ -227,36 +54,90 @@ let c=document.createElement("div");
 c.className="card";
 
 let media="";
-if(type==="image") media=`<img src="${content}">`;
-else if(type==="video") media=`<video controls autoplay loop muted src="${content}"></video>`;
-else media=`<div class="overlay">${content}</div>`;
+if(type==="image"){
+media=`<img src="${content}">`;
+}
+else if(type==="video"){
+media=`<video autoplay loop muted playsinline src="${content}"></video>`;
+}
+else if(type==="live"){
+media=`<video id="liveVideo" autoplay muted playsinline></video>`;
+}
+else{
+media=`<div class="overlay">${content}</div>`;
+}
 
 c.innerHTML=`
 ${media}
 <div class="actions">
-<div class="action">❤️</div>
+<div class="action" onclick="like(this)">❤️ <span>0</span></div>
 <div class="action">💬</div>
 <div class="action">🔗</div>
 </div>
 `;
 
 feed.prepend(c);
+
+// autoplay fix
+let vid=c.querySelector("video");
+if(vid){
+vid.play().catch(()=>{});
+}
+}
+
+// ===== LIKE SYSTEM =====
+function like(el){
+let count=el.querySelector("span");
+count.innerText=parseInt(count.innerText)+1;
 }
 
 // ===== SPEAK =====
 function speak(text){
+try{
 let u=new SpeechSynthesisUtterance(text);
 let voices = speechSynthesis.getVoices();
-u.voice = voices.find(v => v.lang) || voices[0];
+u.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+speechSynthesis.cancel();
 speechSynthesis.speak(u);
+}catch{}
+}
+
+// ===== LIVE STREAM (FRONTEND REAL) =====
+async function startLive(){
+try{
+let stream = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+
+addCard("", "live");
+
+let video=document.getElementById("liveVideo");
+video.srcObject = stream;
+
+isLive = true;
+
+// 🔥 FUTURE: SEND STREAM TO SERVER HERE
+// Example:
+// connectWebRTC(stream);
+
+}catch{
+alert("Camera permission denied");
+}
 }
 
 // ===== GENERATE =====
 async function generate(){
 await ensureLogin();
 
-let p=document.getElementById("prompt").value;
+let input=document.getElementById("prompt");
+let p=input.value.trim();
 if(!p) return;
+
+input.value="";
+
+// 🔥 LIVE TRIGGER
+if(/live|stream|go live/i.test(p)){
+startLive();
+return;
+}
 
 // ROUTING
 let route="/generate-text";
@@ -273,13 +154,13 @@ finalPrompt = `
 Use memory:
 ${context}
 
-Create VIRAL content:
+Create VIRAL TikTok content:
 - Hook
 - Story
 - Caption
 - Hashtags
 
-AND also generate 3 cinematic long versions.
+Also generate 3 cinematic long versions.
 
 ${p}
 `;
@@ -290,7 +171,10 @@ if(route==="/generate-image"){
 finalPrompt = p + ", ultra realistic, cinematic lighting, 8k";
 }
 
-// CALL API
+// LOADING
+addCard("⚡ Generating...", "text");
+
+try{
 let r=await fetch(API+route,{
 method:"POST",
 headers:{
@@ -304,17 +188,22 @@ let d=await r.json();
 
 // OUTPUT
 if(route==="/generate-image"){
-addCard(d.data.url,"image");
-saveMemory(p,d.data.url);
+addCard(d.data?.url || "Image failed","image");
+saveMemory(p,d.data?.url);
 }
 else if(route==="/generate-video"){
-addCard(d.data.url,"video");
-saveMemory(p,d.data.url);
+addCard(d.data?.url || "Video failed","video");
+saveMemory(p,d.data?.url);
 }
 else{
-addCard(d.data.content,"text");
-saveMemory(p,d.data.content);
-speak(d.data.content);
+let text=d.data?.content || "No response";
+addCard(text,"text");
+saveMemory(p,text);
+speak(text);
+}
+
+}catch{
+addCard("⚠️ Server error","text");
 }
 
 loadUser();
@@ -325,7 +214,7 @@ function startVoice(){
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if(!SpeechRecognition){
-alert("Use Chrome browser");
+alert("Use Chrome");
 return;
 }
 
@@ -341,7 +230,7 @@ rec.start();
 
 // ===== UPLOAD =====
 function upload(){
-alert("Upload coming soon");
+alert("Upload coming soon 🚀");
 }
 
 // ===== PAYMENT =====
@@ -349,9 +238,6 @@ function upgrade(){
 window.open("https://ko-fi.com/articalneavy","_blank");
 }
 
-// START
+// INIT
 ensureLogin();
-</script>
-
-</body>
-</html>
+  </script>
