@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ReelMind AI - Powered by Artical Neavy</title>
+<title>ReelMind AI PRO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- ADSENSE -->
@@ -16,6 +16,9 @@ margin:0;
 background:#0b0f14;
 color:white;
 font-family:Arial;
+overflow:hidden;
+
+/* LOGO BACKGROUND FIX */
 background-image:url("logo.png");
 background-repeat:no-repeat;
 background-position:center;
@@ -24,17 +27,22 @@ background-size:60%;
 
 /* TOP BAR */
 #topbar{
-position:fixed;top:0;width:100%;
-background:#111;padding:10px;
-display:flex;justify-content:space-around;
-font-size:12px;z-index:999;
+position:fixed;
+top:0;
+width:100%;
+background:#111;
+padding:10px;
+display:flex;
+justify-content:space-around;
+font-size:12px;
+z-index:999;
 }
 #topbar span{color:#00ff88}
 
 /* FEED */
 #feed{
 position:absolute;
-top:60px;
+top:50px;
 bottom:140px;
 width:100%;
 overflow-y:scroll;
@@ -45,22 +53,52 @@ scroll-snap-type:y mandatory;
 .card{
 height:100vh;
 scroll-snap-align:start;
+position:relative;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+/* MEDIA */
+.card img,.card video{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+/* TEXT */
+.overlay{
+position:absolute;
+bottom:100px;
+left:10px;
+right:80px;
+font-size:14px;
+}
+
+/* ACTIONS */
+.actions{
+position:absolute;
+right:10px;
+bottom:120px;
 display:flex;
 flex-direction:column;
-justify-content:center;
-align-items:center;
-padding:20px;
+gap:20px;
 }
 
-.card img, .card video{
-max-width:90%;
-border-radius:15px;
+.action{
+font-size:22px;
 }
 
-.card p{
-max-width:90%;
-font-size:14px;
-line-height:1.5;
+/* INPUT */
+#prompt{
+position:fixed;
+bottom:90px;
+width:90%;
+left:5%;
+padding:12px;
+border-radius:25px;
+border:none;
+z-index:999;
 }
 
 /* CONTROLS */
@@ -75,7 +113,6 @@ align-items:center;
 background:#111;
 }
 
-/* BUTTONS */
 .btn{
 width:55px;height:55px;
 border-radius:50%;
@@ -93,21 +130,10 @@ font-weight:bold;
 width:70px;height:70px;
 }
 
-/* INPUT */
-#prompt{
-position:fixed;
-bottom:80px;
-width:90%;
-left:5%;
-padding:12px;
-border-radius:25px;
-border:none;
-}
-
 /* ADS */
 #ad{
 position:fixed;
-bottom:80px;
+bottom:70px;
 width:100%;
 text-align:center;
 }
@@ -183,7 +209,7 @@ localStorage.token=d.data.token;
 loadUser();
 }
 
-// ===== LOAD USER =====
+// ===== USER =====
 async function loadUser(){
 let r=await fetch(API+"/me",{
 headers:{Authorization:"Bearer "+localStorage.token}
@@ -200,20 +226,24 @@ function addCard(content,type){
 let c=document.createElement("div");
 c.className="card";
 
-if(type==="image"){
-c.innerHTML=`<img src="${content}">`;
-}
-else if(type==="video"){
-c.innerHTML=`<video controls src="${content}"></video>`;
-}
-else{
-c.innerHTML=`<p>${content}</p>`;
-}
+let media="";
+if(type==="image") media=`<img src="${content}">`;
+else if(type==="video") media=`<video controls autoplay loop muted src="${content}"></video>`;
+else media=`<div class="overlay">${content}</div>`;
+
+c.innerHTML=`
+${media}
+<div class="actions">
+<div class="action">❤️</div>
+<div class="action">💬</div>
+<div class="action">🔗</div>
+</div>
+`;
 
 feed.prepend(c);
 }
 
-// ===== SPEAK (ALL LANGUAGES) =====
+// ===== SPEAK =====
 function speak(text){
 let u=new SpeechSynthesisUtterance(text);
 let voices = speechSynthesis.getVoices();
@@ -237,19 +267,25 @@ else if(/video|clip|movie/i.test(p)) route="/generate-video";
 let context = buildMemoryContext();
 let finalPrompt = p;
 
-// TEXT
+// TEXT MODE
 if(route==="/generate-text"){
 finalPrompt = `
 Use memory:
 ${context}
 
-Generate 3 DIFFERENT cinematic stories (1000+ words each).
+Create VIRAL content:
+- Hook
+- Story
+- Caption
+- Hashtags
+
+AND also generate 3 cinematic long versions.
 
 ${p}
 `;
 }
 
-// IMAGE
+// IMAGE MODE
 if(route==="/generate-image"){
 finalPrompt = p + ", ultra realistic, cinematic lighting, 8k";
 }
