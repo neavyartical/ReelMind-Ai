@@ -1,58 +1,378 @@
-{
-  "name": "reelmind-backend",
-  "version": "2.0.0",
-  "description": "🚀 ReelMind AI Backend - Hypersonic Production API",
-  "main": "server.js",
-  "type": "commonjs",
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ReelMind AI PRO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "build": "echo Build complete",
-    "restart": "npm run build && npm start"
-  },
+<!-- ADSENSE -->
+<script async 
+src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
+crossorigin="anonymous"></script>
 
-  "author": "Artical Neavy",
-  "license": "MIT",
-
-  "funding": {
-    "type": "ko-fi",
-    "url": "https://ko-fi.com/articalneavy"
-  },
-
-  "engines": {
-    "node": ">=18.x"
-  },
-
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.3.2",
-    "multer": "^1.4.5-lts.1",
-    "node-fetch": "^2.6.7",
-    "socket.io": "^4.7.5"
-  },
-
-  "devDependencies": {
-    "nodemon": "^3.1.0"
-  },
-
-  "keywords": [
-    "ai",
-    "reels",
-    "video",
-    "image",
-    "chatgpt",
-    "openrouter",
-    "saas",
-    "startup",
-    "api",
-    "socket.io",
-    "realtime",
-    "tiktok-clone",
-    "ai-content",
-    "viral-content"
-  ]
+<style>
+body{
+margin:0;
+background:#0b0f14;
+color:white;
+font-family:Arial;
 }
+
+/* TOPBAR */
+#topbar{
+position:fixed;
+top:0;width:100%;
+background:#111;
+padding:10px;
+display:flex;
+justify-content:space-around;
+z-index:999;
+font-size:12px;
+}
+#topbar span{color:#00ff88;cursor:pointer}
+
+/* FEED */
+#feed{
+margin-top:60px;
+padding-bottom:120px;
+}
+
+/* CARD */
+.card{
+width:100%;
+margin-bottom:12px;
+}
+
+/* MEDIA */
+.card img,.card video{
+width:100%;
+max-height:70vh;
+object-fit:cover;
+border-radius:10px;
+}
+
+/* TEXT */
+.overlay{
+padding:10px;
+font-size:14px;
+line-height:1.4;
+}
+
+/* PROFILE */
+#profile{
+display:none;
+padding:15px;
+margin-top:60px;
+}
+
+.avatar{
+width:80px;
+height:80px;
+border-radius:50%;
+background:#333;
+margin-bottom:10px;
+}
+
+/* LOGIN */
+#loginBox{
+position:fixed;
+top:0;left:0;
+width:100%;
+height:100%;
+background:#000d;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:2000;
+}
+
+.loginCard{
+background:#111;
+padding:20px;
+border-radius:10px;
+text-align:center;
+}
+
+.loginBtn{
+margin:10px;
+padding:10px;
+border-radius:5px;
+background:#222;
+cursor:pointer;
+}
+
+/* INPUT */
+#prompt{
+position:fixed;
+bottom:90px;
+width:90%;
+left:5%;
+padding:12px;
+border-radius:25px;
+border:none;
+}
+
+/* CONTROLS */
+#controls{
+position:fixed;
+bottom:0;width:100%;
+height:70px;
+display:flex;
+justify-content:space-around;
+align-items:center;
+background:#111;
+}
+
+.btn{
+width:55px;height:55px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#222;
+font-size:22px;
+}
+
+#generate{
+background:cyan;
+color:black;
+}
+
+/* FOOTER */
+#footer{
+position:fixed;
+bottom:70px;
+width:100%;
+text-align:center;
+font-size:12px;
+color:#888;
+}
+
+#fileInput{display:none;}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginBox">
+<div class="loginCard">
+<h3>Login</h3>
+<div class="loginBtn" onclick="emailLogin()">📧 Email</div>
+<div class="loginBtn" onclick="googleLogin()">🟢 Google</div>
+<div class="loginBtn" onclick="facebookLogin()">🔵 Facebook</div>
+<div class="loginBtn" onclick="appleLogin()">🍎 Apple</div>
+</div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+<span onclick="showFeed()">Home</span>
+<span onclick="showProfile()">Profile</span>
+<span onclick="upgrade()">💰</span>
+</div>
+
+<!-- FEED -->
+<div id="feed"></div>
+
+<!-- PROFILE -->
+<div id="profile">
+<div class="avatar"></div>
+<h3 id="userEmail"></h3>
+<p id="userStats"></p>
+<div id="userPosts"></div>
+</div>
+
+<!-- FILE -->
+<input type="file" id="fileInput" accept="image/*,video/*" onchange="uploadFile(event)">
+
+<!-- INPUT -->
+<input id="prompt" placeholder="Create anything..." />
+
+<!-- CONTROLS -->
+<div id="controls">
+<div class="btn" onclick="document.getElementById('fileInput').click()">+</div>
+<div id="generate" class="btn" onclick="generate()">⚡</div>
+<div class="btn" onclick="startVoice()">🎤</div>
+</div>
+
+<!-- FOOTER -->
+<div id="footer">Powered by Artical Neavy</div>
+
+<!-- ADS -->
+<div id="ad">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-1714638410489429"
+data-ad-slot="1714638410"
+data-ad-format="auto"
+data-full-width-responsive="true"></ins>
+</div>
+
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<script>
+const API="https://reelmindbackend-1.onrender.com";
+const feed=document.getElementById("feed");
+
+// ===== SPEECH =====
+function speak(text, lang="en-US"){
+try{
+let u=new SpeechSynthesisUtterance(text);
+let voices=speechSynthesis.getVoices();
+let v=voices.find(x=>x.lang===lang)||voices[0];
+u.voice=v;
+u.lang=lang;
+speechSynthesis.cancel();
+speechSynthesis.speak(u);
+}catch(e){}
+}
+
+// ===== NAV =====
+function showFeed(){
+feed.style.display="block";
+profile.style.display="none";
+}
+
+function showProfile(){
+feed.style.display="none";
+profile.style.display="block";
+loadProfile();
+}
+
+// ===== LOGIN =====
+async function emailLogin(){
+let email=prompt("Enter email:");
+if(!email) return;
+
+let r=await fetch(API+"/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({email})
+});
+
+let d=await r.json();
+localStorage.token=d.data.token;
+loginBox.style.display="none";
+}
+
+// OAUTH PLACEHOLDERS
+function googleLogin(){alert("Backend OAuth needed");}
+function facebookLogin(){alert("Backend OAuth needed");}
+function appleLogin(){alert("Backend OAuth needed");}
+
+// ===== CHECK LOGIN =====
+function checkLogin(){
+if(localStorage.token){
+loginBox.style.display="none";
+}
+}
+
+// ===== ADD CARD =====
+function addCard(content,type){
+let c=document.createElement("div");
+c.className="card";
+
+if(type==="image"){
+c.innerHTML=`<img src="${content}">`;
+}
+else if(type==="video"){
+c.innerHTML=`<video controls src="${content}"></video>`;
+}
+else{
+c.innerHTML=`<div class="overlay">${content}</div>`;
+}
+
+feed.prepend(c);
+}
+
+// ===== GENERATE =====
+async function generate(){
+if(!localStorage.token){alert("Login first");return;}
+
+let p=prompt.value;
+if(!p) return;
+
+addCard("⚡ Generating...","text");
+
+let route="/generate-text";
+if(/image|photo|art/i.test(p)) route="/generate-image";
+if(/video|clip/i.test(p)) route="/generate-video";
+
+let r=await fetch(API+route,{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+Authorization:"Bearer "+localStorage.token
+},
+body:JSON.stringify({prompt:p})
+});
+
+let d=await r.json();
+
+let content=d.data.url||d.data.content;
+let type=route.includes("image")?"image":route.includes("video")?"video":"text";
+
+addCard(content,type);
+speak(content);
+
+// SAVE
+fetch(API+"/post",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({content,type})
+});
+}
+
+// ===== UPLOAD =====
+async function uploadFile(e){
+let file=e.target.files[0];
+if(!file) return;
+
+let form=new FormData();
+form.append("file",file);
+
+addCard("📤 Uploading...","text");
+
+let r=await fetch(API+"/upload",{method:"POST",body:form});
+let d=await r.json();
+
+addCard(d.url,d.type);
+
+// SAVE
+fetch(API+"/post",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({content:d.url,type:d.type})
+});
+}
+
+// ===== PROFILE =====
+async function loadProfile(){
+let r=await fetch(API+"/me",{
+headers:{Authorization:"Bearer "+localStorage.token}
+});
+let d=await r.json();
+
+userEmail.innerText=d.data.email||"User";
+userStats.innerText="Credits: "+(d.data.credits||0);
+}
+
+// ===== MIC =====
+function startVoice(){
+alert("Voice input coming next 🔥");
+}
+
+// ===== PAYMENT =====
+function upgrade(){
+window.open("https://ko-fi.com/articalneavy","_blank");
+}
+
+// INIT
+checkLogin();
+</script>
+
+</body>
+</html>
