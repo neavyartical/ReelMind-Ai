@@ -17,7 +17,6 @@ background:#0b0f14;
 color:white;
 font-family:Arial;
 overflow:hidden;
-
 background-image:url("logo.png");
 background-repeat:no-repeat;
 background-position:center;
@@ -48,7 +47,17 @@ justify-content:space-around;
 font-size:12px;
 z-index:999;
 }
-#topbar span{color:#00ff88}
+#topbar span{color:#00ff88; cursor:pointer}
+
+/* PAGE */
+.page{
+display:none;
+position:absolute;
+top:60px;
+bottom:80px;
+overflow:auto;
+padding:15px;
+}
 
 /* FEED */
 #feed{
@@ -77,18 +86,16 @@ height:100%;
 object-fit:cover;
 }
 
-/* TEXT OVERLAY */
+/* TEXT */
 .overlay{
 position:absolute;
 bottom:100px;
 left:10px;
 right:80px;
-
 font-size:14px;
 line-height:1.4;
 white-space:pre-line;
 word-wrap:break-word;
-
 background:linear-gradient(to top, rgba(0,0,0,0.7), transparent);
 padding:10px;
 border-radius:10px;
@@ -103,10 +110,7 @@ display:flex;
 flex-direction:column;
 gap:20px;
 }
-.action{
-font-size:22px;
-cursor:pointer;
-}
+.action{font-size:22px}
 
 /* INPUT */
 #prompt{
@@ -161,24 +165,74 @@ text-align:center;
 
 <body>
 
+<!-- TOPBAR -->
 <div id="topbar">
-<span id="status">🔴 Offline</span>
-<span>User: neavyartical@gmail.com</span>
-<span id="credits">Credits: --</span>
-<span id="ref">Ref: 0</span>
-<span onclick="upgrade()">💰 Upgrade</span>
+<span onclick="showPage('feed')">Home</span>
+<span onclick="showPage('about')">About</span>
+<span onclick="showPage('privacy')">Privacy</span>
+<span onclick="showPage('policy')">Policy</span>
+<span onclick="showPage('blog')">Blog</span>
+<span onclick="showPage('contact')">Contact</span>
+<span onclick="upgrade()">💰</span>
 </div>
 
+<!-- FEED -->
 <div id="feed"></div>
 
+<!-- ABOUT -->
+<div id="about" class="page">
+<h2>About ReelMind AI</h2>
+<p>
+ReelMind AI is an advanced AI-powered platform built to help creators generate viral content, cinematic stories, and high-quality visuals. It combines automation with creativity, allowing users to scale their content production efficiently. The system integrates modern artificial intelligence models and real-time processing to deliver fast, engaging, and high-performing results. Our mission is to empower creators worldwide with tools that simplify storytelling and enhance digital growth.
+</p>
+</div>
+
+<!-- PRIVACY -->
+<div id="privacy" class="page">
+<h2>Privacy Policy</h2>
+<p>
+We respect your privacy. ReelMind AI collects only essential data such as login email and generated content to improve user experience. Your information is securely handled and never sold to third parties. We use modern technologies to protect user data and ensure safe interaction within the platform. By using this service, you agree to responsible data usage and our commitment to transparency and protection.
+</p>
+</div>
+
+<!-- POLICY -->
+<div id="policy" class="page">
+<h2>Usage Policy</h2>
+<p>
+Users must use ReelMind AI responsibly. The platform should not be used for illegal, harmful, or misleading activities. Any misuse may result in restricted access. We aim to maintain a safe, creative, and professional environment. By using this application, you agree to follow ethical guidelines and respect community standards while generating content.
+</p>
+</div>
+
+<!-- BLOG -->
+<div id="blog" class="page">
+<h2>Blog</h2>
+<p>
+Welcome to the ReelMind AI blog. Here you will find insights on AI content creation, viral strategies, and storytelling techniques. Learn how to grow your audience, improve engagement, and use artificial intelligence effectively. Our updates provide valuable tips to help creators stay ahead in the digital world.
+</p>
+</div>
+
+<!-- CONTACT -->
+<div id="contact" class="page">
+<h2>Contact ReelMind AI</h2>
+<p>
+If you have questions, feedback, or business inquiries, feel free to reach out. ReelMind AI supports creators globally and we value every message. Whether you need technical help, want to collaborate, or report an issue, we are here to assist you. Our goal is to provide a reliable and powerful AI experience for all users.
+</p>
+
+<p>📧 Email: <a href="mailto:neavyartical@gmail.com" style="color:cyan;">neavyartical@gmail.com</a></p>
+<p>💰 Support: <a href="https://ko-fi.com/articalneavy" target="_blank" style="color:cyan;">Ko-fi Page</a></p>
+</div>
+
+<!-- INPUT -->
 <input id="prompt" placeholder="Create anything..." />
 
+<!-- CONTROLS -->
 <div id="controls">
 <div class="btn" onclick="upload()">+</div>
 <div id="generate" class="btn" onclick="generate()">⚡</div>
 <div class="btn" onclick="startVoice()">🎤</div>
 </div>
 
+<!-- ADS -->
 <div id="ad">
 <ins class="adsbygoogle"
 style="display:block"
@@ -193,26 +247,26 @@ data-full-width-responsive="true"></ins>
 </script>
 
 <script>
-// ===== CONFIG =====
+// NAVIGATION
+function showPage(page){
+document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+document.getElementById("feed").style.display="none";
+
+if(page==="feed"){
+document.getElementById("feed").style.display="block";
+}else{
+document.getElementById(page).style.display="block";
+}
+}
+</script>
+
+<script>
+// CONFIG
 const API="https://reelmindbackend-1.onrender.com";
 const feed=document.getElementById("feed");
 
-// ===== MEMORY =====
-let memory = JSON.parse(localStorage.getItem("reelmind_memory") || "[]");
-
-function saveMemory(user, ai){
-memory.push({user, ai});
-if(memory.length > 10) memory.shift();
-localStorage.setItem("reelmind_memory", JSON.stringify(memory));
-}
-
-function buildMemoryContext(){
-return memory.map(m => `User: ${m.user}\nAI: ${m.ai}`).join("\n");
-}
-
-// ===== LOGIN =====
+// LOGIN
 async function ensureLogin(){
-try{
 if(!localStorage.token){
 let r=await fetch(API+"/login",{
 method:"POST",
@@ -222,164 +276,66 @@ body:JSON.stringify({email:"neavyartical@gmail.com"})
 let d=await r.json();
 localStorage.token=d.data.token;
 }
-await loadUser();
-}catch(e){
-alert("Server connection failed");
-}
 }
 
-// ===== USER =====
-async function loadUser(){
-let r=await fetch(API+"/me",{
-headers:{Authorization:"Bearer "+localStorage.token}
-});
-let d=await r.json();
-
-document.getElementById("status").innerText="🟢 Online";
-document.getElementById("credits").innerText="Credits: "+(d.data?.credits||0);
-document.getElementById("ref").innerText="Ref: "+(d.data?.referrals||0);
-}
-
-// ===== ADD CARD =====
+// ADD CARD
 function addCard(content,type){
 let c=document.createElement("div");
 c.className="card";
 
 let media="";
 if(type==="image") media=`<img src="${content}">`;
-else if(type==="video") media=`<video controls autoplay loop muted playsinline src="${content}"></video>`;
+else if(type==="video") media=`<video controls autoplay loop muted src="${content}"></video>`;
 else media=`<div class="overlay">${content}</div>`;
 
-c.innerHTML=`
-${media}
-<div class="actions">
-<div class="action">❤️</div>
-<div class="action">💬</div>
-<div class="action">🔗</div>
-</div>
-`;
-
+c.innerHTML=media;
 feed.prepend(c);
 }
 
-// ===== SPEAK =====
-function speak(text){
-try{
-let u=new SpeechSynthesisUtterance(text);
-let voices=speechSynthesis.getVoices();
-u.voice=voices.find(v=>v.lang.includes("en"))||voices[0];
-speechSynthesis.cancel();
-speechSynthesis.speak(u);
-}catch(e){}
-}
-
-// ===== GENERATE =====
+// GENERATE
 async function generate(){
 await ensureLogin();
 
-let input=document.getElementById("prompt");
-let p=input.value.trim();
+let p=document.getElementById("prompt").value;
 if(!p) return;
 
-input.value="";
-
-let route="/generate-text";
-if(/image|photo|picture|art/i.test(p)) route="/generate-image";
-else if(/video|clip|movie/i.test(p)) route="/generate-video";
-
-let context = buildMemoryContext();
-let finalPrompt=p;
-
-if(route==="/generate-text"){
-finalPrompt=`
-Use memory:
-${context}
-
-Create VIRAL TikTok content:
-- Hook
-- Story
-- Caption
-- Hashtags
-
-${p}
-`;
-}
-
-if(route==="/generate-image"){
-finalPrompt=p+", ultra realistic, cinematic lighting, 8k";
-}
-
-// LOADING
 addCard("⚡ Generating...","text");
 
-try{
+let route="/generate-text";
+if(/image|photo|art/i.test(p)) route="/generate-image";
+if(/video|clip/i.test(p)) route="/generate-video";
+
 let r=await fetch(API+route,{
 method:"POST",
 headers:{
 "Content-Type":"application/json",
 Authorization:"Bearer "+localStorage.token
 },
-body:JSON.stringify({prompt:finalPrompt})
+body:JSON.stringify({prompt:p})
 });
 
 let d=await r.json();
 
 if(route==="/generate-image"){
 addCard(d.data.url,"image");
-saveMemory(p,d.data.url);
-}
-else if(route==="/generate-video"){
+}else if(route==="/generate-video"){
 addCard(d.data.url,"video");
-saveMemory(p,d.data.url);
+}else{
+addCard(d.data.content,"text");
 }
-else{
-let text=d.data.content;
-addCard(text,"text");
-saveMemory(p,text);
-speak(text);
 }
 
-}catch(e){
-addCard("⚠️ Server error","text");
-}
-
-loadUser();
-}
-
-// ===== MIC (YOUR FIXED VERSION) =====
+// MIC
 function startVoice(){
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-if(!SpeechRecognition){
-alert("Mic not supported here. Use Chrome or native app.");
-return;
+alert("Use Chrome or native app 🎤");
 }
 
-try{
-let rec=new SpeechRecognition();
-rec.lang="en-US";
-rec.interimResults=false;
-
-rec.onstart = () => console.log("🎤 Listening...");
-rec.onresult = e => {
-document.getElementById("prompt").value = e.results[0][0].transcript;
-};
-rec.onerror = e => {
-alert("Mic error: " + e.error);
-};
-
-rec.start();
-}catch(e){
-alert("Microphone blocked");
-}
-}
-
-// ===== UPLOAD =====
+// UPLOAD
 function upload(){
-alert("Upload coming soon 🚀");
+alert("Upload system coming next update 🚀");
 }
 
-// ===== PAYMENT =====
+// PAYMENT
 function upgrade(){
 window.open("https://ko-fi.com/articalneavy","_blank");
 }
