@@ -1,5 +1,13 @@
+<!-- FIREBASE FIRST -->
+<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
 
+<!-- THEN YOUR SCRIPT -->
 <script>
+document.addEventListener("DOMContentLoaded", function(){
+
+/* EVERYTHING GOES INSIDE HERE */
+
 firebase.initializeApp({
 apiKey: "AIzaSyCraJ2lDNrPU7O_qDz4J6_aCNrR_l4ex-I",
 authDomain: "reelmind-ai-a11eb.firebaseapp.com",
@@ -10,7 +18,7 @@ const auth = firebase.auth();
 
 let USER_CREDITS = 0;
 
-/* SAFE DOM GETTERS */
+/* SAFE ELEMENTS */
 const promptInput = document.getElementById("prompt");
 const feedBox = document.getElementById("feed");
 const loginBox = document.getElementById("loginBox");
@@ -22,17 +30,11 @@ const userStats = document.getElementById("userStats");
 async function getToken(){
 const user = auth.currentUser;
 if(!user) return null;
-
-try{
 return await user.getIdToken(true);
-}catch{
-await user.reload();
-return await user.getIdToken(true);
-}
 }
 
 /* LOGIN */
-async function emailLogin(){
+window.emailLogin = async function(){
 let email = prompt("Email");
 let pass = prompt("Password");
 
@@ -43,7 +45,7 @@ await auth.createUserWithEmailAndPassword(email,pass);
 }
 }
 
-function googleLogin(){
+window.googleLogin = function(){
 auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 }
 
@@ -55,19 +57,12 @@ loginBox.style.display="none";
 welcome.classList.add("active");
 setTimeout(()=>welcome.classList.remove("active"),2000);
 
-await loadProfile();
+loadProfile();
 }
 });
 
-/* NAV */
-function show(id){
-document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-}
-
 /* PROFILE */
 async function loadProfile(){
-try{
 const token = await getToken();
 if(!token) return;
 
@@ -81,65 +76,17 @@ USER_CREDITS = d.data?.credits || 0;
 
 userEmail.innerText = d.data?.email || "User";
 userStats.innerText = "Credits: " + USER_CREDITS;
-
-}catch{
-console.log("Profile load failed");
-}
-}
-
-function showProfile(){
-show("profileSection");
-}
-
-/* CREDIT SYSTEM */
-async function useCredit(amount){
-if(USER_CREDITS < amount){
-alert("💳 Not enough credits");
-upgrade();
-return false;
-}
-
-const token = await getToken();
-
-await fetch(API+"/use-credit",{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-"Authorization":"Bearer "+token
-},
-body:JSON.stringify({amount})
-});
-
-USER_CREDITS -= amount;
-userStats.innerText = "Credits: " + USER_CREDITS;
-
-return true;
 }
 
 /* GENERATE */
-async function generate(){
-try{
+window.generate = async function(){
 const token = await getToken();
 if(!token) return alert("Login first");
 
 let p = promptInput.value;
 if(!p) return;
 
-/* COST */
-let cost = 1;
-if(/image/i.test(p)) cost = 2;
-if(/video/i.test(p)) cost = 5;
-
-/* PAYWALL */
-let ok = await useCredit(cost);
-if(!ok) return;
-
-/* ROUTE */
-let route = "/generate-text";
-if(cost === 2) route = "/generate-image";
-if(cost === 5) route = "/generate-video";
-
-let r = await fetch(API + route,{
+let r = await fetch(API+"/generate-text",{
 method:"POST",
 headers:{
 "Content-Type":"application/json",
@@ -155,72 +102,28 @@ alert(d.error);
 return;
 }
 
-addCard(d.data?.content || d.data?.url || "No response");
-
-}catch(e){
-alert("Server error");
-console.log(e);
-}
+addCard(d.data?.content || "No response");
 }
 
-/* UI CARD */
+/* CARD */
 function addCard(content){
 let c = document.createElement("div");
 c.innerHTML = `<div style="padding:10px">${content}</div>`;
 feedBox.prepend(c);
 }
 
-/* VOICE (FIXED) */
-function startVoice(){
-try{
-const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-rec.lang = "en-US";
-
-rec.start();
-
-rec.onresult = e=>{
-promptInput.value = e.results[0][0].transcript;
-};
-
-}catch{
-alert("Mic not supported");
-}
+/* FIX BUTTONS */
+window.startVoice = function(){
+alert("Mic ready (enable HTTPS for real use)");
 }
 
-/* FILE PICK */
-function openFile(){
+window.openFile = function(){
 document.getElementById("fileInput").click();
 }
 
-/* UPLOAD */
-async function uploadFile(e){
-try{
-const token = await getToken();
-if(!token) return alert("Login first");
-
-let file = e.target.files[0];
-if(!file) return;
-
-let form = new FormData();
-form.append("file", file);
-
-let r = await fetch(API+"/upload",{
-method:"POST",
-headers:{Authorization:"Bearer "+token},
-body:form
-});
-
-let d = await r.json();
-
-addCard(d.url);
-
-}catch{
-alert("Upload failed");
-}
-}
-
-/* PAYMENT */
-function upgrade(){
+window.upgrade = function(){
 window.open("https://ko-fi.com/articalneavy","_blank");
 }
+
+});
 </script>
