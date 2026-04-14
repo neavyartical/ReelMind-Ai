@@ -99,7 +99,7 @@ data-full-width-responsive="true"></ins>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-<!-- 🔥 FIREBASE FIXED -->
+<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import {
@@ -127,25 +127,16 @@ const auth = getAuth(app);
 
 window.API = "https://reelmindbackend-1.onrender.com";
 
-// 🔥 FIXED LOGIN STATE (NO LOOP)
+// ✅ SECURE TOKEN
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    try {
-      const token = await user.getIdToken(true);
-      localStorage.token = token;
-
-      console.log("✅ Logged in:", user.email);
-
-      document.getElementById("loginBox").style.display = "none";
-    } catch (err) {
-      console.error("Token error:", err);
-    }
-  } else {
-    console.log("❌ Not logged in");
+    const token = await user.getIdToken(true);
+    localStorage.token = token;
+    document.getElementById("loginBox").style.display = "none";
   }
 });
 
-// EMAIL
+// LOGIN METHODS
 window.emailLogin = async ()=>{
   let email=prompt("Enter Email:");
   let pass=prompt("Enter Password:");
@@ -156,24 +147,12 @@ window.emailLogin = async ()=>{
   }
 };
 
-// GOOGLE
 window.googleLogin = async ()=>{
-  try{
-    await signInWithPopup(auth,new GoogleAuthProvider());
-  }catch(e){
-    alert("Google login failed");
-    console.error(e);
-  }
+  await signInWithPopup(auth,new GoogleAuthProvider());
 };
 
-// FACEBOOK
 window.facebookLogin = async ()=>{
-  try{
-    await signInWithPopup(auth,new FacebookAuthProvider());
-  }catch(e){
-    alert("Facebook login failed");
-    console.error(e);
-  }
+  await signInWithPopup(auth,new FacebookAuthProvider());
 };
 </script>
 
@@ -181,13 +160,36 @@ window.facebookLogin = async ()=>{
 // CORE
 const feed=document.getElementById("feed");
 
-// SPEECH
+// 🌍 IMPROVED SPEECH (MULTI-LANG + AFRICA SUPPORT)
 function speak(text){
+try{
 let lang=document.getElementById("langSelect").value;
 let u=new SpeechSynthesisUtterance(text);
+
+// fallback voice
+let voices=speechSynthesis.getVoices();
+let v=voices.find(v=>v.lang===lang)||voices[0];
+
+u.voice=v;
 u.lang=lang;
+
 speechSynthesis.cancel();
 speechSynthesis.speak(u);
+}catch(e){}
+}
+
+// 🚀 FUTURE AI VOICE CLONING HOOK
+async function cloneVoice(text){
+try{
+await fetch(API+"/voice-clone",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+Authorization:"Bearer "+localStorage.token
+},
+body:JSON.stringify({text})
+});
+}catch(e){}
 }
 
 // NAV
@@ -231,7 +233,10 @@ let content=d.data?.url||d.data?.content||"Error";
 let type=route.includes("image")?"image":route.includes("video")?"video":"text";
 
 addCard(content,type);
+
+// 🔊 SPEAK + CLONE
 speak(content);
+cloneVoice(content);
 
 fetch(API+"/post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content,type})});
 }
@@ -270,4 +275,4 @@ function upgrade(){window.open("https://ko-fi.com/articalneavy","_blank");}
 </script>
 
 </body>
-</html>
+  </html>
