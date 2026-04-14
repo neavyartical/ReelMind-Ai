@@ -1,12 +1,47 @@
-<!-- FIREBASE FIRST -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ReelMind AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{margin:0;background:#0b0f14;color:white;font-family:Arial;text-align:center}
+#loginBox{position:fixed;width:100%;height:100%;background:#000;display:flex;justify-content:center;align-items:center}
+.btn{padding:15px;margin:10px;background:cyan;color:black;border:none;border-radius:10px}
+#app{display:none;padding:20px}
+</style>
+</head>
+
+<body>
+
+<div id="loginBox">
+<button class="btn" onclick="emailLogin()">Login</button>
+</div>
+
+<div id="app">
+<h2>🚀 ReelMind AI</h2>
+<p id="userEmail"></p>
+<p id="userStats">Credits: --</p>
+
+<input id="promptInput" placeholder="Type something..." style="width:80%;padding:10px">
+
+<br><br>
+
+<button class="btn" onclick="generate()">⚡ Generate</button>
+
+<div id="feed"></div>
+</div>
+
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
 
-<!-- THEN YOUR SCRIPT -->
 <script>
-document.addEventListener("DOMContentLoaded", function(){
+const API = "https://reelmindbackend-1.onrender.com";
 
-/* EVERYTHING GOES INSIDE HERE */
+/* INIT AFTER LOAD */
+window.onload = function(){
 
 firebase.initializeApp({
 apiKey: "AIzaSyCraJ2lDNrPU7O_qDz4J6_aCNrR_l4ex-I",
@@ -16,15 +51,13 @@ projectId: "reelmind-ai-a11eb"
 
 const auth = firebase.auth();
 
-let USER_CREDITS = 0;
-
-/* SAFE ELEMENTS */
-const promptInput = document.getElementById("prompt");
-const feedBox = document.getElementById("feed");
+/* ELEMENTS */
 const loginBox = document.getElementById("loginBox");
-const welcome = document.getElementById("welcome");
+const app = document.getElementById("app");
 const userEmail = document.getElementById("userEmail");
 const userStats = document.getElementById("userStats");
+const promptInput = document.getElementById("promptInput");
+const feed = document.getElementById("feed");
 
 /* TOKEN */
 async function getToken(){
@@ -45,26 +78,13 @@ await auth.createUserWithEmailAndPassword(email,pass);
 }
 }
 
-window.googleLogin = function(){
-auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-}
-
 /* AUTH */
 auth.onAuthStateChanged(async user=>{
 if(user){
 loginBox.style.display="none";
+app.style.display="block";
 
-welcome.classList.add("active");
-setTimeout(()=>welcome.classList.remove("active"),2000);
-
-loadProfile();
-}
-});
-
-/* PROFILE */
-async function loadProfile(){
 const token = await getToken();
-if(!token) return;
 
 let r = await fetch(API+"/me",{
 headers:{Authorization:"Bearer "+token}
@@ -72,19 +92,19 @@ headers:{Authorization:"Bearer "+token}
 
 let d = await r.json();
 
-USER_CREDITS = d.data?.credits || 0;
-
-userEmail.innerText = d.data?.email || "User";
-userStats.innerText = "Credits: " + USER_CREDITS;
+userEmail.innerText = d.data.email;
+userStats.innerText = "Credits: " + d.data.credits;
 }
+});
 
 /* GENERATE */
 window.generate = async function(){
+
 const token = await getToken();
 if(!token) return alert("Login first");
 
-let p = promptInput.value;
-if(!p) return;
+let text = promptInput.value;
+if(!text) return;
 
 let r = await fetch(API+"/generate-text",{
 method:"POST",
@@ -92,7 +112,7 @@ headers:{
 "Content-Type":"application/json",
 "Authorization":"Bearer "+token
 },
-body:JSON.stringify({prompt:p})
+body:JSON.stringify({prompt:text})
 });
 
 let d = await r.json();
@@ -102,28 +122,14 @@ alert(d.error);
 return;
 }
 
-addCard(d.data?.content || "No response");
+let div = document.createElement("div");
+div.innerText = d.data.content;
+
+feed.prepend(div);
 }
 
-/* CARD */
-function addCard(content){
-let c = document.createElement("div");
-c.innerHTML = `<div style="padding:10px">${content}</div>`;
-feedBox.prepend(c);
-}
-
-/* FIX BUTTONS */
-window.startVoice = function(){
-alert("Mic ready (enable HTTPS for real use)");
-}
-
-window.openFile = function(){
-document.getElementById("fileInput").click();
-}
-
-window.upgrade = function(){
-window.open("https://ko-fi.com/articalneavy","_blank");
-}
-
-});
+};
 </script>
+
+</body>
+</html>
