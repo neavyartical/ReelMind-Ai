@@ -5,130 +5,182 @@
 <title>ReelMind AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<script>
+window.API = "https://reelmindbackend-1.onrender.com";
+</script>
+
 <style>
 body{margin:0;background:#0b0f14;color:white;font-family:Arial;text-align:center}
-#loginBox{position:fixed;width:100%;height:100%;background:#000;display:flex;justify-content:center;align-items:center}
-.btn{padding:15px;margin:10px;background:cyan;color:black;border:none;border-radius:10px}
-#app{display:none;padding:20px}
+#loginBox{position:fixed;width:100%;height:100%;background:#000d;display:flex;justify-content:center;align-items:center}
+.btn{padding:12px 20px;margin:10px;border-radius:10px;background:cyan;color:black;border:none;cursor:pointer}
+#prompt{width:90%;padding:12px;margin-top:20px;border-radius:20px;border:none}
+#feed{margin-top:20px}
 </style>
 </head>
 
 <body>
 
 <div id="loginBox">
-<button class="btn" onclick="emailLogin()">Login</button>
+  <div>
+    <h2>Login</h2>
+    <button class="btn" onclick="emailLogin()">Email</button>
+    <button class="btn" onclick="googleLogin()">Google</button>
+  </div>
 </div>
 
-<div id="app">
-<h2>🚀 ReelMind AI</h2>
-<p id="userEmail"></p>
-<p id="userStats">Credits: --</p>
+<h1>🚀 ReelMind AI</h1>
+<p id="credits">Credits: --</p>
 
-<input id="promptInput" placeholder="Type something..." style="width:80%;padding:10px">
+<input id="prompt" placeholder="Create anything..." />
 
-<br><br>
-
+<br>
 <button class="btn" onclick="generate()">⚡ Generate</button>
+<button class="btn" onclick="startVoice()">🎤</button>
+<input type="file" id="fileInput" onchange="uploadFile(event)" hidden>
+<button class="btn" onclick="fileInput.click()">📁 Upload</button>
 
 <div id="feed"></div>
-</div>
 
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-<script>
-const API = "https://reelmindbackend-1.onrender.com";
-
-/* INIT AFTER LOAD */
-window.onload = function(){
-
-firebase.initializeApp({
-apiKey: "AIzaSyCraJ2lDNrPU7O_qDz4J6_aCNrR_l4ex-I",
-authDomain: "reelmind-ai-a11eb.firebaseapp.com",
-projectId: "reelmind-ai-a11eb"
-});
-
-const auth = firebase.auth();
-
-/* ELEMENTS */
-const loginBox = document.getElementById("loginBox");
-const app = document.getElementById("app");
-const userEmail = document.getElementById("userEmail");
-const userStats = document.getElementById("userStats");
-const promptInput = document.getElementById("promptInput");
-const feed = document.getElementById("feed");
-
-/* TOKEN */
-async function getToken(){
-const user = auth.currentUser;
-if(!user) return null;
-return await user.getIdToken(true);
-}
-
-/* LOGIN */
-window.emailLogin = async function(){
-let email = prompt("Email");
-let pass = prompt("Password");
-
-try{
-await auth.signInWithEmailAndPassword(email,pass);
-}catch{
-await auth.createUserWithEmailAndPassword(email,pass);
-}
-}
-
-/* AUTH */
-auth.onAuthStateChanged(async user=>{
-if(user){
-loginBox.style.display="none";
-app.style.display="block";
-
-const token = await getToken();
-
-let r = await fetch(API+"/me",{
-headers:{Authorization:"Bearer "+token}
-});
-
-let d = await r.json();
-
-userEmail.innerText = d.data.email;
-userStats.innerText = "Credits: " + d.data.credits;
-}
-});
-
-/* GENERATE */
-window.generate = async function(){
-
-const token = await getToken();
-if(!token) return alert("Login first");
-
-let text = promptInput.value;
-if(!text) return;
-
-let r = await fetch(API+"/generate-text",{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-"Authorization":"Bearer "+token
-},
-body:JSON.stringify({prompt:text})
-});
-
-let d = await r.json();
-
-if(d.error){
-alert(d.error);
-return;
-}
-
-let div = document.createElement("div");
-div.innerText = d.data.content;
-
-feed.prepend(div);
-}
-
+// ✅ YOUR CONFIG (CORRECT)
+const firebaseConfig = {
+  apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
+  authDomain: "reelmind-ai-f07cb.firebaseapp.com",
+  projectId: "reelmind-ai-f07cb",
+  storageBucket: "reelmind-ai-f07cb.appspot.com",
+  messagingSenderId: "731354245603",
+  appId: "1:731354245603:web:67a20d31c7a4eff382d8d6"
 };
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+let USER_CREDITS = 0;
+
+// 🔐 TOKEN FIX (AUTO REFRESH)
+async function getToken(){
+  const user = auth.currentUser;
+  if(!user) return null;
+
+  try{
+    return await user.getIdToken(true);
+  }catch{
+    await user.reload();
+    return await user.getIdToken(true);
+  }
+}
+
+// LOGIN
+window.emailLogin = async ()=>{
+  let email=prompt("Email");
+  let pass=prompt("Password");
+
+  try{
+    await signInWithEmailAndPassword(auth,email,pass);
+  }catch{
+    await createUserWithEmailAndPassword(auth,email,pass);
+  }
+};
+
+window.googleLogin = ()=>{
+  signInWithPopup(auth,new GoogleAuthProvider());
+};
+
+// AUTH STATE
+onAuthStateChanged(auth, async user=>{
+  if(user){
+    document.getElementById("loginBox").style.display="none";
+    loadProfile();
+  }
+});
+
+// PROFILE
+async function loadProfile(){
+  const token = await getToken();
+  if(!token) return;
+
+  let r = await fetch(API+"/me",{
+    headers:{Authorization:"Bearer "+token}
+  });
+
+  let d = await r.json();
+
+  USER_CREDITS = d.data?.credits || 0;
+  document.getElementById("credits").innerText = "Credits: "+USER_CREDITS;
+}
+
+// GENERATE
+window.generate = async ()=>{
+  const token = await getToken();
+  if(!token) return alert("Login first");
+
+  let p = document.getElementById("prompt").value;
+  if(!p) return;
+
+  let r = await fetch(API+"/generate-text",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer "+token
+    },
+    body:JSON.stringify({prompt:p})
+  });
+
+  let d = await r.json();
+
+  if(d.error){
+    alert(d.error);
+    return;
+  }
+
+  addCard(d.data?.content);
+  loadProfile();
+};
+
+// FEED CARD
+function addCard(content){
+  let div=document.createElement("div");
+  div.innerHTML=`<p>${content}</p>`;
+  document.getElementById("feed").prepend(div);
+}
+
+// VOICE
+window.startVoice = ()=>{
+  try{
+    const rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();
+    rec.start();
+    rec.onresult=e=>{
+      document.getElementById("prompt").value=e.results[0][0].transcript;
+    };
+  }catch{
+    alert("Voice not supported");
+  }
+};
+
+// UPLOAD
+window.uploadFile = async (e)=>{
+  const token = await getToken();
+  if(!token) return;
+
+  let file=e.target.files[0];
+  if(!file) return;
+
+  let form=new FormData();
+  form.append("file",file);
+
+  let r=await fetch(API+"/upload",{
+    method:"POST",
+    headers:{Authorization:"Bearer "+token},
+    body:form
+  });
+
+  let d=await r.json();
+  addCard(d.url);
+};
+
 </script>
 
 </body>
