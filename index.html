@@ -10,42 +10,24 @@
 
 <style>
 body{margin:0;background:#0b0f14;color:white;font-family:Arial}
-
-/* TOP */
 #topbar{position:fixed;top:0;width:100%;background:#111;padding:10px;display:flex;justify-content:space-around;z-index:999}
-
-/* FEED */
 #feed{margin-top:60px;padding-bottom:140px}
-
-/* CARD */
 .card{margin-bottom:12px}
 .card img,.card video{width:100%;max-height:70vh;border-radius:10px;object-fit:cover}
 .overlay{padding:10px}
-
-/* PROFILE */
 #profile{display:none;padding:15px;margin-top:60px}
 .avatar{width:80px;height:80px;border-radius:50%;background:#333}
-
-/* LOGIN */
 #loginBox{position:fixed;top:0;width:100%;height:100%;background:#000d;display:flex;justify-content:center;align-items:center;z-index:2000}
 .loginCard{background:#111;padding:20px;border-radius:10px;text-align:center}
 .loginBtn{margin:10px;padding:10px;background:#222;cursor:pointer}
-
-/* INPUT */
 #prompt{position:fixed;bottom:90px;width:90%;left:5%;padding:12px;border-radius:25px;border:none}
-
-/* CONTROLS */
 #controls{position:fixed;bottom:0;width:100%;height:70px;display:flex;justify-content:space-around;background:#111}
 .btn{width:55px;height:55px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-size:22px}
 #generate{background:cyan;color:black}
-
-/* LANG */
 #langSelect{position:fixed;bottom:140px;left:5%;padding:8px;border-radius:10px}
-
-/* FOOTER */
 #footer{position:fixed;bottom:70px;width:100%;text-align:center;font-size:12px;color:#888}
-
 #fileInput{display:none}
+input{outline:none}
 </style>
 </head>
 
@@ -55,6 +37,10 @@ body{margin:0;background:#0b0f14;color:white;font-family:Arial}
 <div id="loginBox">
 <div class="loginCard">
 <h3>Login</h3>
+
+<input id="email" placeholder="Email" style="padding:10px;margin:5px;width:90%">
+<input id="password" type="password" placeholder="Password" style="padding:10px;margin:5px;width:90%">
+
 <div class="loginBtn" onclick="emailLogin()">📧 Email</div>
 <div class="loginBtn" onclick="googleLogin()">🟢 Google</div>
 <div class="loginBtn" onclick="facebookLogin()">🔵 Facebook</div>
@@ -88,23 +74,17 @@ body{margin:0;background:#0b0f14;color:white;font-family:Arial}
 <option value="en-US">Temne 🇸🇱</option>
 </select>
 
-<!-- FILE -->
 <input type="file" id="fileInput" accept="image/*,video/*" onchange="uploadFile(event)">
-
-<!-- INPUT -->
 <input id="prompt" placeholder="Create anything..." />
 
-<!-- CONTROLS -->
 <div id="controls">
 <div class="btn" onclick="fileInput.click()">+</div>
 <div id="generate" class="btn" onclick="generate()">⚡</div>
 <div class="btn" onclick="startVoice()">🎤</div>
 </div>
 
-<!-- FOOTER -->
 <div id="footer">Powered by Artical Neavy</div>
 
-<!-- ADS -->
 <div style="position:fixed;bottom:120px;width:100%;text-align:center;">
 <ins class="adsbygoogle"
 style="display:block"
@@ -118,7 +98,7 @@ data-full-width-responsive="true"></ins>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-<!-- FIREBASE (ONLY ONE SCRIPT ✅) -->
+<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import {
@@ -137,8 +117,7 @@ const firebaseConfig = {
   projectId: "reelmind-ai-a11eb",
   storageBucket: "reelmind-ai-a11eb.firebasestorage.app",
   messagingSenderId: "534455151705",
-  appId: "1:534455151705:web:42eef09cd465fecb8ed548",
-  measurementId: "G-NSD0WSPC5D"
+  appId: "1:534455151705:web:42eef09cd465fecb8ed548"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -146,7 +125,6 @@ const auth = getAuth(app);
 
 window.API = "https://reelmindbackend-1.onrender.com";
 
-// LOGIN STATE
 onAuthStateChanged(auth,(user)=>{
   if(user){
     localStorage.token=user.email;
@@ -154,10 +132,15 @@ onAuthStateChanged(auth,(user)=>{
   }
 });
 
-// EMAIL LOGIN
 window.emailLogin = async ()=>{
-  let email=prompt("Enter Email:");
-  let pass=prompt("Enter Password:");
+  let email=document.getElementById("email").value;
+  let pass=document.getElementById("password").value;
+
+  if(!email || !pass){
+    alert("Enter email & password");
+    return;
+  }
+
   try{
     await signInWithEmailAndPassword(auth,email,pass);
   }catch{
@@ -165,22 +148,19 @@ window.emailLogin = async ()=>{
   }
 };
 
-// GOOGLE
 window.googleLogin = async ()=>{
   await signInWithPopup(auth,new GoogleAuthProvider());
 };
 
-// FACEBOOK
 window.facebookLogin = async ()=>{
   await signInWithPopup(auth,new FacebookAuthProvider());
 };
 </script>
 
 <script>
-// CORE
 const feed=document.getElementById("feed");
+const profile=document.getElementById("profile");
 
-// SPEECH
 function speak(text){
 let lang=document.getElementById("langSelect").value;
 let u=new SpeechSynthesisUtterance(text);
@@ -189,11 +169,9 @@ speechSynthesis.cancel();
 speechSynthesis.speak(u);
 }
 
-// NAV
 function showFeed(){feed.style.display="block";profile.style.display="none";}
 function showProfile(){feed.style.display="none";profile.style.display="block";loadProfile();}
 
-// ADD CARD
 function addCard(content,type){
 let c=document.createElement("div");
 c.className="card";
@@ -203,10 +181,8 @@ else c.innerHTML=`<div class="overlay">${content}</div>`;
 feed.prepend(c);
 }
 
-// GENERATE
 async function generate(){
 if(!localStorage.token){alert("Login first");return}
-
 let p=prompt.value;
 if(!p) return;
 
@@ -235,7 +211,6 @@ speak(content);
 fetch(API+"/post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content,type})});
 }
 
-// UPLOAD
 async function uploadFile(e){
 let file=e.target.files[0];
 if(!file) return;
@@ -253,7 +228,6 @@ addCard(d.url,d.type);
 fetch(API+"/post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:d.url,type:d.type})});
 }
 
-// PROFILE
 async function loadProfile(){
 let r=await fetch(API+"/me",{headers:{Authorization:"Bearer "+localStorage.token}});
 let d=await r.json();
@@ -261,10 +235,7 @@ userEmail.innerText=d.data.email||"User";
 userStats.innerText="Credits: "+(d.data.credits||0);
 }
 
-// MIC
 function startVoice(){alert("Voice input coming next 🔥");}
-
-// PAYMENT
 function upgrade(){window.open("https://ko-fi.com/articalneavy","_blank");}
 </script>
 
