@@ -25,12 +25,12 @@ z-index:1000
 display:none;
 margin-top:70px;
 padding:20px;
-padding-bottom:160px;
+padding-bottom:180px;
 }
 .active{display:block}
 
 /* FEED */
-#feed{padding-bottom:160px}
+#feed{padding-bottom:180px}
 
 /* PROFILE */
 .avatar{width:80px;height:80px;border-radius:50%;background:#333}
@@ -77,8 +77,11 @@ opacity:0;transition:.5s
 
 /* FOOTER */
 #footer{
-position:fixed;bottom:70px;width:100%;
-text-align:center;font-size:12px;color:#888
+text-align:center;
+font-size:12px;
+color:#888;
+padding:20px;
+margin-bottom:100px;
 }
 </style>
 </head>
@@ -143,7 +146,7 @@ text-align:center;font-size:12px;color:#888
 Powered by Artical Neavy
 </div>
 
-<!-- 🔥 FIREBASE -->
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
 
@@ -156,11 +159,17 @@ projectId: "reelmind-ai-a11eb"
 
 const auth = firebase.auth();
 
-/* 🔥 TOKEN FIX */
+/* 🔥 SAFE TOKEN (FIX INVALID TOKEN) */
 async function getToken(){
 const user = auth.currentUser;
 if(!user) return null;
+
+try{
 return await user.getIdToken(true);
+}catch{
+await user.reload();
+return await user.getIdToken(true);
+}
 }
 
 /* LOGIN */
@@ -182,6 +191,7 @@ function facebookLogin(){
 auth.signInWithPopup(new firebase.auth.FacebookAuthProvider());
 }
 
+/* AUTH STATE */
 auth.onAuthStateChanged(user=>{
 if(user){
 document.getElementById("loginBox").style.display="none";
@@ -201,22 +211,29 @@ document.getElementById(id).classList.add("active");
 /* PROFILE */
 async function showProfile(){
 show('profileSection');
+
+try{
 const token = await getToken();
-if(!token){alert("Login first");return;}
+if(!token) return alert("Login first");
 
 let r = await fetch(API+"/me",{headers:{Authorization:"Bearer "+token}});
 let d = await r.json();
 
 userEmail.innerText = d.data?.email || "User";
 userStats.innerText = "Credits: " + (d.data?.credits || 0);
+}catch{
+alert("Profile error");
+}
 }
 
 /* GENERATE */
 async function generate(){
+try{
 const token = await getToken();
-if(!token){alert("Login first");return;}
+if(!token) return alert("Login first");
 
 let p=document.getElementById("prompt").value;
+if(!p) return;
 
 let r=await fetch(API+"/generate-text",{
 method:"POST",
@@ -228,34 +245,45 @@ body:JSON.stringify({prompt:p})
 });
 
 let d=await r.json();
-if(d.error){alert(d.error);return;}
+if(d.error) return alert(d.error);
 
 addCard(d.data?.content || "Error");
+
+}catch{
+alert("Server error");
+}
 }
 
 /* CARD */
 function addCard(content){
 let c=document.createElement("div");
 c.innerHTML=`<div style="padding:10px">${content}</div>`;
-feed.prepend(c);
+document.getElementById("feed").prepend(c);
 }
 
 /* VOICE */
 function startVoice(){
+try{
 const rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();
 rec.lang=document.getElementById("langSelect").value;
 rec.start();
 rec.onresult=e=>{
 document.getElementById("prompt").value=e.results[0][0].transcript;
 };
+}catch{
+alert("Voice not supported");
+}
 }
 
 /* UPLOAD */
 async function uploadFile(e){
+try{
 const token = await getToken();
-if(!token){alert("Login first");return;}
+if(!token) return alert("Login first");
 
 let file=e.target.files[0];
+if(!file) return;
+
 let form=new FormData();
 form.append("file",file);
 
@@ -267,6 +295,10 @@ body:form
 
 let d=await r.json();
 addCard(d.url);
+
+}catch{
+alert("Upload failed");
+}
 }
 
 /* UPGRADE */
