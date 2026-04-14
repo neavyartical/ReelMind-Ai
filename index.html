@@ -10,9 +10,6 @@
 src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
 crossorigin="anonymous"></script>
 
-<!-- SOCKET -->
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-
 <style>
 body{
 margin:0;
@@ -20,16 +17,30 @@ background:#0b0f14;
 color:white;
 font-family:Arial;
 overflow:hidden;
+
 background-image:url("logo.png");
 background-repeat:no-repeat;
 background-position:center;
 background-size:60%;
 }
 
+/* DARK OVERLAY */
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(11,15,20,0.9);
+z-index:-1;
+}
+
 /* TOP BAR */
 #topbar{
 position:fixed;
-top:0;width:100%;
+top:0;
+width:100%;
 background:#111;
 padding:10px;
 display:flex;
@@ -66,13 +77,21 @@ height:100%;
 object-fit:cover;
 }
 
-/* TEXT */
+/* TEXT OVERLAY */
 .overlay{
 position:absolute;
 bottom:100px;
 left:10px;
 right:80px;
+
 font-size:14px;
+line-height:1.4;
+white-space:pre-line;
+word-wrap:break-word;
+
+background:linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+padding:10px;
+border-radius:10px;
 }
 
 /* ACTIONS */
@@ -84,7 +103,6 @@ display:flex;
 flex-direction:column;
 gap:20px;
 }
-
 .action{
 font-size:22px;
 cursor:pointer;
@@ -143,7 +161,6 @@ text-align:center;
 
 <body>
 
-<!-- DASHBOARD -->
 <div id="topbar">
 <span id="status">🔴 Offline</span>
 <span>User: neavyartical@gmail.com</span>
@@ -152,20 +169,16 @@ text-align:center;
 <span onclick="upgrade()">💰 Upgrade</span>
 </div>
 
-<!-- FEED -->
 <div id="feed"></div>
 
-<!-- INPUT -->
 <input id="prompt" placeholder="Create anything..." />
 
-<!-- CONTROLS -->
 <div id="controls">
 <div class="btn" onclick="upload()">+</div>
-<div id="generate" class="btn">⚡</div>
+<div id="generate" class="btn" onclick="generate()">⚡</div>
 <div class="btn" onclick="startVoice()">🎤</div>
 </div>
 
-<!-- ADS -->
 <div id="ad">
 <ins class="adsbygoogle"
 style="display:block"
@@ -180,17 +193,9 @@ data-full-width-responsive="true"></ins>
 </script>
 
 <script>
-// ===== CONFIG (FIXED) =====
+// ===== CONFIG =====
 const API="https://reelmindbackend-1.onrender.com";
 const feed=document.getElementById("feed");
-
-// SAFE SOCKET
-let socket;
-try{
-socket = io(API, { transports:["websocket"] });
-}catch(e){
-console.log("Socket failed");
-}
 
 // ===== MEMORY =====
 let memory = JSON.parse(localStorage.getItem("reelmind_memory") || "[]");
@@ -199,6 +204,10 @@ function saveMemory(user, ai){
 memory.push({user, ai});
 if(memory.length > 10) memory.shift();
 localStorage.setItem("reelmind_memory", JSON.stringify(memory));
+}
+
+function buildMemoryContext(){
+return memory.map(m => `User: ${m.user}\nAI: ${m.ai}`).join("\n");
 }
 
 // ===== LOGIN =====
@@ -215,40 +224,36 @@ localStorage.token=d.data.token;
 }
 await loadUser();
 }catch(e){
-alert("Server offline");
+alert("Server connection failed");
 }
 }
 
 // ===== USER =====
 async function loadUser(){
-try{
 let r=await fetch(API+"/me",{
 headers:{Authorization:"Bearer "+localStorage.token}
 });
 let d=await r.json();
 
 document.getElementById("status").innerText="🟢 Online";
-document.getElementById("credits").innerText="Credits: "+(d.data?.credits || 0);
-document.getElementById("ref").innerText="Ref: "+(d.data?.referrals || 0);
-}catch(e){
-console.log(e);
-}
+document.getElementById("credits").innerText="Credits: "+(d.data?.credits||0);
+document.getElementById("ref").innerText="Ref: "+(d.data?.referrals||0);
 }
 
 // ===== ADD CARD =====
-function addCard(content,type,id){
+function addCard(content,type){
 let c=document.createElement("div");
 c.className="card";
 
 let media="";
 if(type==="image") media=`<img src="${content}">`;
-else if(type==="video") media=`<video autoplay loop muted playsinline src="${content}"></video>`;
+else if(type==="video") media=`<video controls autoplay loop muted playsinline src="${content}"></video>`;
 else media=`<div class="overlay">${content}</div>`;
 
 c.innerHTML=`
 ${media}
 <div class="actions">
-<div class="action" onclick="like(${id || 0})">❤️</div>
+<div class="action">❤️</div>
 <div class="action">💬</div>
 <div class="action">🔗</div>
 </div>
@@ -257,31 +262,14 @@ ${media}
 feed.prepend(c);
 }
 
-// ===== FEED LOAD =====
-async function loadFeed(){
+// ===== SPEAK =====
+function speak(text){
 try{
-let r = await fetch(API+"/feed");
-let d = await r.json();
-
-(d.data || []).forEach(p=>{
-addCard(p.content,p.type,p.id);
-});
-}catch(e){
-console.log("Feed failed");
-}
-}
-
-// REALTIME
-if(socket){
-socket.on("new_post", (post)=>{
-addCard(post.content, post.type, post.id);
-});
-}
-
-// ===== LIKE =====
-async function like(id){
-try{
-await fetch(API+"/like/"+id,{method:"POST"});
+let u=new SpeechSynthesisUtterance(text);
+let voices=speechSynthesis.getVoices();
+u.voice=voices.find(v=>v.lang.includes("en"))||voices[0];
+speechSynthesis.cancel();
+speechSynthesis.speak(u);
 }catch(e){}
 }
 
@@ -295,21 +283,34 @@ if(!p) return;
 
 input.value="";
 
-addCard("⚡ Generating...","text");
-
 let route="/generate-text";
 if(/image|photo|picture|art/i.test(p)) route="/generate-image";
 else if(/video|clip|movie/i.test(p)) route="/generate-video";
 
+let context = buildMemoryContext();
 let finalPrompt=p;
 
 if(route==="/generate-text"){
-finalPrompt=`Create viral TikTok content:\n${p}`;
+finalPrompt=`
+Use memory:
+${context}
+
+Create VIRAL TikTok content:
+- Hook
+- Story
+- Caption
+- Hashtags
+
+${p}
+`;
 }
 
 if(route==="/generate-image"){
-finalPrompt=p+", ultra realistic, 8k";
+finalPrompt=p+", ultra realistic, cinematic lighting, 8k";
 }
+
+// LOADING
+addCard("⚡ Generating...","text");
 
 try{
 let r=await fetch(API+route,{
@@ -322,46 +323,55 @@ body:JSON.stringify({prompt:finalPrompt})
 });
 
 let d=await r.json();
-let content = d.data?.content || d.data?.url;
 
-addCard(content, route.includes("image")?"image":route.includes("video")?"video":"text");
-
-// SAVE TO BACKEND
-await fetch(API+"/post",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-content,
-type: route.includes("image")?"image":route.includes("video")?"video":"text"
-})
-});
-
-saveMemory(p,content);
+if(route==="/generate-image"){
+addCard(d.data.url,"image");
+saveMemory(p,d.data.url);
+}
+else if(route==="/generate-video"){
+addCard(d.data.url,"video");
+saveMemory(p,d.data.url);
+}
+else{
+let text=d.data.content;
+addCard(text,"text");
+saveMemory(p,text);
+speak(text);
+}
 
 }catch(e){
-addCard("⚠️ Error generating","text");
+addCard("⚠️ Server error","text");
 }
 
 loadUser();
 }
 
-// BUTTON FIX
-document.getElementById("generate").addEventListener("click", generate);
-
-// ===== MIC =====
+// ===== MIC (YOUR FIXED VERSION) =====
 function startVoice(){
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if(!SpeechRecognition){
-alert("Use Chrome browser");
+alert("Mic not supported here. Use Chrome or native app.");
 return;
 }
 
+try{
 let rec=new SpeechRecognition();
-rec.onresult=e=>{
-document.getElementById("prompt").value=e.results[0][0].transcript;
+rec.lang="en-US";
+rec.interimResults=false;
+
+rec.onstart = () => console.log("🎤 Listening...");
+rec.onresult = e => {
+document.getElementById("prompt").value = e.results[0][0].transcript;
 };
+rec.onerror = e => {
+alert("Mic error: " + e.error);
+};
+
 rec.start();
+}catch(e){
+alert("Microphone blocked");
+}
 }
 
 // ===== UPLOAD =====
@@ -376,7 +386,6 @@ window.open("https://ko-fi.com/articalneavy","_blank");
 
 // INIT
 ensureLogin();
-loadFeed();
 </script>
 
 </body>
