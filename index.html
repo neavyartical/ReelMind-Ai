@@ -11,46 +11,81 @@
 body{margin:0;background:#0b0f14;color:white;font-family:Arial}
 
 /* NAV */
-#topbar{position:fixed;top:0;width:100%;background:#111;padding:10px;display:flex;justify-content:space-around;z-index:999}
+#topbar{
+position:fixed;top:0;width:100%;
+background:#111;padding:12px;
+display:flex;justify-content:space-around;
+z-index:999
+}
 
 /* SECTIONS */
-.section{display:none;margin-top:60px;padding:15px}
+.section{
+display:none;
+margin-top:70px;
+padding:20px;
+min-height:80vh;
+}
 .active{display:block}
 
 /* FEED */
-#feed{padding-bottom:140px}
+#feed{padding-bottom:150px}
 
 /* PROFILE */
 .avatar{width:80px;height:80px;border-radius:50%;background:#333}
 
 /* LOGIN */
-#loginBox{position:fixed;width:100%;height:100%;background:#000d;display:flex;justify-content:center;align-items:center;z-index:2000}
-.loginCard{background:#111;padding:20px;border-radius:10px;text-align:center}
+#loginBox{
+position:fixed;width:100%;height:100%;
+background:#000d;
+display:flex;justify-content:center;align-items:center;
+z-index:2000
+}
+.loginCard{
+background:#111;padding:20px;border-radius:10px;text-align:center
+}
 
 /* CONTROLS */
-#controls{position:fixed;bottom:0;width:100%;height:70px;display:flex;justify-content:space-around;background:#111}
-.btn{width:55px;height:55px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#222;font-size:22px}
+#controls{
+position:fixed;bottom:0;width:100%;height:70px;
+display:flex;justify-content:space-around;
+background:#111;z-index:999
+}
+.btn{
+width:55px;height:55px;border-radius:50%;
+display:flex;align-items:center;justify-content:center;
+background:#222;font-size:22px
+}
 #generate{background:cyan;color:black}
 
 /* INPUT */
-#prompt{position:fixed;bottom:90px;width:90%;left:5%;padding:12px;border-radius:25px;border:none}
+#prompt{
+position:fixed;bottom:90px;width:90%;
+left:5%;padding:12px;border-radius:25px;border:none
+}
 
 /* WELCOME */
 #welcome{
 position:fixed;width:100%;height:100%;
 display:flex;justify-content:center;align-items:center;
-background:#000;z-index:3000;opacity:0;transition:.5s
+background:#000;z-index:3000;
+opacity:0;transition:.5s
 }
 #welcome.active{opacity:1}
 
 /* FOOTER */
-#footer{position:fixed;bottom:70px;width:100%;text-align:center;font-size:12px;color:#888}
+#footer{
+position:fixed;bottom:70px;width:100%;
+text-align:center;font-size:12px;color:#888
+}
 
 /* LINKS */
 .link{color:cyan;cursor:pointer;margin:5px}
 
 /* ADMIN */
 #adminPanel{display:none}
+
+/* ABOUT spacing */
+#aboutSection p{line-height:1.6;margin-bottom:12px}
 </style>
 </head>
 
@@ -74,6 +109,7 @@ background:#000;z-index:3000;opacity:0;transition:.5s
 <span onclick="show('feedSection')">Home</span>
 <span onclick="show('profileSection')">Profile</span>
 <span onclick="show('aboutSection')">About</span>
+<span onclick="upgrade()">💰</span>
 <span onclick="show('adminPanel')">⚙️</span>
 </div>
 
@@ -85,8 +121,8 @@ background:#000;z-index:3000;opacity:0;transition:.5s
 <!-- PROFILE -->
 <div id="profileSection" class="section">
 <div class="avatar"></div>
-<h3 id="userEmail"></h3>
-<p id="userStats"></p>
+<h3 id="userEmail">User</h3>
+<p id="userStats">Credits: --</p>
 </div>
 
 <!-- ABOUT -->
@@ -113,7 +149,6 @@ background:#000;z-index:3000;opacity:0;transition:.5s
 <div id="adminPanel" class="section">
 <h2>Admin Panel</h2>
 <button onclick="loadFeed()">Reload Feed</button>
-<button onclick="alert('Users soon')">Users</button>
 </div>
 
 <!-- LANGUAGE -->
@@ -133,17 +168,19 @@ background:#000;z-index:3000;opacity:0;transition:.5s
 <div class="btn" onclick="startVoice()">🎤</div>
 </div>
 
+<!-- FOOTER -->
 <div id="footer">
 <span class="link" onclick="show('aboutSection')">About</span>
 <span class="link" onclick="show('aboutSection')">Privacy</span>
 <span class="link" onclick="show('aboutSection')">Contact</span>
+<br>Powered by Artical Neavy
 </div>
 
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-<!-- 🔥 FIREBASE -->
+<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import {
@@ -165,7 +202,6 @@ projectId: "reelmind-ai-a11eb"
 const auth = getAuth(app);
 window.API = "https://reelmindbackend-1.onrender.com";
 
-/* 🔥 ALWAYS FRESH TOKEN (FIX INVALID TOKEN) */
 window.getToken = async ()=>{
 const user = auth.currentUser;
 if(!user) return null;
@@ -196,13 +232,11 @@ window.facebookLogin = ()=>signInWithPopup(auth,new FacebookAuthProvider());
 <script>
 const feed=document.getElementById("feed");
 
-/* NAV */
 function show(id){
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 }
 
-/* 🔥 GENERATE (TOKEN FIXED) */
 async function generate(){
 const token = await getToken();
 if(!token){alert("Login first");return;}
@@ -224,14 +258,12 @@ if(d.error){alert(d.error);return;}
 addCard(d.data?.content||"Error");
 }
 
-/* CARD */
 function addCard(content){
 let c=document.createElement("div");
 c.innerHTML=`<div>${content}</div>`;
 feed.prepend(c);
 }
 
-/* VOICE */
 function startVoice(){
 const rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();
 rec.lang=document.getElementById("langSelect").value;
@@ -241,7 +273,6 @@ document.getElementById("prompt").value=e.results[0][0].transcript;
 };
 }
 
-/* UPLOAD */
 async function uploadFile(e){
 const token = await getToken();
 let file=e.target.files[0];
@@ -259,14 +290,18 @@ let d=await r.json();
 addCard(d.url);
 }
 
-/* FEED */
 async function loadFeed(){
 let r=await fetch(API+"/feed");
 let d=await r.json();
 feed.innerHTML="";
 d.data.forEach(p=>addCard(p.content));
 }
+
+/* 💰 UPGRADE */
+function upgrade(){
+window.open("https://ko-fi.com/articalneavy","_blank");
+}
 </script>
 
 </body>
-</html>
+  </html>
