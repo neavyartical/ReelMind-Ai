@@ -35,72 +35,60 @@ body{margin:0;background:#0b0f14;color:white;font-family:Arial;text-align:center
 
 <br>
 <button class="btn" onclick="generate()">⚡ Generate</button>
-<button class="btn" onclick="startVoice()">🎤</button>
-<input type="file" id="fileInput" onchange="uploadFile(event)" hidden>
-<button class="btn" onclick="fileInput.click()">📁 Upload</button>
 
 <div id="feed"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
 
-// ✅ YOUR CONFIG (CORRECT)
-const firebaseConfig = {
+<script>
+firebase.initializeApp({
   apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
   authDomain: "reelmind-ai-f07cb.firebaseapp.com",
   projectId: "reelmind-ai-f07cb",
   storageBucket: "reelmind-ai-f07cb.appspot.com",
   messagingSenderId: "731354245603",
   appId: "1:731354245603:web:67a20d31c7a4eff382d8d6"
-};
+});
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
+const auth = firebase.auth();
 let USER_CREDITS = 0;
 
-// 🔐 TOKEN FIX (AUTO REFRESH)
+/* TOKEN */
 async function getToken(){
   const user = auth.currentUser;
   if(!user) return null;
-
-  try{
-    return await user.getIdToken(true);
-  }catch{
-    await user.reload();
-    return await user.getIdToken(true);
-  }
+  return await user.getIdToken(true);
 }
 
-// LOGIN
-window.emailLogin = async ()=>{
+/* LOGIN */
+async function emailLogin(){
   let email=prompt("Email");
   let pass=prompt("Password");
 
   try{
-    await signInWithEmailAndPassword(auth,email,pass);
+    await auth.signInWithEmailAndPassword(email,pass);
   }catch{
-    await createUserWithEmailAndPassword(auth,email,pass);
+    await auth.createUserWithEmailAndPassword(email,pass);
   }
-};
+}
 
-window.googleLogin = ()=>{
-  signInWithPopup(auth,new GoogleAuthProvider());
-};
+function googleLogin(){
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+}
 
-// AUTH STATE
-onAuthStateChanged(auth, async user=>{
+/* AUTH */
+auth.onAuthStateChanged(user=>{
   if(user){
     document.getElementById("loginBox").style.display="none";
     loadProfile();
   }
 });
 
-// PROFILE
+/* PROFILE */
 async function loadProfile(){
   const token = await getToken();
-  if(!token) return;
 
   let r = await fetch(API+"/me",{
     headers:{Authorization:"Bearer "+token}
@@ -112,8 +100,8 @@ async function loadProfile(){
   document.getElementById("credits").innerText = "Credits: "+USER_CREDITS;
 }
 
-// GENERATE
-window.generate = async ()=>{
+/* GENERATE */
+async function generate(){
   const token = await getToken();
   if(!token) return alert("Login first");
 
@@ -136,51 +124,16 @@ window.generate = async ()=>{
     return;
   }
 
-  addCard(d.data?.content);
+  addCard(d.data.content);
   loadProfile();
-};
+}
 
-// FEED CARD
+/* FEED */
 function addCard(content){
   let div=document.createElement("div");
   div.innerHTML=`<p>${content}</p>`;
   document.getElementById("feed").prepend(div);
 }
-
-// VOICE
-window.startVoice = ()=>{
-  try{
-    const rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();
-    rec.start();
-    rec.onresult=e=>{
-      document.getElementById("prompt").value=e.results[0][0].transcript;
-    };
-  }catch{
-    alert("Voice not supported");
-  }
-};
-
-// UPLOAD
-window.uploadFile = async (e)=>{
-  const token = await getToken();
-  if(!token) return;
-
-  let file=e.target.files[0];
-  if(!file) return;
-
-  let form=new FormData();
-  form.append("file",file);
-
-  let r=await fetch(API+"/upload",{
-    method:"POST",
-    headers:{Authorization:"Bearer "+token},
-    body:form
-  });
-
-  let d=await r.json();
-  addCard(d.url);
-};
-
 </script>
 
 </body>
