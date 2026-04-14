@@ -27,7 +27,6 @@ body{margin:0;background:#0b0f14;color:white;font-family:Arial}
 #langSelect{position:fixed;bottom:140px;left:5%;padding:8px;border-radius:10px}
 #footer{position:fixed;bottom:70px;width:100%;text-align:center;font-size:12px;color:#888}
 #fileInput{display:none}
-input{outline:none}
 </style>
 </head>
 
@@ -37,10 +36,6 @@ input{outline:none}
 <div id="loginBox">
 <div class="loginCard">
 <h3>Login</h3>
-
-<input id="email" placeholder="Email" style="padding:10px;margin:5px;width:90%">
-<input id="password" type="password" placeholder="Password" style="padding:10px;margin:5px;width:90%">
-
 <div class="loginBtn" onclick="emailLogin()">📧 Email</div>
 <div class="loginBtn" onclick="googleLogin()">🟢 Google</div>
 <div class="loginBtn" onclick="facebookLogin()">🔵 Facebook</div>
@@ -74,17 +69,23 @@ input{outline:none}
 <option value="en-US">Temne 🇸🇱</option>
 </select>
 
+<!-- FILE -->
 <input type="file" id="fileInput" accept="image/*,video/*" onchange="uploadFile(event)">
+
+<!-- INPUT -->
 <input id="prompt" placeholder="Create anything..." />
 
+<!-- CONTROLS -->
 <div id="controls">
 <div class="btn" onclick="fileInput.click()">+</div>
 <div id="generate" class="btn" onclick="generate()">⚡</div>
 <div class="btn" onclick="startVoice()">🎤</div>
 </div>
 
+<!-- FOOTER -->
 <div id="footer">Powered by Artical Neavy</div>
 
+<!-- ADS -->
 <div style="position:fixed;bottom:120px;width:100%;text-align:center;">
 <ins class="adsbygoogle"
 style="display:block"
@@ -98,7 +99,7 @@ data-full-width-responsive="true"></ins>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-<!-- FIREBASE -->
+<!-- 🔥 FIREBASE FIXED -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import {
@@ -117,7 +118,8 @@ const firebaseConfig = {
   projectId: "reelmind-ai-a11eb",
   storageBucket: "reelmind-ai-a11eb.firebasestorage.app",
   messagingSenderId: "534455151705",
-  appId: "1:534455151705:web:42eef09cd465fecb8ed548"
+  appId: "1:534455151705:web:42eef09cd465fecb8ed548",
+  measurementId: "G-NSD0WSPC5D"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -125,22 +127,28 @@ const auth = getAuth(app);
 
 window.API = "https://reelmindbackend-1.onrender.com";
 
-onAuthStateChanged(auth,(user)=>{
-  if(user){
-    localStorage.token=user.email;
-    document.getElementById("loginBox").style.display="none";
+// 🔥 FIXED LOGIN STATE (NO LOOP)
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    try {
+      const token = await user.getIdToken(true);
+      localStorage.token = token;
+
+      console.log("✅ Logged in:", user.email);
+
+      document.getElementById("loginBox").style.display = "none";
+    } catch (err) {
+      console.error("Token error:", err);
+    }
+  } else {
+    console.log("❌ Not logged in");
   }
 });
 
+// EMAIL
 window.emailLogin = async ()=>{
-  let email=document.getElementById("email").value;
-  let pass=document.getElementById("password").value;
-
-  if(!email || !pass){
-    alert("Enter email & password");
-    return;
-  }
-
+  let email=prompt("Enter Email:");
+  let pass=prompt("Enter Password:");
   try{
     await signInWithEmailAndPassword(auth,email,pass);
   }catch{
@@ -148,19 +156,32 @@ window.emailLogin = async ()=>{
   }
 };
 
+// GOOGLE
 window.googleLogin = async ()=>{
-  await signInWithPopup(auth,new GoogleAuthProvider());
+  try{
+    await signInWithPopup(auth,new GoogleAuthProvider());
+  }catch(e){
+    alert("Google login failed");
+    console.error(e);
+  }
 };
 
+// FACEBOOK
 window.facebookLogin = async ()=>{
-  await signInWithPopup(auth,new FacebookAuthProvider());
+  try{
+    await signInWithPopup(auth,new FacebookAuthProvider());
+  }catch(e){
+    alert("Facebook login failed");
+    console.error(e);
+  }
 };
 </script>
 
 <script>
+// CORE
 const feed=document.getElementById("feed");
-const profile=document.getElementById("profile");
 
+// SPEECH
 function speak(text){
 let lang=document.getElementById("langSelect").value;
 let u=new SpeechSynthesisUtterance(text);
@@ -169,9 +190,11 @@ speechSynthesis.cancel();
 speechSynthesis.speak(u);
 }
 
+// NAV
 function showFeed(){feed.style.display="block";profile.style.display="none";}
 function showProfile(){feed.style.display="none";profile.style.display="block";loadProfile();}
 
+// ADD CARD
 function addCard(content,type){
 let c=document.createElement("div");
 c.className="card";
@@ -181,9 +204,11 @@ else c.innerHTML=`<div class="overlay">${content}</div>`;
 feed.prepend(c);
 }
 
+// GENERATE
 async function generate(){
 if(!localStorage.token){alert("Login first");return}
-let p=prompt.value;
+
+let p=document.getElementById("prompt").value;
 if(!p) return;
 
 addCard("⚡ Generating...","text");
@@ -202,7 +227,7 @@ body:JSON.stringify({prompt:p})
 });
 
 let d=await r.json();
-let content=d.data.url||d.data.content;
+let content=d.data?.url||d.data?.content||"Error";
 let type=route.includes("image")?"image":route.includes("video")?"video":"text";
 
 addCard(content,type);
@@ -211,6 +236,7 @@ speak(content);
 fetch(API+"/post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content,type})});
 }
 
+// UPLOAD
 async function uploadFile(e){
 let file=e.target.files[0];
 if(!file) return;
@@ -228,14 +254,18 @@ addCard(d.url,d.type);
 fetch(API+"/post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:d.url,type:d.type})});
 }
 
+// PROFILE
 async function loadProfile(){
 let r=await fetch(API+"/me",{headers:{Authorization:"Bearer "+localStorage.token}});
 let d=await r.json();
-userEmail.innerText=d.data.email||"User";
-userStats.innerText="Credits: "+(d.data.credits||0);
+userEmail.innerText=d.data?.email||"User";
+userStats.innerText="Credits: "+(d.data?.credits||0);
 }
 
+// MIC
 function startVoice(){alert("Voice input coming next 🔥");}
+
+// PAYMENT
 function upgrade(){window.open("https://ko-fi.com/articalneavy","_blank");}
 </script>
 
