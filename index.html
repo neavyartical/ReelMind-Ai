@@ -9,8 +9,6 @@
 window.API = "https://reelmindbackend-1.onrender.com";
 </script>
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429" crossorigin="anonymous"></script>
-
 <style>
 body{margin:0;background:#0b0f14;color:white;font-family:Arial}
 
@@ -77,26 +75,18 @@ opacity:0;transition:.5s
 }
 #welcome.active{opacity:1}
 
-/* LINKS */
-.link{color:cyan;cursor:pointer;margin:5px}
-
-/* FOOTER (FIXED VERSION) */
+/* FOOTER */
 #footer{
-text-align:center;
-font-size:12px;
-color:#888;
-padding:20px;
-margin-bottom:100px;
+position:fixed;bottom:70px;width:100%;
+text-align:center;font-size:12px;color:#888
 }
 </style>
 </head>
 
 <body>
 
-<!-- WELCOME -->
 <div id="welcome"><h1>🚀 ReelMind AI</h1></div>
 
-<!-- LOGIN -->
 <div id="loginBox">
 <div class="loginCard">
 <h3>Login</h3>
@@ -106,62 +96,34 @@ margin-bottom:100px;
 </div>
 </div>
 
-<!-- NAV -->
 <div id="topbar">
 <span onclick="show('feedSection')">Home</span>
 <span onclick="showProfile()">Profile</span>
 <span onclick="show('aboutSection')">About</span>
 <span onclick="upgrade()">💰</span>
-<span onclick="show('adminPanel')">⚙️</span>
 </div>
 
-<!-- FEED -->
 <div id="feedSection" class="section active">
 <div id="feed"></div>
 </div>
 
-<!-- PROFILE -->
 <div id="profileSection" class="section">
 <div class="avatar"></div>
 <h3 id="userEmail">User</h3>
 <p id="userStats">Credits: --</p>
 </div>
 
-<!-- ABOUT -->
 <div id="aboutSection" class="section">
-
 <h2>About</h2>
 <p>ReelMind AI helps creators generate viral content instantly using AI.</p>
-
 <h3>Privacy</h3>
-<p>Your data is secure. We never sell or share your information.</p>
-
+<p>Your data is secure and never shared.</p>
 <h3>Terms</h3>
-<p>Use responsibly. Harmful or illegal use may lead to restriction.</p>
-
-<h3>Blog</h3>
-<p>Tips, AI trends, and growth strategies coming soon.</p>
-
+<p>Use responsibly. Misuse may lead to restriction.</p>
 <h3>Contact</h3>
 <p>Email: support@reelmind.ai</p>
-
-<!-- FOOTER MOVED HERE -->
-<div id="footer">
-<span class="link" onclick="show('aboutSection')">About</span>
-<span class="link" onclick="show('aboutSection')">Privacy</span>
-<span class="link" onclick="show('aboutSection')">Contact</span>
-<br>Powered by Artical Neavy
 </div>
 
-</div>
-
-<!-- ADMIN -->
-<div id="adminPanel" class="section">
-<h2>Admin Panel</h2>
-<button onclick="loadFeed()">Reload Feed</button>
-</div>
-
-<!-- LANGUAGE -->
 <select id="langSelect" style="position:fixed;bottom:150px;left:5%;z-index:999;">
 <option value="en-US">English</option>
 <option value="fr-FR">French</option>
@@ -171,55 +133,56 @@ margin-bottom:100px;
 <input type="file" id="fileInput" onchange="uploadFile(event)">
 <input id="prompt" placeholder="Create anything..." />
 
-<!-- CONTROLS -->
 <div id="controls">
 <div class="btn" onclick="document.getElementById('fileInput').click()">+</div>
 <div id="generate" class="btn" onclick="generate()">⚡</div>
 <div class="btn" onclick="startVoice()">🎤</div>
 </div>
 
+<div id="footer">
+Powered by Artical Neavy
+</div>
+
+<!-- 🔥 FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
+
 <script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-
-<!-- FIREBASE -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import {
-getAuth,
-signInWithPopup,
-GoogleAuthProvider,
-FacebookAuthProvider,
-signInWithEmailAndPassword,
-createUserWithEmailAndPassword,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-
-const app = initializeApp({
+const app = firebase.initializeApp({
 apiKey: "AIzaSyCraJ2lDNrPU7O_qDz4J6_aCNrR_l4ex-I",
 authDomain: "reelmind-ai-a11eb.firebaseapp.com",
 projectId: "reelmind-ai-a11eb"
 });
 
-const auth = getAuth(app);
+const auth = firebase.auth();
 
-window.getToken = async ()=>{
+/* 🔥 TOKEN FIX */
+async function getToken(){
 const user = auth.currentUser;
 if(!user) return null;
 return await user.getIdToken(true);
-};
+}
 
-window.emailLogin = async ()=>{
+/* LOGIN */
+async function emailLogin(){
 let email=prompt("Email");
 let pass=prompt("Password");
-try{await signInWithEmailAndPassword(auth,email,pass);}
-catch{await createUserWithEmailAndPassword(auth,email,pass);}
-};
+try{
+await auth.signInWithEmailAndPassword(email,pass);
+}catch{
+await auth.createUserWithEmailAndPassword(email,pass);
+}
+}
 
-window.googleLogin = ()=>signInWithPopup(auth,new GoogleAuthProvider());
-window.facebookLogin = ()=>signInWithPopup(auth,new FacebookAuthProvider());
+function googleLogin(){
+auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+}
 
-onAuthStateChanged(auth, (user)=>{
+function facebookLogin(){
+auth.signInWithPopup(new firebase.auth.FacebookAuthProvider());
+}
+
+auth.onAuthStateChanged(user=>{
 if(user){
 document.getElementById("loginBox").style.display="none";
 
@@ -228,10 +191,6 @@ w.classList.add("active");
 setTimeout(()=>w.classList.remove("active"),2000);
 }
 });
-</script>
-
-<script>
-const feed=document.getElementById("feed");
 
 /* NAV */
 function show(id){
@@ -242,12 +201,10 @@ document.getElementById(id).classList.add("active");
 /* PROFILE */
 async function showProfile(){
 show('profileSection');
-const token = await window.getToken();
+const token = await getToken();
 if(!token){alert("Login first");return;}
 
-let r = await fetch(window.API+"/me",{
-headers:{Authorization:"Bearer "+token}
-});
+let r = await fetch(API+"/me",{headers:{Authorization:"Bearer "+token}});
 let d = await r.json();
 
 userEmail.innerText = d.data?.email || "User";
@@ -256,12 +213,12 @@ userStats.innerText = "Credits: " + (d.data?.credits || 0);
 
 /* GENERATE */
 async function generate(){
-const token = await window.getToken();
+const token = await getToken();
 if(!token){alert("Login first");return;}
 
 let p=document.getElementById("prompt").value;
 
-let r=await fetch(window.API+"/generate-text",{
+let r=await fetch(API+"/generate-text",{
 method:"POST",
 headers:{
 "Content-Type":"application/json",
@@ -295,14 +252,14 @@ document.getElementById("prompt").value=e.results[0][0].transcript;
 
 /* UPLOAD */
 async function uploadFile(e){
-const token = await window.getToken();
+const token = await getToken();
 if(!token){alert("Login first");return;}
 
 let file=e.target.files[0];
 let form=new FormData();
 form.append("file",file);
 
-let r=await fetch(window.API+"/upload",{
+let r=await fetch(API+"/upload",{
 method:"POST",
 headers:{Authorization:"Bearer "+token},
 body:form
@@ -310,14 +267,6 @@ body:form
 
 let d=await r.json();
 addCard(d.url);
-}
-
-/* FEED */
-async function loadFeed(){
-let r=await fetch(window.API+"/feed");
-let d=await r.json();
-feed.innerHTML="";
-d.data.forEach(p=>addCard(p.content));
 }
 
 /* UPGRADE */
