@@ -16,101 +16,91 @@ margin:0;
 background:#0b0f14;
 color:white;
 font-family:Arial;
-overflow:hidden;
-background-image:url("logo.png");
-background-repeat:no-repeat;
-background-position:center;
-background-size:60%;
 }
 
-/* DARK OVERLAY */
-body::before{
-content:"";
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(11,15,20,0.9);
-z-index:-1;
-}
-
-/* TOP BAR */
+/* TOPBAR */
 #topbar{
 position:fixed;
-top:0;
-width:100%;
+top:0;width:100%;
 background:#111;
 padding:10px;
 display:flex;
 justify-content:space-around;
-font-size:12px;
 z-index:999;
+font-size:12px;
 }
-#topbar span{color:#00ff88; cursor:pointer}
+#topbar span{color:#00ff88;cursor:pointer}
 
-/* PAGE */
-.page{
-display:none;
-position:absolute;
-top:60px;
-bottom:80px;
-overflow:auto;
-padding:15px;
-}
-
-/* FEED */
+/* FEED FIX */
 #feed{
-position:absolute;
-top:50px;
-bottom:140px;
-width:100%;
-overflow-y:scroll;
-scroll-snap-type:y mandatory;
+margin-top:60px;
+padding-bottom:120px;
 }
 
 /* CARD */
 .card{
-height:100vh;
-scroll-snap-align:start;
-position:relative;
-display:flex;
-align-items:center;
-justify-content:center;
+width:100%;
+margin-bottom:10px;
 }
 
 /* MEDIA */
 .card img,.card video{
 width:100%;
-height:100%;
+max-height:80vh;
 object-fit:cover;
+border-radius:10px;
 }
 
 /* TEXT */
 .overlay{
-position:absolute;
-bottom:100px;
-left:10px;
-right:80px;
+padding:10px;
 font-size:14px;
 line-height:1.4;
 white-space:pre-line;
-word-wrap:break-word;
-background:linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-padding:10px;
-border-radius:10px;
 }
 
-/* ACTIONS */
-.actions{
-position:absolute;
-right:10px;
-bottom:120px;
-display:flex;
-flex-direction:column;
-gap:20px;
+/* PROFILE */
+#profile{
+display:none;
+padding:15px;
+margin-top:60px;
 }
-.action{font-size:22px}
+
+.avatar{
+width:80px;
+height:80px;
+border-radius:50%;
+background:#333;
+margin-bottom:10px;
+}
+
+/* LOGIN MODAL */
+#loginBox{
+position:fixed;
+top:0;left:0;
+width:100%;
+height:100%;
+background:#000d;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:2000;
+}
+
+.loginCard{
+background:#111;
+padding:20px;
+border-radius:10px;
+text-align:center;
+}
+
+.loginBtn{
+margin:10px;
+padding:10px;
+border-radius:5px;
+background:#222;
+cursor:pointer;
+}
 
 /* INPUT */
 #prompt{
@@ -121,14 +111,12 @@ left:5%;
 padding:12px;
 border-radius:25px;
 border:none;
-z-index:999;
 }
 
 /* CONTROLS */
 #controls{
 position:fixed;
-bottom:0;
-width:100%;
+bottom:0;width:100%;
 height:70px;
 display:flex;
 justify-content:space-around;
@@ -142,92 +130,62 @@ border-radius:50%;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:22px;
 background:#222;
+font-size:22px;
 }
 
 #generate{
 background:cyan;
 color:black;
-font-weight:bold;
-width:70px;height:70px;
 }
 
-/* ADS */
-#ad{
-position:fixed;
-bottom:70px;
-width:100%;
-text-align:center;
-}
+/* FILE INPUT */
+#fileInput{display:none;}
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
+<div id="loginBox">
+<div class="loginCard">
+<h3>Login</h3>
+
+<div class="loginBtn" onclick="emailLogin()">📧 Continue with Email</div>
+<div class="loginBtn" onclick="googleLogin()">🟢 Google</div>
+<div class="loginBtn" onclick="facebookLogin()">🔵 Facebook</div>
+<div class="loginBtn" onclick="appleLogin()">🍎 Apple</div>
+
+</div>
+</div>
+
 <!-- TOPBAR -->
 <div id="topbar">
-<span onclick="showPage('feed')">Home</span>
-<span onclick="showPage('about')">About</span>
-<span onclick="showPage('privacy')">Privacy</span>
-<span onclick="showPage('policy')">Policy</span>
-<span onclick="showPage('blog')">Blog</span>
-<span onclick="showPage('contact')">Contact</span>
+<span onclick="showFeed()">Home</span>
+<span onclick="showProfile()">Profile</span>
 <span onclick="upgrade()">💰</span>
 </div>
 
 <!-- FEED -->
 <div id="feed"></div>
 
-<!-- ABOUT -->
-<div id="about" class="page">
-<h2>About ReelMind AI</h2>
-<p>
-ReelMind AI is an advanced AI-powered platform built to help creators generate viral content, cinematic stories, and high-quality visuals. It combines automation with creativity, allowing users to scale their content production efficiently. The system integrates modern artificial intelligence models and real-time processing to deliver fast, engaging, and high-performing results. Our mission is to empower creators worldwide with tools that simplify storytelling and enhance digital growth.
-</p>
+<!-- PROFILE -->
+<div id="profile">
+<div class="avatar"></div>
+<h3 id="userEmail"></h3>
+<p id="userStats"></p>
+<div id="userPosts"></div>
 </div>
 
-<!-- PRIVACY -->
-<div id="privacy" class="page">
-<h2>Privacy Policy</h2>
-<p>
-We respect your privacy. ReelMind AI collects only essential data such as login email and generated content to improve user experience. Your information is securely handled and never sold to third parties. We use modern technologies to protect user data and ensure safe interaction within the platform. By using this service, you agree to responsible data usage and our commitment to transparency and protection.
-</p>
-</div>
-
-<!-- POLICY -->
-<div id="policy" class="page">
-<h2>Usage Policy</h2>
-<p>
-Users must use ReelMind AI responsibly. The platform should not be used for illegal, harmful, or misleading activities. Any misuse may result in restricted access. We aim to maintain a safe, creative, and professional environment. By using this application, you agree to follow ethical guidelines and respect community standards while generating content.
-</p>
-</div>
-
-<!-- BLOG -->
-<div id="blog" class="page">
-<h2>Blog</h2>
-<p>
-Welcome to the ReelMind AI blog. Here you will find insights on AI content creation, viral strategies, and storytelling techniques. Learn how to grow your audience, improve engagement, and use artificial intelligence effectively. Our updates provide valuable tips to help creators stay ahead in the digital world.
-</p>
-</div>
-
-<!-- CONTACT -->
-<div id="contact" class="page">
-<h2>Contact ReelMind AI</h2>
-<p>
-If you have questions, feedback, or business inquiries, feel free to reach out. ReelMind AI supports creators globally and we value every message. Whether you need technical help, want to collaborate, or report an issue, we are here to assist you. Our goal is to provide a reliable and powerful AI experience for all users.
-</p>
-
-<p>📧 Email: <a href="mailto:neavyartical@gmail.com" style="color:cyan;">neavyartical@gmail.com</a></p>
-<p>💰 Support: <a href="https://ko-fi.com/articalneavy" target="_blank" style="color:cyan;">Ko-fi Page</a></p>
-</div>
+<!-- FILE -->
+<input type="file" id="fileInput" accept="image/*,video/*" onchange="uploadFile(event)">
 
 <!-- INPUT -->
 <input id="prompt" placeholder="Create anything..." />
 
 <!-- CONTROLS -->
 <div id="controls">
-<div class="btn" onclick="upload()">+</div>
+<div class="btn" onclick="fileInput.click()">+</div>
 <div id="generate" class="btn" onclick="generate()">⚡</div>
 <div class="btn" onclick="startVoice()">🎤</div>
 </div>
@@ -247,54 +205,80 @@ data-full-width-responsive="true"></ins>
 </script>
 
 <script>
-// NAVIGATION
-function showPage(page){
-document.querySelectorAll(".page").forEach(p=>p.style.display="none");
-document.getElementById("feed").style.display="none";
-
-if(page==="feed"){
-document.getElementById("feed").style.display="block";
-}else{
-document.getElementById(page).style.display="block";
-}
-}
-</script>
-
-<script>
-// CONFIG
 const API="https://reelmindbackend-1.onrender.com";
 const feed=document.getElementById("feed");
 
-// LOGIN
-async function ensureLogin(){
-if(!localStorage.token){
-let r=await fetch(API+"/login",{
+// ===== NAV =====
+function showFeed(){
+feed.style.display="block";
+profile.style.display="none";
+}
+
+function showProfile(){
+feed.style.display="none";
+profile.style.display="block";
+loadProfile();
+}
+
+// ===== LOGIN SYSTEM =====
+async function emailLogin(){
+let email = prompt("Enter your email:");
+if(!email) return;
+
+let r = await fetch(API+"/login",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({email:"neavyartical@gmail.com"})
+body:JSON.stringify({email})
 });
-let d=await r.json();
-localStorage.token=d.data.token;
+
+let d = await r.json();
+localStorage.token = d.data.token;
+
+document.getElementById("loginBox").style.display="none";
+}
+
+// ===== FUTURE OAUTH (REAL READY) =====
+function googleLogin(){
+alert("Connect Google OAuth in backend");
+}
+function facebookLogin(){
+alert("Connect Facebook OAuth in backend");
+}
+function appleLogin(){
+alert("Connect Apple OAuth in backend");
+}
+
+// ===== CHECK LOGIN =====
+function checkLogin(){
+if(localStorage.token){
+document.getElementById("loginBox").style.display="none";
 }
 }
 
-// ADD CARD
+// ===== ADD CARD =====
 function addCard(content,type){
 let c=document.createElement("div");
 c.className="card";
 
-let media="";
-if(type==="image") media=`<img src="${content}">`;
-else if(type==="video") media=`<video controls autoplay loop muted src="${content}"></video>`;
-else media=`<div class="overlay">${content}</div>`;
+if(type==="image"){
+c.innerHTML=`<img src="${content}">`;
+}
+else if(type==="video"){
+c.innerHTML=`<video controls src="${content}"></video>`;
+}
+else{
+c.innerHTML=`<div class="overlay">${content}</div>`;
+}
 
-c.innerHTML=media;
 feed.prepend(c);
 }
 
-// GENERATE
+// ===== GENERATE =====
 async function generate(){
-await ensureLogin();
+if(!localStorage.token){
+alert("Login first");
+return;
+}
 
 let p=document.getElementById("prompt").value;
 if(!p) return;
@@ -316,32 +300,63 @@ body:JSON.stringify({prompt:p})
 
 let d=await r.json();
 
-if(route==="/generate-image"){
-addCard(d.data.url,"image");
-}else if(route==="/generate-video"){
-addCard(d.data.url,"video");
-}else{
-addCard(d.data.content,"text");
-}
+let content=d.data.url || d.data.content;
+let type=route.includes("image")?"image":route.includes("video")?"video":"text";
+
+addCard(content,type);
+
+await fetch(API+"/post",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({content,type})
+});
 }
 
-// MIC
+// ===== REAL UPLOAD =====
+async function uploadFile(e){
+let file=e.target.files[0];
+if(!file) return;
+
+let form=new FormData();
+form.append("file",file);
+
+addCard("📤 Uploading...","text");
+
+let r=await fetch(API+"/upload",{method:"POST",body:form});
+let d=await r.json();
+
+addCard(d.url,d.type);
+
+await fetch(API+"/post",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({content:d.url,type:d.type})
+});
+}
+
+// ===== PROFILE =====
+async function loadProfile(){
+let r=await fetch(API+"/me",{
+headers:{Authorization:"Bearer "+localStorage.token}
+});
+let d=await r.json();
+
+userEmail.innerText=d.data.email;
+userStats.innerText="Credits: "+d.data.credits;
+}
+
+// ===== MIC =====
 function startVoice(){
 alert("Use Chrome or native app 🎤");
 }
 
-// UPLOAD
-function upload(){
-alert("Upload system coming next update 🚀");
-}
-
-// PAYMENT
+// ===== PAYMENT =====
 function upgrade(){
 window.open("https://ko-fi.com/articalneavy","_blank");
 }
 
 // INIT
-ensureLogin();
+checkLogin();
 </script>
 
 </body>
