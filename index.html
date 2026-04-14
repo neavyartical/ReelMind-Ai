@@ -77,24 +77,26 @@ opacity:0;transition:.5s
 }
 #welcome.active{opacity:1}
 
-/* FOOTER */
-#footer{
-position:fixed;bottom:70px;width:100%;
-text-align:center;font-size:12px;color:#888
-}
-
 /* LINKS */
 .link{color:cyan;cursor:pointer;margin:5px}
 
-/* ADMIN */
-#adminPanel{display:none}
+/* FOOTER (FIXED VERSION) */
+#footer{
+text-align:center;
+font-size:12px;
+color:#888;
+padding:20px;
+margin-bottom:100px;
+}
 </style>
 </head>
 
 <body>
 
+<!-- WELCOME -->
 <div id="welcome"><h1>🚀 ReelMind AI</h1></div>
 
+<!-- LOGIN -->
 <div id="loginBox">
 <div class="loginCard">
 <h3>Login</h3>
@@ -104,6 +106,7 @@ text-align:center;font-size:12px;color:#888
 </div>
 </div>
 
+<!-- NAV -->
 <div id="topbar">
 <span onclick="show('feedSection')">Home</span>
 <span onclick="showProfile()">Profile</span>
@@ -112,32 +115,53 @@ text-align:center;font-size:12px;color:#888
 <span onclick="show('adminPanel')">⚙️</span>
 </div>
 
+<!-- FEED -->
 <div id="feedSection" class="section active">
 <div id="feed"></div>
 </div>
 
+<!-- PROFILE -->
 <div id="profileSection" class="section">
 <div class="avatar"></div>
 <h3 id="userEmail">User</h3>
 <p id="userStats">Credits: --</p>
 </div>
 
+<!-- ABOUT -->
 <div id="aboutSection" class="section">
+
 <h2>About</h2>
 <p>ReelMind AI helps creators generate viral content instantly using AI.</p>
+
 <h3>Privacy</h3>
-<p>Your data is secure.</p>
+<p>Your data is secure. We never sell or share your information.</p>
+
 <h3>Terms</h3>
-<p>Use responsibly.</p>
+<p>Use responsibly. Harmful or illegal use may lead to restriction.</p>
+
+<h3>Blog</h3>
+<p>Tips, AI trends, and growth strategies coming soon.</p>
+
 <h3>Contact</h3>
 <p>Email: support@reelmind.ai</p>
+
+<!-- FOOTER MOVED HERE -->
+<div id="footer">
+<span class="link" onclick="show('aboutSection')">About</span>
+<span class="link" onclick="show('aboutSection')">Privacy</span>
+<span class="link" onclick="show('aboutSection')">Contact</span>
+<br>Powered by Artical Neavy
 </div>
 
+</div>
+
+<!-- ADMIN -->
 <div id="adminPanel" class="section">
 <h2>Admin Panel</h2>
 <button onclick="loadFeed()">Reload Feed</button>
 </div>
 
+<!-- LANGUAGE -->
 <select id="langSelect" style="position:fixed;bottom:150px;left:5%;z-index:999;">
 <option value="en-US">English</option>
 <option value="fr-FR">French</option>
@@ -147,19 +171,18 @@ text-align:center;font-size:12px;color:#888
 <input type="file" id="fileInput" onchange="uploadFile(event)">
 <input id="prompt" placeholder="Create anything..." />
 
+<!-- CONTROLS -->
 <div id="controls">
 <div class="btn" onclick="document.getElementById('fileInput').click()">+</div>
 <div id="generate" class="btn" onclick="generate()">⚡</div>
 <div class="btn" onclick="startVoice()">🎤</div>
 </div>
 
-<div id="footer">
-<span class="link" onclick="show('aboutSection')">About</span>
-<span class="link" onclick="show('aboutSection')">Privacy</span>
-<span class="link" onclick="show('aboutSection')">Contact</span>
-<br>Powered by Artical Neavy
-</div>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 
+<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import {
@@ -210,11 +233,13 @@ setTimeout(()=>w.classList.remove("active"),2000);
 <script>
 const feed=document.getElementById("feed");
 
+/* NAV */
 function show(id){
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 }
 
+/* PROFILE */
 async function showProfile(){
 show('profileSection');
 const token = await window.getToken();
@@ -229,6 +254,7 @@ userEmail.innerText = d.data?.email || "User";
 userStats.innerText = "Credits: " + (d.data?.credits || 0);
 }
 
+/* GENERATE */
 async function generate(){
 const token = await window.getToken();
 if(!token){alert("Login first");return;}
@@ -250,12 +276,14 @@ if(d.error){alert(d.error);return;}
 addCard(d.data?.content || "Error");
 }
 
+/* CARD */
 function addCard(content){
 let c=document.createElement("div");
 c.innerHTML=`<div style="padding:10px">${content}</div>`;
 feed.prepend(c);
 }
 
+/* VOICE */
 function startVoice(){
 const rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();
 rec.lang=document.getElementById("langSelect").value;
@@ -265,6 +293,7 @@ document.getElementById("prompt").value=e.results[0][0].transcript;
 };
 }
 
+/* UPLOAD */
 async function uploadFile(e){
 const token = await window.getToken();
 if(!token){alert("Login first");return;}
@@ -283,6 +312,7 @@ let d=await r.json();
 addCard(d.url);
 }
 
+/* FEED */
 async function loadFeed(){
 let r=await fetch(window.API+"/feed");
 let d=await r.json();
@@ -290,6 +320,7 @@ feed.innerHTML="";
 d.data.forEach(p=>addCard(p.content));
 }
 
+/* UPGRADE */
 function upgrade(){
 window.open("https://ko-fi.com/articalneavy","_blank");
 }
