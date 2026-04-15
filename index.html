@@ -22,7 +22,6 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 
 <body>
 
-<!-- NAV -->
 <div id="topbar">
   <div onclick="switchTab('home')">🏠</div>
   <div onclick="switchTab('create')">➕</div>
@@ -30,10 +29,8 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   <div onclick="switchTab('admin')">👑</div>
 </div>
 
-<!-- CREDITS -->
 <div id="creditsBox">💰 Credits: <span id="credits">∞</span></div>
 
-<!-- HOME -->
 <div id="home" class="section active">
   <div class="card">
     <h2>⚡ ReelMind AI GOD MODE</h2>
@@ -48,7 +45,6 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   </div>
 </div>
 
-<!-- CREATE -->
 <div id="create" class="section">
   <select id="mode">
     <option value="text">Text</option>
@@ -59,7 +55,6 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   <div id="result"></div>
 </div>
 
-<!-- PROFILE -->
 <div id="profile" class="section">
   <h3>User</h3>
   <p id="userEmail">Guest Mode</p>
@@ -73,7 +68,6 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   <button onclick="logout()">Logout</button>
 </div>
 
-<!-- ADMIN -->
 <div id="admin" class="section">
   <h3>👑 Admin Panel</h3>
   <button onclick="loadStats()">Load Stats</button>
@@ -88,10 +82,8 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 
 <script type="module">
 
-// ================= CONFIG =================
-const API = "https://YOUR_BACKEND_URL"; // ⚠️ REPLACE THIS
+const API = "https://YOUR_BACKEND_URL"; // 🔥 PUT YOUR REAL URL
 
-// ================= FIREBASE =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth,
@@ -112,56 +104,30 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 let token = null;
-let credits = 0;
 
-// ================= HELPERS =================
 function val(id){return document.getElementById(id).value;}
 
-// ================= AUTH =================
 window.googleLogin = async ()=> await signInWithPopup(auth, provider);
-
-window.emailLogin = async ()=>{
-  await signInWithEmailAndPassword(auth, val("email"), val("password"));
-};
-
-window.emailRegister = async ()=>{
-  await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-};
-
+window.emailLogin = async ()=> await signInWithEmailAndPassword(auth, val("email"), val("password"));
+window.emailRegister = async ()=> await createUserWithEmailAndPassword(auth, val("email"), val("password"));
 window.logout = ()=> signOut(auth);
 
 onAuthStateChanged(auth, async user=>{
   if(user){
     token = await user.getIdToken();
     document.getElementById("userEmail").innerText = user.email;
-    loadUser();
   } else {
     token = null;
     document.getElementById("userEmail").innerText = "Guest Mode";
-    document.getElementById("credits").innerText = "∞";
   }
 });
 
-// ================= NAV =================
 window.switchTab = (tab)=>{
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
 };
 
-// ================= LOAD USER =================
-async function loadUser(){
-  if(!token) return;
-
-  const res = await fetch(API+"/me",{
-    headers:{ Authorization:"Bearer "+token }
-  });
-
-  const data = await res.json();
-  credits = data.credits;
-  document.getElementById("credits").innerText = credits;
-}
-
-// ================= GENERATE (FIXED) =================
+// ================= FINAL GENERATE =================
 document.getElementById("generate").onclick = async ()=>{
 
   const prompt = val("prompt").trim();
@@ -176,76 +142,73 @@ document.getElementById("generate").onclick = async ()=>{
 
     console.log("🚀 START");
 
+    // 🔥 GUEST MODE (NOW ENABLED FOR TEXT)
     if(!token){
       console.log("👤 Guest mode");
 
-      if(mode === "image"){
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
-        result.innerHTML = `<div class="card"><img src="${url}" style="width:100%"></div>`;
-      } else {
-        result.innerHTML = `<div class="card">⚠️ Login required for AI text</div>`;
+      if(mode === "text"){
+        const res = await fetch(API + "/generate-text",{
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body: JSON.stringify({ prompt })
+        });
+
+        const data = await res.json();
+
+        result.innerHTML =
+          `<div class="card">${data?.data?.content || "⚠️ No response"}</div>`;
       }
+
+      else if(mode === "image"){
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
+        result.innerHTML =
+          `<div class="card"><img src="${url}" style="width:100%"></div>`;
+      }
+
+      else {
+        result.innerHTML =
+          `<div class="card">⚠️ Login required for video</div>`;
+      }
+
       return;
     }
 
     let endpoint = "/generate-text";
-    if(mode === "image") endpoint="/generate-image";
-    if(mode === "video") endpoint="/generate-video";
-
-    console.log("🌐 Calling:", API + endpoint);
+    if(mode==="image") endpoint="/generate-image";
+    if(mode==="video") endpoint="/generate-video";
 
     const res = await fetch(API + endpoint,{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
-        "Authorization":"Bearer " + token
+        "Authorization":"Bearer "+token
       },
       body: JSON.stringify({ prompt })
     });
 
-    console.log("📡 Status:", res.status);
+    const data = await res.json();
 
-    if(!res.ok){
-      result.innerHTML = `<div class="card">❌ Server error (${res.status})</div>`;
-      return;
+    if(mode==="text"){
+      result.innerHTML = `<div class="card">${data?.data?.content || "No response"}</div>`;
     }
 
-    const text = await res.text();
-    console.log("📦 Raw:", text);
-
-    let data;
-    try{
-      data = JSON.parse(text);
-    }catch{
-      result.innerHTML = `<div class="card">❌ Invalid server response</div>`;
-      return;
+    if(mode==="image"){
+      result.innerHTML = `<div class="card"><img src="${data?.data?.url}" style="width:100%"></div>`;
     }
 
-    console.log("🔥 Parsed:", data);
-
-    if(mode === "text"){
-      result.innerHTML = `<div class="card">${data?.data?.content || data?.output || "⚠️ No response"}</div>`;
-    }
-
-    if(mode === "image"){
-      const url = data?.data?.url || data?.output;
-      result.innerHTML = `<div class="card"><img src="${url}" style="width:100%"></div>`;
-    }
-
-    if(mode === "video"){
+    if(mode==="video"){
       result.innerHTML =
         `<div class="card"><video src="${data.preview}" controls style="width:100%"></video></div>`;
     }
 
-    loadUser();
-
   }catch(e){
-    console.error("💥 ERROR:", e);
-    result.innerHTML = `<div class="card">❌ Connection failed</div>`;
+    console.error(e);
+    result.innerHTML = `<div class="card">❌ Failed</div>`;
   }
 };
 
-// ================= ADMIN =================
 window.loadStats = async ()=>{
   const res = await fetch(API+"/admin");
   const data = await res.json();
