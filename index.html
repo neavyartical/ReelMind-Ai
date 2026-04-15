@@ -5,75 +5,242 @@
 <title>🚀 ReelMind AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- 💰 ADSENSE -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
+     crossorigin="anonymous"></script>
+
 <style>
+
+/* ================= BASE ================= */
 body {
-  font-family: Arial;
-  background: #0f172a;
+  margin: 0;
+  font-family: 'Segoe UI', Arial;
+  background: linear-gradient(135deg,#020617,#0f172a);
   color: white;
-  text-align: center;
-  padding: 20px;
 }
 
-button, select {
-  margin-top: 10px;
+/* ================= NAV ================= */
+#topbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: #111;
+  padding: 10px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* ================= SECTIONS ================= */
+.section {
+  display: none;
+  margin-top: 80px;
+  padding: 20px;
+  padding-bottom: 160px;
+}
+.active { display: block; }
+
+/* ================= INPUT ================= */
+#prompt {
+  position: fixed;
+  bottom: 90px;
+  width: 90%;
+  left: 5%;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 25px;
   border: none;
-  background: #06b6d4;
-  color: white;
+}
+
+/* ================= CONTROLS ================= */
+#controls {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 70px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #111;
+}
+
+.btn {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #222;
+  font-size: 22px;
   cursor: pointer;
 }
 
-input {
-  width: 90%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  margin-top: 15px;
+#generate {
+  background: linear-gradient(135deg,#06b6d4,#3b82f6);
 }
 
+/* ================= CARD ================= */
 .card {
-  background: #1e293b;
+  background: rgba(30,41,59,0.85);
   padding: 15px;
-  border-radius: 12px;
-  margin-top: 15px;
+  border-radius: 15px;
+  margin-top: 20px;
 }
+
+/* ================= LOGIN ================= */
+#loginBox {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: #000d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.loginCard {
+  background: #111;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+/* ================= PROFILE ================= */
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #333;
+}
+
+/* ================= FOOTER ================= */
+#footer {
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 120px;
+}
+
+select {
+  border-radius: 10px;
+  padding: 5px;
+}
+
 </style>
 </head>
 
 <body>
 
-<h1>🚀 ReelMind AI</h1>
+<!-- 🔐 LOGIN -->
+<div id="loginBox">
+  <div class="loginCard">
+    <h2>ReelMind AI</h2>
+    <button onclick="login()">Login with Google</button>
+  </div>
+</div>
 
-<p id="userText"></p>
+<!-- 🔝 NAV -->
+<div id="topbar">
+  <div onclick="switchTab('home')">🏠</div>
+  <div onclick="switchTab('create')">➕</div>
+  <div onclick="switchTab('profile')">👤</div>
+  <div onclick="switchTab('info')">ℹ️</div>
 
-<button id="loginBtn">Login with Google</button>
-<button id="logoutBtn" style="display:none;">Logout</button>
+  <!-- 🌍 LANGUAGES -->
+  <select id="languageSelect">
+    <option>English</option>
+    <option>Krio</option>
+    <option>Mende</option>
+    <option>Temne</option>
+    <option>Limba</option>
+    <option>Kono</option>
+    <option>Kuranko</option>
+    <option>Loko</option>
+    <option>Fula</option>
+    <option>Susu</option>
+    <option>Yalunka</option>
+    <option>Kissi</option>
+    <option>Vai</option>
+    <option>Sherbro</option>
+    <option>Mandingo</option>
+    <option>Gola</option>
+  </select>
+</div>
 
-<br>
+<!-- 🏠 HOME -->
+<div id="home" class="section active">
+  <h2>Feed</h2>
 
-<input id="promptInput" placeholder="Describe what you want..." />
+  <!-- 💰 ADS -->
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-1714638410489429"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
 
-<br>
+  <script>
+  (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 
-<select id="mode">
-  <option value="text">🧠 Text</option>
-  <option value="image">🖼 Image</option>
-  <option value="video">🎬 Video</option>
-</select>
+  <div id="feed"></div>
+</div>
 
-<br>
+<!-- ➕ CREATE -->
+<div id="create" class="section">
+  <h2>Create</h2>
 
-<button id="generateBtn" style="display:none;">⚡ Generate</button>
+  <select id="mode">
+    <option value="text">Text</option>
+    <option value="image">Image</option>
+    <option value="video">Video</option>
+  </select>
 
-<div id="result"></div>
+  <div id="result"></div>
+</div>
 
+<!-- 👤 PROFILE -->
+<div id="profile" class="section">
+  <h2>Profile</h2>
+  <div class="avatar"></div>
+  <p id="userEmail"></p>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<!-- ℹ️ INFO -->
+<div id="info" class="section">
+  <h2>About</h2>
+  <p>ReelMind AI is a creative AI platform for generating text, images, and videos instantly. Built for creators and innovators.</p>
+
+  <h2>Privacy Policy</h2>
+  <p>We respect your privacy. We do not sell user data and only use information to improve experience.</p>
+
+  <h2>Blog</h2>
+  <p>Discover AI trends, tips, and strategies to grow faster using modern tools.</p>
+
+  <h2>Contact</h2>
+  <p>Reach out for support, ideas, or collaborations anytime.</p>
+</div>
+
+<!-- INPUT -->
+<input id="prompt" placeholder="Type prompt..." />
+
+<!-- CONTROLS -->
+<div id="controls">
+  <div class="btn">🎤</div>
+  <div id="generate" class="btn">⚡</div>
+  <div class="btn">🖼</div>
+</div>
+
+<div id="footer">ReelMind AI © 2026</div>
+
+<!-- 🔥 FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// 🔑 YOUR CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
   authDomain: "reelmind-ai-f07cb.firebaseapp.com",
@@ -87,95 +254,80 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// UI
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const generateBtn = document.getElementById("generateBtn");
-const promptInput = document.getElementById("promptInput");
-const resultBox = document.getElementById("result");
-const userText = document.getElementById("userText");
-const mode = document.getElementById("mode");
+let userToken = null;
 
 // LOGIN
-loginBtn.onclick = () => signInWithPopup(auth, provider);
-logoutBtn.onclick = () => signOut(auth);
+window.login = async () => {
+  await signInWithPopup(auth, provider);
+};
 
-// AUTH
-onAuthStateChanged(auth, (user) => {
+// LOGOUT
+window.logout = () => signOut(auth);
+
+// AUTH STATE
+onAuthStateChanged(auth, async (user) => {
   if (user) {
-    userText.innerText = "Logged in as: " + user.email;
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
-    generateBtn.style.display = "inline-block";
-  } else {
-    userText.innerText = "";
-    loginBtn.style.display = "inline-block";
-    logoutBtn.style.display = "none";
-    generateBtn.style.display = "none";
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("userEmail").innerText = user.email;
+    userToken = await user.getIdToken();
   }
 });
 
-// 🚀 GENERATE ENGINE
-generateBtn.onclick = async () => {
-  const prompt = promptInput.value;
-  const selected = mode.value;
+// SWITCH TAB
+window.switchTab = (tab) => {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.getElementById(tab).classList.add("active");
+};
+
+// LANGUAGE
+document.getElementById("languageSelect").onchange = function(){
+  alert("Language: " + this.value);
+};
+
+// GENERATE
+document.getElementById("generate").onclick = async () => {
+  const prompt = document.getElementById("prompt").value;
+  const mode = document.getElementById("mode").value;
+  const result = document.getElementById("result");
 
   if (!prompt) return alert("Enter prompt");
 
-  resultBox.innerHTML = "⏳ Generating...";
+  result.innerHTML = "⏳ Generating...";
 
-  // 🧠 TEXT
-  if (selected === "text") {
-    try {
-      const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt })
-      });
-
-      const data = await res.json();
-
-      resultBox.innerHTML = `
-        <div class="card">
-          ${data.data?.content || "No response"}
-        </div>
-      `;
-    } catch (err) {
-      resultBox.innerHTML = "❌ Error";
-    }
+  if (mode === "text") {
+    const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + userToken
+      },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await res.json();
+    result.innerHTML = `<div class="card">${data.data.content}</div>`;
   }
 
-  // 🖼 IMAGE (FAST ⚡)
-  if (selected === "image") {
+  if (mode === "image") {
     const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+    result.innerHTML = `<div class="card"><img src="${url}" style="width:100%"></div>`;
+  }
 
-    resultBox.innerHTML = `
+  if (mode === "video") {
+    const res = await fetch("https://reelmindbackend-1.onrender.com/generate-video", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + userToken
+      },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await res.json();
+    result.innerHTML = `
       <div class="card">
-        <img src="${url}" style="width:100%; border-radius:10px;" />
+        <video src="${data.preview}" controls style="width:100%"></video>
+        <p>${data.status}</p>
       </div>
     `;
-  }
-
-  // 🎬 VIDEO (via backend)
-  if (selected === "video") {
-    try {
-      const res = await fetch("https://reelmindbackend-1.onrender.com/generate-video", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt })
-      });
-
-      const data = await res.json();
-
-      resultBox.innerHTML = `
-        <div class="card">
-          🎬 Video request sent<br>
-          ${data.status || "Processing..."}
-        </div>
-      `;
-    } catch (err) {
-      resultBox.innerHTML = "❌ Video error";
-    }
   }
 };
 
