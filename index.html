@@ -1,71 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>🚀 ReelMind AI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{margin:0;font-family:Segoe UI;background:#020617;color:white;}
-#topbar{position:fixed;top:0;width:100%;background:#111;padding:10px;display:flex;justify-content:space-around;}
-.section{display:none;margin-top:80px;padding:20px;}
-.active{display:block;}
-#prompt{position:fixed;bottom:90px;width:90%;left:5%;padding:12px;border-radius:25px;border:none;}
-#controls{position:fixed;bottom:0;width:100%;height:70px;display:flex;justify-content:center;background:#111;}
-.btn{width:60px;height:60px;border-radius:50%;background:#06b6d4;display:flex;align-items:center;justify-content:center;}
-.card{background:#111;padding:15px;border-radius:12px;margin-top:15px;}
-#creditsBox{position:fixed;top:50px;right:10px;background:#111;padding:8px;border-radius:10px;}
-</style>
-</head>
-
-<body>
-
-<div id="topbar">
-  <div onclick="switchTab('home')">🏠</div>
-  <div onclick="switchTab('create')">➕</div>
-  <div onclick="switchTab('admin')">👑</div>
-</div>
-
-<div id="creditsBox">💰 Credits: <span id="credits">0</span></div>
-
-<!-- HOME -->
-<div id="home" class="section active">
-  <div class="card">⚡ ReelMind AI LIVE</div>
-
-  <div class="card">
-    <h3>💰 Buy Credits</h3>
-    <a href="https://ko-fi.com/articalneavy" target="_blank">
-      <button>Ko-fi ☕</button>
-    </a>
-  </div>
-</div>
-
-<!-- CREATE -->
-<div id="create" class="section">
-  <select id="mode">
-    <option value="text">Text</option>
-    <option value="image">Image</option>
-  </select>
-
-  <div id="result"></div>
-</div>
-
-<!-- ADMIN -->
-<div id="admin" class="section">
-  <h3>Admin</h3>
-  <button onclick="loadStats()">Load Stats</button>
-  <div id="stats"></div>
-</div>
-
-<input id="prompt" placeholder="Ask anything..." />
-
-<div id="controls">
-  <div id="generate" class="btn">⚡</div>
-</div>
-
 <script>
 
-const API = "https://YOUR_BACKEND_URL";
+const API = "https://YOUR_BACKEND_URL"; // 🔥 REPLACE THIS
 
 // NAV
 function switchTab(tab){
@@ -75,9 +10,14 @@ function switchTab(tab){
 
 // LOAD USER
 async function loadUser(){
-  const res = await fetch(API+"/user");
-  const data = await res.json();
-  document.getElementById("credits").innerText = data.credits;
+  try{
+    const res = await fetch(API+"/user");
+    const data = await res.json();
+    document.getElementById("credits").innerText = data.credits;
+  }catch(e){
+    console.error("❌ USER LOAD ERROR:", e);
+    alert("Backend not reachable");
+  }
 }
 loadUser();
 
@@ -87,45 +27,58 @@ document.getElementById("generate").onclick = async ()=>{
   const prompt = document.getElementById("prompt").value;
   const mode = document.getElementById("mode").value;
 
-  if(!prompt) return;
+  if(!prompt) return alert("Enter prompt");
 
-  document.getElementById("result").innerHTML = "⚡ Thinking...";
+  document.getElementById("result").innerHTML = "⚡ Sending request...";
 
-  const res = await fetch(API+"/generate",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ prompt, mode })
-  });
+  try{
 
-  const data = await res.json();
+    const res = await fetch(API+"/generate",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ prompt, mode })
+    });
 
-  if(data.error){
-    alert(data.error);
-    return;
-  }
+    console.log("STATUS:", res.status);
 
-  document.getElementById("credits").innerText = data.credits;
+    const data = await res.json();
 
-  if(mode==="text"){
+    console.log("RESPONSE:", data);
+
+    if(data.error){
+      alert(data.error);
+      return;
+    }
+
+    document.getElementById("credits").innerText = data.credits;
+
+    if(mode==="text"){
+      document.getElementById("result").innerHTML =
+        `<div class="card">${data.output}</div>`;
+    }
+
+    if(mode==="image"){
+      document.getElementById("result").innerHTML =
+        `<div class="card"><img src="${data.output}" style="width:100%"></div>`;
+    }
+
+  }catch(e){
+    console.error("❌ GENERATE ERROR:", e);
     document.getElementById("result").innerHTML =
-      `<div class="card">${data.output}</div>`;
-  }
-
-  if(mode==="image"){
-    document.getElementById("result").innerHTML =
-      `<div class="card"><img src="${data.output}" style="width:100%"></div>`;
+      `<div class="card">❌ Backend error or CORS issue</div>`;
   }
 };
 
 // ADMIN
 async function loadStats(){
-  const res = await fetch(API+"/admin");
-  const data = await res.json();
-  document.getElementById("stats").innerHTML =
-    `<div class="card">Users: ${data.users} | Requests: ${data.requests}</div>`;
+  try{
+    const res = await fetch(API+"/admin");
+    const data = await res.json();
+    document.getElementById("stats").innerHTML =
+      `<div class="card">Users: ${data.users} | Requests: ${data.requests}</div>`;
+  }catch(e){
+    console.error("❌ ADMIN ERROR:", e);
+  }
 }
 
 </script>
-
-</body>
-</html>
