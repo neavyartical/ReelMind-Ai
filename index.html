@@ -1,77 +1,35 @@
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import {
-    getAuth,
-    signInAnonymously,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+<script>
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
+  const resultDiv = document.getElementById("result");
 
-  // 🔥 Firebase Config (yours is OK)
-  const firebaseConfig = {
-    apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
-    authDomain: "reelmind-ai-f07cb.firebaseapp.com",
-    projectId: "reelmind-ai-f07cb",
-    storageBucket: "reelmind-ai-f07cb.appspot.com",
-    messagingSenderId: "731354245603",
-    appId: "1:731354245603:web:67a20d31c7a4eff382d8d6"
-  };
+  if (!prompt) {
+    alert("Enter something first");
+    return;
+  }
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+  resultDiv.innerHTML = "⏳ Generating...";
 
-  let token = null;
+  try {
+    const res = await fetch("https://your-backend-url.onrender.com/generate-image", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
 
-  // 🔐 AUTH STATE LISTENER (better than manual login)
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      token = await user.getIdToken();
-      console.log("✅ User ready");
-    } else {
-      try {
-        await signInAnonymously(auth);
-      } catch (err) {
-        alert("❌ Firebase Auth Error: " + err.message);
-      }
-    }
-  });
+    const data = await res.json();
 
-  // 🚀 GENERATE FUNCTION
-  window.generate = async () => {
-    const prompt = document.getElementById("prompt").value;
-    const resultDiv = document.getElementById("result");
-
-    if (!prompt) {
-      alert("Enter a prompt");
+    if (data.error) {
+      resultDiv.innerHTML = "❌ " + data.error;
       return;
     }
 
-    if (!token) {
-      alert("Still connecting... try again");
-      return;
-    }
+    resultDiv.innerHTML = `<img src="${data.data.url}" style="max-width:100%;border-radius:10px;" />`;
 
-    resultDiv.innerHTML = "⏳ Generating...";
-
-    try {
-      const res = await fetch("https://YOUR-BACKEND-URL/generate-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({ prompt })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Server error");
-      }
-
-      resultDiv.innerHTML = `<img src="${data.data.url}" />`;
-
-    } catch (err) {
-      resultDiv.innerHTML = "❌ Error: " + err.message;
-    }
-  };
+  } catch (err) {
+    resultDiv.innerHTML = "❌ Error: " + err.message;
+  }
+}
 </script>
