@@ -1,21 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ReelMind AI</title>
+  <meta charset="UTF-8">
+  <title>🚀 ReelMind AI</title>
 
   <style>
     body {
-      font-family: Arial, sans-serif;
       background: #0f172a;
       color: white;
+      font-family: Arial;
       text-align: center;
       padding: 40px;
-    }
-
-    h1 {
-      margin-bottom: 10px;
     }
 
     input {
@@ -23,125 +18,110 @@
       padding: 12px;
       border-radius: 10px;
       border: none;
-      margin-top: 20px;
-      font-size: 16px;
+      margin-bottom: 15px;
     }
 
     button {
-      margin-top: 20px;
       padding: 12px 25px;
-      border: none;
       border-radius: 10px;
-      background: #22c55e;
+      border: none;
+      background: #06b6d4;
       color: white;
       font-size: 16px;
       cursor: pointer;
     }
 
-    button:hover {
-      background: #16a34a;
+    #result {
+      margin-top: 20px;
     }
 
     img {
-      margin-top: 30px;
       max-width: 90%;
+      margin-top: 20px;
       border-radius: 10px;
-    }
-
-    #status {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #94a3b8;
     }
   </style>
 </head>
 
 <body>
 
-  <h1>🚀 ReelMind AI</h1>
-  <p id="status">Connecting...</p>
+<h1>🚀 ReelMind AI</h1>
 
-  <input id="prompt" placeholder="Describe your image..." />
-  <br>
-  <button onclick="generate()">✨ Generate</button>
+<input id="prompt" placeholder="Type something like: image of dragon" />
 
-  <br>
-  <img id="result" />
+<br>
+<button onclick="generate()">⚡ Generate</button>
 
-  <!-- 🔥 FIREBASE + LOGIC -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+<div id="result"></div>
 
-    // ✅ YOUR FIREBASE CONFIG (OK)
-    const firebaseConfig = {
-      apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
-      authDomain: "reelmind-ai-f07cb.firebaseapp.com",
-      projectId: "reelmind-ai-f07cb",
-    };
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth,
+    signInAnonymously
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  // 🔥 YOUR FIREBASE CONFIG
+  const firebaseConfig = {
+    apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
+    authDomain: "reelmind-ai-f07cb.firebaseapp.com",
+    projectId: "reelmind-ai-f07cb",
+    storageBucket: "reelmind-ai-f07cb.appspot.com",
+    messagingSenderId: "731354245603",
+    appId: "1:731354245603:web:67a20d31c7a4eff382d8d6"
+  };
 
-    let userToken = "";
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    // 🔥 LOGIN USER AUTOMATICALLY
-    signInAnonymously(auth)
-      .then(async (userCred) => {
-        userToken = await userCred.user.getIdToken();
-        document.getElementById("status").innerText = "✅ Connected";
-        console.log("User logged in");
-      })
-      .catch(err => {
-        console.error(err);
-        document.getElementById("status").innerText = "❌ Auth failed";
+  let token = null;
+
+  // 🔐 LOGIN (IMPORTANT)
+  signInAnonymously(auth)
+    .then(async (userCred) => {
+      token = await userCred.user.getIdToken();
+      console.log("✅ Logged in");
+    })
+    .catch(err => {
+      alert("Firebase Auth Error: " + err.message);
+    });
+
+  // 🚀 GENERATE FUNCTION
+  window.generate = async () => {
+    const prompt = document.getElementById("prompt").value;
+    const resultDiv = document.getElementById("result");
+
+    if (!token) {
+      alert("Wait... logging in");
+      return;
+    }
+
+    resultDiv.innerHTML = "⏳ Generating...";
+
+    try {
+      const res = await fetch("https://YOUR-BACKEND-URL/generate-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ prompt })
       });
 
-    // 🔥 GENERATE FUNCTION
-    window.generate = async () => {
-      const prompt = document.getElementById("prompt").value;
+      const data = await res.json();
 
-      if (!prompt) {
-        alert("Enter a prompt");
+      if (data.error) {
+        resultDiv.innerHTML = "❌ " + data.error;
         return;
       }
 
-      if (!userToken) {
-        alert("Still connecting...");
-        return;
-      }
+      resultDiv.innerHTML = `<img src="${data.data.url}" />`;
 
-      document.getElementById("status").innerText = "⏳ Generating...";
-      document.getElementById("result").src = "";
-
-      try {
-        const res = await fetch("https://YOUR-RENDER-URL/generate-image", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + userToken
-          },
-          body: JSON.stringify({ prompt })
-        });
-
-        const data = await res.json();
-        console.log(data);
-
-        if (data.data?.url) {
-          document.getElementById("result").src = data.data.url;
-          document.getElementById("status").innerText = "✅ Done";
-        } else {
-          document.getElementById("status").innerText = "❌ Failed";
-          alert(data.error || "Generation failed");
-        }
-
-      } catch (err) {
-        console.error(err);
-        document.getElementById("status").innerText = "❌ Error";
-        alert("Server error");
-      }
-    };
-  </script>
+    } catch (err) {
+      resultDiv.innerHTML = "❌ Error: " + err.message;
+    }
+  };
+</script>
 
 </body>
 </html>
