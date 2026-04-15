@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>🚀 ReelMind AI GOD MODE</title>
+<title>🚀 ReelMind AI GOD MODE FINAL</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -22,6 +22,7 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 
 <body>
 
+<!-- NAV -->
 <div id="topbar">
   <div onclick="switchTab('home')">🏠</div>
   <div onclick="switchTab('create')">➕</div>
@@ -29,8 +30,10 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   <div onclick="switchTab('admin')">👑</div>
 </div>
 
-<div id="creditsBox">💰 Credits: <span id="credits">...</span></div>
+<!-- CREDITS -->
+<div id="creditsBox">💰 Credits: <span id="credits">∞</span></div>
 
+<!-- HOME -->
 <div id="home" class="section active">
   <div class="card">
     <h2>⚡ ReelMind AI GOD MODE</h2>
@@ -45,6 +48,7 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   </div>
 </div>
 
+<!-- CREATE -->
 <div id="create" class="section">
   <select id="mode">
     <option value="text">Text</option>
@@ -55,6 +59,7 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   <div id="result"></div>
 </div>
 
+<!-- PROFILE -->
 <div id="profile" class="section">
   <h3>User</h3>
   <p id="userEmail">Guest Mode</p>
@@ -68,6 +73,7 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   <button onclick="logout()">Logout</button>
 </div>
 
+<!-- ADMIN -->
 <div id="admin" class="section">
   <h3>👑 Admin Panel</h3>
   <button onclick="loadStats()">Load Stats</button>
@@ -82,8 +88,8 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 
 <script type="module">
 
-// 🔥 PUT YOUR BACKEND HERE
-const API = "https://YOUR_BACKEND_URL";
+// ================= CONFIG =================
+const API = "https://YOUR_BACKEND_URL"; // ⚠️ REPLACE THIS
 
 // ================= FIREBASE =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -108,6 +114,9 @@ const provider = new GoogleAuthProvider();
 let token = null;
 let credits = 0;
 
+// ================= HELPERS =================
+function val(id){return document.getElementById(id).value;}
+
 // ================= AUTH =================
 window.googleLogin = async ()=> await signInWithPopup(auth, provider);
 
@@ -120,8 +129,6 @@ window.emailRegister = async ()=>{
 };
 
 window.logout = ()=> signOut(auth);
-
-function val(id){return document.getElementById(id).value;}
 
 onAuthStateChanged(auth, async user=>{
   if(user){
@@ -145,110 +152,106 @@ window.switchTab = (tab)=>{
 async function loadUser(){
   if(!token) return;
 
-  try{
-    const res = await fetch(API+"/me",{
-      headers:{ Authorization:"Bearer "+token }
-    });
+  const res = await fetch(API+"/me",{
+    headers:{ Authorization:"Bearer "+token }
+  });
 
-    const data = await res.json();
-    credits = data.credits;
-    document.getElementById("credits").innerText = credits;
-
-  }catch{
-    console.log("User load failed");
-  }
+  const data = await res.json();
+  credits = data.credits;
+  document.getElementById("credits").innerText = credits;
 }
 
-// ================= GENERATE =================
+// ================= GENERATE (FIXED) =================
 document.getElementById("generate").onclick = async ()=>{
 
   const prompt = val("prompt").trim();
   const mode = document.getElementById("mode").value;
+  const result = document.getElementById("result");
 
   if(!prompt) return alert("Enter prompt");
 
-  const result = document.getElementById("result");
   result.innerHTML = "⚡ Generating...";
 
   try{
 
-    // GUEST MODE
+    console.log("🚀 START");
+
     if(!token){
-      if(mode==="image"){
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+      console.log("👤 Guest mode");
+
+      if(mode === "image"){
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
         result.innerHTML = `<div class="card"><img src="${url}" style="width:100%"></div>`;
       } else {
-        result.innerHTML = `<div class="card">⚠️ Login required for text</div>`;
+        result.innerHTML = `<div class="card">⚠️ Login required for AI text</div>`;
       }
       return;
     }
 
     let endpoint = "/generate-text";
-    if(mode==="image") endpoint="/generate-image";
-    if(mode==="video") endpoint="/generate-video";
+    if(mode === "image") endpoint="/generate-image";
+    if(mode === "video") endpoint="/generate-video";
 
-    const res = await fetch(API+endpoint,{
+    console.log("🌐 Calling:", API + endpoint);
+
+    const res = await fetch(API + endpoint,{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
-        "Authorization":"Bearer "+token
+        "Authorization":"Bearer " + token
       },
-      body:JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt })
     });
 
-    const data = await res.json();
+    console.log("📡 Status:", res.status);
 
-    console.log("🔥 RESPONSE:", data);
-
-    // TEXT
-    if(mode==="text"){
-      const output =
-        data?.data?.content ||
-        data?.output ||
-        "⚠️ No response";
-
-      result.innerHTML = `<div class="card">${output}</div>`;
+    if(!res.ok){
+      result.innerHTML = `<div class="card">❌ Server error (${res.status})</div>`;
+      return;
     }
 
-    // IMAGE
-    if(mode==="image"){
-      const url =
-        data?.data?.url ||
-        data?.output;
+    const text = await res.text();
+    console.log("📦 Raw:", text);
 
+    let data;
+    try{
+      data = JSON.parse(text);
+    }catch{
+      result.innerHTML = `<div class="card">❌ Invalid server response</div>`;
+      return;
+    }
+
+    console.log("🔥 Parsed:", data);
+
+    if(mode === "text"){
+      result.innerHTML = `<div class="card">${data?.data?.content || data?.output || "⚠️ No response"}</div>`;
+    }
+
+    if(mode === "image"){
+      const url = data?.data?.url || data?.output;
       result.innerHTML = `<div class="card"><img src="${url}" style="width:100%"></div>`;
     }
 
-    // VIDEO
-    if(mode==="video"){
-      const vid = data?.preview || "";
+    if(mode === "video"){
       result.innerHTML =
-        `<div class="card"><video src="${vid}" controls style="width:100%"></video></div>`;
+        `<div class="card"><video src="${data.preview}" controls style="width:100%"></video></div>`;
     }
 
     loadUser();
 
   }catch(e){
-    console.error(e);
-    result.innerHTML = `<div class="card">❌ Failed to connect</div>`;
+    console.error("💥 ERROR:", e);
+    result.innerHTML = `<div class="card">❌ Connection failed</div>`;
   }
 };
 
 // ================= ADMIN =================
 window.loadStats = async ()=>{
-  try{
-    const res = await fetch(API+"/admin");
-    const data = await res.json();
+  const res = await fetch(API+"/admin");
+  const data = await res.json();
 
-    document.getElementById("stats").innerHTML =
-      `<div class="card">
-        Users: ${data.users}<br>
-        Requests: ${data.requests}
-      </div>`;
-  }catch{
-    document.getElementById("stats").innerHTML =
-      `<div class="card">❌ Failed to load stats</div>`;
-  }
+  document.getElementById("stats").innerHTML =
+    `<div class="card">Users: ${data.users}<br>Requests: ${data.requests}</div>`;
 };
 
 </script>
