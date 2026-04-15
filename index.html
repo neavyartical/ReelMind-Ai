@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script>
-const API = "https://reelmindbackend-1.onrender.com"; // your backend
+const API = "https://reelmindbackend-1.onrender.com";
 </script>
 
 <style>
@@ -65,13 +65,13 @@ button{
 <div id="loginBox">
   <div class="card">
     <h3>Login</h3>
-    <button onclick="login()">Continue</button>
+    <button onclick="loginWithGoogle()">Login with Google</button>
   </div>
 </div>
 
 <h1>🚀 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Type something like: image of lion" />
+<input id="prompt" placeholder="Type: image of lion or video of city" />
 
 <br>
 <button onclick="generate()">⚡ Generate</button>
@@ -83,7 +83,7 @@ button{
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
 <script>
-// 🔥 YOUR FIREBASE CONFIG
+// 🔥 YOUR FIREBASE CONFIG (KEEP YOURS)
 firebase.initializeApp({
   apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
   authDomain: "reelmind-ai-f07cb.firebaseapp.com",
@@ -93,18 +93,31 @@ firebase.initializeApp({
 const auth = firebase.auth();
 let TOKEN = null;
 
-// 🔐 LOGIN (SAFE)
-async function login(){
+// 🔐 GOOGLE LOGIN (FIXED)
+async function loginWithGoogle(){
+  const provider = new firebase.auth.GoogleAuthProvider();
+
   try{
-    const user = await auth.signInAnonymously();
-    TOKEN = await user.user.getIdToken();
+    const result = await auth.signInWithPopup(provider);
+
+    TOKEN = await result.user.getIdToken();
+
     document.getElementById("loginBox").style.display = "none";
+
+    alert("✅ Logged in: " + result.user.email);
+
   }catch(e){
-    alert("Login error: " + e.message);
+    console.error(e);
+
+    if(e.code === "auth/admin-restricted-operation"){
+      alert("❌ Enable Google sign-in in Firebase");
+    }else{
+      alert("❌ " + e.message);
+    }
   }
 }
 
-// 🚀 GENERATE
+// 🚀 GENERATE FUNCTION
 async function generate(){
   const prompt = document.getElementById("prompt").value;
   const result = document.getElementById("result");
@@ -119,7 +132,17 @@ async function generate(){
   result.innerHTML = "⏳ Generating...";
 
   try{
-    const res = await fetch(API + "/generate-image", {
+    let route = "/generate-text";
+
+    if(prompt.toLowerCase().includes("image")){
+      route = "/generate-image";
+    }
+
+    if(prompt.toLowerCase().includes("video")){
+      route = "/generate-video";
+    }
+
+    const res = await fetch(API + route, {
       method:"POST",
       headers:{
         "Content-Type":"application/json",
@@ -135,7 +158,11 @@ async function generate(){
       return;
     }
 
-    result.innerHTML = `<img src="${data.data.url}" />`;
+    if(data.data?.url){
+      result.innerHTML = `<img src="${data.data.url}" />`;
+    }else{
+      result.innerHTML = `<p>${data.data?.content}</p>`;
+    }
 
   }catch(e){
     result.innerHTML = "❌ Error: " + e.message;
