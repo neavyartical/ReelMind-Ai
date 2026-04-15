@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,34 +7,21 @@
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background: #0f172a;
   color: white;
   text-align: center;
   padding: 20px;
 }
 
-h1 {
-  margin-bottom: 10px;
-}
-
-#loginBtn, #logoutBtn, #generateBtn {
-  margin-top: 15px;
-  padding: 12px 20px;
-  border: none;
+button, select {
+  margin-top: 10px;
+  padding: 12px;
   border-radius: 10px;
+  border: none;
   background: #06b6d4;
   color: white;
-  font-size: 16px;
   cursor: pointer;
-}
-
-#logoutBtn {
-  display: none;
-}
-
-#generateBtn {
-  display: none;
 }
 
 input {
@@ -44,17 +30,13 @@ input {
   border-radius: 10px;
   border: none;
   margin-top: 15px;
-  font-size: 16px;
-}
-
-#result {
-  margin-top: 20px;
 }
 
 .card {
   background: #1e293b;
   padding: 15px;
   border-radius: 12px;
+  margin-top: 15px;
 }
 </style>
 </head>
@@ -66,24 +48,32 @@ input {
 <p id="userText"></p>
 
 <button id="loginBtn">Login with Google</button>
-<button id="logoutBtn">Logout</button>
+<button id="logoutBtn" style="display:none;">Logout</button>
 
 <br>
 
-<input id="promptInput" placeholder="Type something like: image of lion..." />
+<input id="promptInput" placeholder="Describe what you want..." />
 
 <br>
-<button id="generateBtn">⚡ Generate</button>
+
+<select id="mode">
+  <option value="text">🧠 Text</option>
+  <option value="image">🖼 Image</option>
+  <option value="video">🎬 Video</option>
+</select>
+
+<br>
+
+<button id="generateBtn" style="display:none;">⚡ Generate</button>
 
 <div id="result"></div>
 
-<!-- 🔥 FIREBASE + LOGIC -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// ✅ YOUR CONFIG
+// 🔑 YOUR CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
   authDomain: "reelmind-ai-f07cb.firebaseapp.com",
@@ -97,27 +87,20 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// UI elements
+// UI
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const generateBtn = document.getElementById("generateBtn");
 const promptInput = document.getElementById("promptInput");
-const userText = document.getElementById("userText");
 const resultBox = document.getElementById("result");
+const userText = document.getElementById("userText");
+const mode = document.getElementById("mode");
 
 // LOGIN
-loginBtn.onclick = async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (err) {
-    alert("Login error: " + err.message);
-  }
-};
-
-// LOGOUT
+loginBtn.onclick = () => signInWithPopup(auth, provider);
 logoutBtn.onclick = () => signOut(auth);
 
-// AUTH STATE
+// AUTH
 onAuthStateChanged(auth, (user) => {
   if (user) {
     userText.innerText = "Logged in as: " + user.email;
@@ -132,44 +115,68 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// 🔥 GENERATE FUNCTION (CONNECTED TO BACKEND)
+// 🚀 GENERATE ENGINE
 generateBtn.onclick = async () => {
   const prompt = promptInput.value;
+  const selected = mode.value;
 
-  if (!prompt) {
-    alert("Type something first");
-    return;
-  }
+  if (!prompt) return alert("Enter prompt");
 
-  resultBox.innerHTML = `<p style="color:#06b6d4;">⏳ Generating...</p>`;
-  generateBtn.innerText = "Generating...";
+  resultBox.innerHTML = "⏳ Generating...";
 
-  try {
-    const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
+  // 🧠 TEXT
+  if (selected === "text") {
+    try {
+      const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.error) {
-      resultBox.innerHTML = `<p style="color:red;">❌ ${data.error}</p>`;
-    } else {
       resultBox.innerHTML = `
         <div class="card">
-          <p>${data.data?.content || data.result || "No response"}</p>
+          ${data.data?.content || "No response"}
         </div>
       `;
+    } catch (err) {
+      resultBox.innerHTML = "❌ Error";
     }
-
-  } catch (err) {
-    resultBox.innerHTML = `<p style="color:red;">❌ ${err.message}</p>`;
   }
 
-  generateBtn.innerText = "⚡ Generate";
+  // 🖼 IMAGE (FAST ⚡)
+  if (selected === "image") {
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+
+    resultBox.innerHTML = `
+      <div class="card">
+        <img src="${url}" style="width:100%; border-radius:10px;" />
+      </div>
+    `;
+  }
+
+  // 🎬 VIDEO (via backend)
+  if (selected === "video") {
+    try {
+      const res = await fetch("https://reelmindbackend-1.onrender.com/generate-video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+      });
+
+      const data = await res.json();
+
+      resultBox.innerHTML = `
+        <div class="card">
+          🎬 Video request sent<br>
+          ${data.status || "Processing..."}
+        </div>
+      `;
+    } catch (err) {
+      resultBox.innerHTML = "❌ Video error";
+    }
+  }
 };
 
 </script>
