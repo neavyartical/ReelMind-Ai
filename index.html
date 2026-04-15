@@ -1,106 +1,125 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ReelMind AI</title>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
   <style>
     body {
+      margin: 0;
       font-family: Arial;
-      text-align: center;
-      background: #111;
+      background: #0f172a;
       color: white;
-      padding-top: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
     }
 
     input {
-      width: 80%;
+      width: 100%;
       padding: 12px;
-      margin: 10px;
       border-radius: 10px;
       border: none;
+      margin-bottom: 10px;
+      font-size: 16px;
     }
 
     button {
       padding: 12px 20px;
-      border: none;
       border-radius: 10px;
-      background: #00c896;
-      color: white;
-      font-size: 16px;
+      border: none;
       cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
     }
 
-    #app { display: none; }
+    .generate {
+      background: #22c55e;
+      color: white;
+    }
+
+    .login {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .logout {
+      background: red;
+      color: white;
+    }
   </style>
 </head>
-
 <body>
 
-  <!-- LOGIN SCREEN -->
-  <div id="login">
-    <h2>Login to ReelMind AI</h2>
-    <button onclick="loginWithGoogle()">Login with Google</button>
+<div class="container">
+  <h2>🚀 ReelMind AI</h2>
+
+  <div id="auth-section">
+    <button class="login" onclick="login()">Login with Google</button>
   </div>
 
-  <!-- MAIN APP -->
-  <div id="app">
-    <h1>🚀 ReelMind AI</h1>
-    <input type="text" placeholder="Type something like: image of dragon">
-    <br>
-    <button>Generate</button>
-    <br><br>
-    <button onclick="logout()">Logout</button>
+  <div id="app-section" style="display:none;">
+    <input type="text" id="prompt" placeholder="Type something like: image of dragon"/>
+    <button class="generate" onclick="generate()">Generate</button>
+    <br/>
+    <button class="logout" onclick="logout()">Logout</button>
   </div>
+</div>
 
-  <script>
-    // 🔥 YOUR NEW FIREBASE CONFIG (EDIT ONLY apiKey if needed)
-    const firebaseConfig = {
-      apiKey: "PASTE_YOUR_NEW_API_KEY_HERE",
-      authDomain: "reelmind-ai-a11eb.firebaseapp.com",
-      projectId: "reelmind-ai-a11eb",
-      storageBucket: "reelmind-ai-a11eb.appspot.com",
-      messagingSenderId: "534455151705",
-      appId: "1:534455151705:web:42eef09cd465fecb8ed548"
-    };
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // INIT
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+const firebaseConfig = {
+  apiKey: "PASTE-YOUR-NEW-API-KEY-HERE",
+  authDomain: "reelmind-ai-f07cb.firebaseapp.com",
+  projectId: "reelmind-ai-f07cb",
+  storageBucket: "reelmind-ai-f07cb.appspot.com",
+  messagingSenderId: "PASTE",
+  appId: "PASTE"
+};
 
-    // LOGIN FUNCTION
-    function loginWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-      auth.signInWithPopup(provider)
-        .then((result) => {
-          console.log("Login success:", result.user.email);
-        })
-        .catch((error) => {
-          alert("Login error: " + error.message);
-        });
-    }
+window.login = async function () {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    alert("Login error: " + error.message);
+  }
+};
 
-    // LOGOUT
-    function logout() {
-      auth.signOut();
-    }
+window.logout = async function () {
+  await signOut(auth);
+};
 
-    // 🔥 FIX LOGIN LOOP (IMPORTANT)
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        console.log("Logged in:", user.email);
-        document.getElementById("app").style.display = "block";
-        document.getElementById("login").style.display = "none";
-      } else {
-        document.getElementById("app").style.display = "none";
-        document.getElementById("login").style.display = "block";
-      }
-    });
-  </script>
+window.generate = function () {
+  const prompt = document.getElementById("prompt").value;
+  alert("Generating: " + prompt);
+};
+
+// AUTH STATE
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById("auth-section").style.display = "none";
+    document.getElementById("app-section").style.display = "block";
+  } else {
+    document.getElementById("auth-section").style.display = "block";
+    document.getElementById("app-section").style.display = "none";
+  }
+});
+</script>
 
 </body>
-                              </html>
+</html>
