@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>🚀 ReelMind AI FINAL FIX</title>
+<title>🚀 ReelMind AI FINAL</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -30,7 +30,7 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 <div id="creditsBox">💰 Credits: <span id="credits">...</span></div>
 
 <div id="home" class="section active">
-  <div class="card">⚡ ReelMind AI (LIVE)</div>
+  <div class="card">⚡ ReelMind AI LIVE</div>
 
   <div class="card">
     <h3>💰 Buy Credits</h3>
@@ -45,11 +45,12 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
     <option value="text">Text</option>
     <option value="image">Image</option>
   </select>
+
   <div id="result"></div>
 </div>
 
 <div id="admin" class="section">
-  <h3>Admin</h3>
+  <h3>Admin Dashboard</h3>
   <button onclick="loadStats()">Load Stats</button>
   <div id="stats"></div>
 </div>
@@ -62,7 +63,8 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 
 <script>
 
-const API = "https://YOUR_BACKEND_URL"; // 🔥 PUT YOUR REAL URL
+// 🔥 PUT YOUR REAL BACKEND URL HERE
+const API = "https://YOUR_BACKEND_URL";
 
 // NAV
 function switchTab(tab){
@@ -70,14 +72,18 @@ function switchTab(tab){
   document.getElementById(tab).classList.add("active");
 }
 
-// LOAD USER
+// LOAD USER (SAFE)
 async function loadUser(){
   try{
     const res = await fetch(API + "/user");
+    console.log("User status:", res.status);
+
     const data = await res.json();
-    document.getElementById("credits").innerText = data.credits;
+    document.getElementById("credits").innerText = data.credits ?? "...";
+
   }catch(e){
-    alert("❌ Backend not reachable");
+    console.error("User fetch error:", e);
+    document.getElementById("credits").innerText = "OFFLINE";
   }
 }
 loadUser();
@@ -87,11 +93,11 @@ document.getElementById("generate").onclick = async ()=>{
 
   const prompt = document.getElementById("prompt").value.trim();
   const mode = document.getElementById("mode").value;
+  const result = document.getElementById("result");
 
   if(!prompt) return alert("Enter prompt");
 
-  document.getElementById("result").innerHTML =
-    `<div class="card">⚡ Generating...</div>`;
+  result.innerHTML = `<div class="card">⚡ Generating...</div>`;
 
   try{
 
@@ -100,9 +106,17 @@ document.getElementById("generate").onclick = async ()=>{
 
     const res = await fetch(API + endpoint,{
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({ prompt })
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({ prompt })
     });
+
+    console.log("Generate status:", res.status);
+
+    if(!res.ok){
+      throw new Error("Server not responding");
+    }
 
     const data = await res.json();
 
@@ -111,35 +125,41 @@ document.getElementById("generate").onclick = async ()=>{
       return;
     }
 
-    document.getElementById("credits").innerText = data.credits || "...";
+    document.getElementById("credits").innerText = data.credits ?? "...";
 
-    if(mode==="text"){
-      document.getElementById("result").innerHTML =
-        `<div class="card">${data.output || data.data?.content}</div>`;
+    if(mode === "text"){
+      result.innerHTML = `<div class="card">${data.output || data.data?.content || "No response"}</div>`;
     }
 
-    if(mode==="image"){
-      document.getElementById("result").innerHTML =
-        `<div class="card"><img src="${data.output || data.data?.url}" style="width:100%"></div>`;
+    if(mode === "image"){
+      result.innerHTML = `<div class="card"><img src="${data.output || data.data?.url}" style="width:100%"></div>`;
     }
 
   }catch(e){
-    console.error(e);
-    document.getElementById("result").innerHTML =
-      `<div class="card">❌ Backend error</div>`;
+    console.error("Generate error:", e);
+
+    result.innerHTML = `<div class="card">❌ Backend connection failed</div>`;
+
+    alert("❌ Cannot reach backend.\n\nCheck:\n1. Correct URL\n2. Backend is live\n3. HTTPS only");
   }
 };
 
 // ADMIN
 async function loadStats(){
-  const res = await fetch(API + "/admin");
-  const data = await res.json();
+  try{
+    const res = await fetch(API + "/admin");
+    const data = await res.json();
 
-  document.getElementById("stats").innerHTML =
-    `<div class="card">
-      Users: ${data.users}<br>
-      Requests: ${data.requests}
-    </div>`;
+    document.getElementById("stats").innerHTML =
+      `<div class="card">
+        Users: ${data.users}<br>
+        Requests: ${data.requests}
+      </div>`;
+
+  }catch(e){
+    console.error("Admin error:", e);
+    alert("Admin fetch failed");
+  }
 }
 
 </script>
