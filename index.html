@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>🚀 ReelMind AI FINAL</title>
+<title>🚀 ReelMind AI GOD MODE FINAL</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -12,9 +12,10 @@ body{margin:0;font-family:Segoe UI;background:#020617;color:white;}
 .active{display:block;}
 #prompt{position:fixed;bottom:90px;width:90%;left:5%;padding:12px;border-radius:25px;border:none;}
 #controls{position:fixed;bottom:0;width:100%;height:70px;display:flex;justify-content:center;background:#111;}
-.btn{width:60px;height:60px;border-radius:50%;background:#06b6d4;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;}
+.btn{width:60px;height:60px;border-radius:50%;background:#06b6d4;display:flex;align-items:center;justify-content:center;font-size:22px;}
 .card{background:#111;padding:15px;border-radius:12px;margin-top:15px;}
 #creditsBox{position:fixed;top:50px;right:10px;background:#111;padding:8px;border-radius:10px;}
+input{padding:10px;margin:5px;width:90%;border-radius:8px;border:none;}
 button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white;margin-top:5px;}
 </style>
 </head>
@@ -24,31 +25,52 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 <div id="topbar">
   <div onclick="switchTab('home')">🏠</div>
   <div onclick="switchTab('create')">➕</div>
+  <div onclick="switchTab('profile')">👤</div>
   <div onclick="switchTab('admin')">👑</div>
 </div>
 
 <div id="creditsBox">💰 Credits: <span id="credits">...</span></div>
 
+<!-- HOME -->
 <div id="home" class="section active">
-  <div class="card">⚡ ReelMind AI LIVE</div>
+  <div class="card">
+    <h2>⚡ ReelMind AI</h2>
+    <p>Secure • Fast • Multi-AI</p>
+  </div>
 
   <div class="card">
-    <h3>💰 Buy Credits</h3>
     <a href="https://ko-fi.com/articalneavy" target="_blank">
       <button>Ko-fi ☕</button>
     </a>
   </div>
 </div>
 
+<!-- CREATE -->
 <div id="create" class="section">
   <select id="mode">
     <option value="text">Text</option>
     <option value="image">Image</option>
+    <option value="video">Video</option>
   </select>
 
   <div id="result"></div>
 </div>
 
+<!-- PROFILE -->
+<div id="profile" class="section">
+  <h3>User</h3>
+  <p id="userEmail">Guest</p>
+
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="emailLogin()">Login</button>
+  <button onclick="emailRegister()">Register</button>
+  <button onclick="googleLogin()">Google</button>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<!-- ADMIN -->
 <div id="admin" class="section">
   <h3>Admin Dashboard</h3>
   <button onclick="loadStats()">Load Stats</button>
@@ -61,62 +83,120 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   <div id="generate" class="btn">⚡</div>
 </div>
 
-<script>
+<script type="module">
 
-// 🔥 PUT YOUR REAL BACKEND URL HERE
+// 🔥 IMPORTANT: PUT YOUR REAL BACKEND HERE
 const API = "https://YOUR_BACKEND_URL";
 
-// NAV
-function switchTab(tab){
+// ================= FIREBASE =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const app = initializeApp({
+  apiKey: "YOUR_FIREBASE_KEY",
+  authDomain: "reelmind-ai-f07cb.firebaseapp.com"
+});
+
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+let token = null;
+
+// ================= NAV =================
+window.switchTab = (tab)=>{
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
-}
+};
 
-// LOAD USER (SAFE)
-async function loadUser(){
+// ================= AUTH =================
+window.googleLogin = async ()=> await signInWithPopup(auth, provider);
+
+window.emailLogin = async ()=>{
+  await signInWithEmailAndPassword(auth, val("email"), val("password"));
+};
+
+window.emailRegister = async ()=>{
+  await createUserWithEmailAndPassword(auth, val("email"), val("password"));
+};
+
+window.logout = ()=> signOut(auth);
+
+function val(id){return document.getElementById(id).value;}
+
+onAuthStateChanged(auth, async user=>{
+  if(user){
+    token = await user.getIdToken();
+    document.getElementById("userEmail").innerText = user.email;
+    loadUser();
+  } else {
+    token = null;
+    document.getElementById("userEmail").innerText = "Guest";
+  }
+});
+
+// ================= CHECK BACKEND =================
+async function checkBackend(){
   try{
-    const res = await fetch(API + "/user");
-    console.log("User status:", res.status);
-
-    const data = await res.json();
-    document.getElementById("credits").innerText = data.credits ?? "...";
-
-  }catch(e){
-    console.error("User fetch error:", e);
-    document.getElementById("credits").innerText = "OFFLINE";
+    const res = await fetch(API + "/");
+    if(!res.ok) throw new Error();
+  }catch{
+    alert("❌ Backend not reachable.\n\nCheck:\n1. Correct URL\n2. Backend running\n3. HTTPS only");
   }
 }
-loadUser();
+checkBackend();
 
-// GENERATE
+// ================= LOAD USER =================
+async function loadUser(){
+  if(!token) return;
+
+  const res = await fetch(API+"/me",{
+    headers:{ Authorization:"Bearer "+token }
+  });
+
+  const data = await res.json();
+  document.getElementById("credits").innerText = data.credits;
+}
+
+// ================= GENERATE =================
 document.getElementById("generate").onclick = async ()=>{
 
-  const prompt = document.getElementById("prompt").value.trim();
+  const prompt = val("prompt").trim();
   const mode = document.getElementById("mode").value;
-  const result = document.getElementById("result");
 
   if(!prompt) return alert("Enter prompt");
 
-  result.innerHTML = `<div class="card">⚡ Generating...</div>`;
+  document.getElementById("result").innerHTML = "⚡ Thinking...";
 
   try{
 
-    let endpoint = "/generate-text";
-    if(mode === "image") endpoint = "/generate-image";
+    if(!token){
+      // Guest = image only
+      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+      document.getElementById("result").innerHTML =
+        `<div class="card"><img src="${url}" style="width:100%"></div>`;
+      return;
+    }
 
-    const res = await fetch(API + endpoint,{
+    let endpoint = "/generate-text";
+    if(mode==="image") endpoint="/generate-image";
+    if(mode==="video") endpoint="/generate-video";
+
+    const res = await fetch(API+endpoint,{
       method:"POST",
       headers:{
-        "Content-Type":"application/json"
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+token
       },
-      body: JSON.stringify({ prompt })
+      body:JSON.stringify({ prompt })
     });
-
-    console.log("Generate status:", res.status);
-
-    if(!res.ok){
-      throw new Error("Server not responding");
-    }
 
     const data = await res.json();
 
@@ -125,42 +205,40 @@ document.getElementById("generate").onclick = async ()=>{
       return;
     }
 
-    document.getElementById("credits").innerText = data.credits ?? "...";
-
-    if(mode === "text"){
-      result.innerHTML = `<div class="card">${data.output || data.data?.content || "No response"}</div>`;
+    if(mode==="text"){
+      document.getElementById("result").innerHTML =
+        `<div class="card">${data.data.content}</div>`;
     }
 
-    if(mode === "image"){
-      result.innerHTML = `<div class="card"><img src="${data.output || data.data?.url}" style="width:100%"></div>`;
+    if(mode==="image"){
+      document.getElementById("result").innerHTML =
+        `<div class="card"><img src="${data.data.url}" style="width:100%"></div>`;
     }
+
+    if(mode==="video"){
+      document.getElementById("result").innerHTML =
+        `<div class="card"><video src="${data.preview}" controls style="width:100%"></video></div>`;
+    }
+
+    loadUser();
 
   }catch(e){
-    console.error("Generate error:", e);
-
-    result.innerHTML = `<div class="card">❌ Backend connection failed</div>`;
-
-    alert("❌ Cannot reach backend.\n\nCheck:\n1. Correct URL\n2. Backend is live\n3. HTTPS only");
+    document.getElementById("result").innerHTML =
+      `<div class="card">❌ Connection error</div>`;
   }
 };
 
-// ADMIN
-async function loadStats(){
-  try{
-    const res = await fetch(API + "/admin");
-    const data = await res.json();
+// ================= ADMIN =================
+window.loadStats = async ()=>{
+  const res = await fetch(API+"/admin");
+  const data = await res.json();
 
-    document.getElementById("stats").innerHTML =
-      `<div class="card">
-        Users: ${data.users}<br>
-        Requests: ${data.requests}
-      </div>`;
-
-  }catch(e){
-    console.error("Admin error:", e);
-    alert("Admin fetch failed");
-  }
-}
+  document.getElementById("stats").innerHTML =
+    `<div class="card">
+      Users: ${data.users}<br>
+      Requests: ${data.requests}
+    </div>`;
+};
 
 </script>
 
