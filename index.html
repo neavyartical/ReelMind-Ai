@@ -1,165 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>ReelMind AI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReelMind AI</title>
 
-<script>
-const API = "https://reelmindbackend-1.onrender.com";
-</script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
-<style>
-body{
-  margin:0;
-  background:#0b0f14;
-  color:white;
-  font-family:Arial;
-  text-align:center;
-}
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: white;
+      padding-top: 50px;
+    }
 
-#loginBox{
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:#000d;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
+    input {
+      width: 80%;
+      padding: 12px;
+      margin: 10px;
+      border-radius: 10px;
+      border: none;
+    }
 
-.card{
-  background:#111;
-  padding:20px;
-  border-radius:10px;
-}
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #00c896;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-input{
-  width:80%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  margin-top:20px;
-}
-
-button{
-  margin-top:15px;
-  padding:12px 20px;
-  border:none;
-  border-radius:10px;
-  background:cyan;
-  cursor:pointer;
-}
-
-#result img{
-  max-width:90%;
-  margin-top:20px;
-  border-radius:10px;
-}
-</style>
+    #app { display: none; }
+  </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="loginBox">
-  <div class="card">
-    <h3>Enter ReelMind</h3>
-    <button onclick="loginAnon()">Continue</button>
+  <!-- LOGIN SCREEN -->
+  <div id="login">
+    <h2>Login to ReelMind AI</h2>
+    <button onclick="loginWithGoogle()">Login with Google</button>
   </div>
-</div>
 
-<h1>🚀 ReelMind AI</h1>
+  <!-- MAIN APP -->
+  <div id="app">
+    <h1>🚀 ReelMind AI</h1>
+    <input type="text" placeholder="Type something like: image of dragon">
+    <br>
+    <button>Generate</button>
+    <br><br>
+    <button onclick="logout()">Logout</button>
+  </div>
 
-<input id="prompt" placeholder="Type: image of lion or video of city" />
+  <script>
+    // 🔥 YOUR NEW FIREBASE CONFIG (EDIT ONLY apiKey if needed)
+    const firebaseConfig = {
+      apiKey: "PASTE_YOUR_NEW_API_KEY_HERE",
+      authDomain: "reelmind-ai-a11eb.firebaseapp.com",
+      projectId: "reelmind-ai-a11eb",
+      storageBucket: "reelmind-ai-a11eb.appspot.com",
+      messagingSenderId: "534455151705",
+      appId: "1:534455151705:web:42eef09cd465fecb8ed548"
+    };
 
-<br>
-<button onclick="generate()">⚡ Generate</button>
+    // INIT
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-<div id="result"></div>
+    // LOGIN FUNCTION
+    function loginWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
 
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-
-<script>
-// 🔥 YOUR FIREBASE CONFIG
-firebase.initializeApp({
-  apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
-  authDomain: "reelmind-ai-f07cb.firebaseapp.com",
-  projectId: "reelmind-ai-f07cb"
-});
-
-const auth = firebase.auth();
-let TOKEN = null;
-
-// 🔐 ANONYMOUS LOGIN (NO MORE ERRORS)
-async function loginAnon(){
-  try{
-    const result = await auth.signInAnonymously();
-    TOKEN = await result.user.getIdToken();
-
-    document.getElementById("loginBox").style.display = "none";
-
-    console.log("✅ Logged in");
-
-  }catch(e){
-    alert("Login error: " + e.message);
-  }
-}
-
-// 🚀 GENERATE
-async function generate(){
-  const prompt = document.getElementById("prompt").value;
-  const result = document.getElementById("result");
-
-  if(!prompt) return alert("Type something");
-
-  if(!TOKEN){
-    alert("Login first");
-    return;
-  }
-
-  result.innerHTML = "⏳ Generating...";
-
-  try{
-    let route = "/generate-text";
-
-    if(prompt.toLowerCase().includes("image")){
-      route = "/generate-image";
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          console.log("Login success:", result.user.email);
+        })
+        .catch((error) => {
+          alert("Login error: " + error.message);
+        });
     }
 
-    if(prompt.toLowerCase().includes("video")){
-      route = "/generate-video";
+    // LOGOUT
+    function logout() {
+      auth.signOut();
     }
 
-    const res = await fetch(API + route, {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer " + TOKEN
-      },
-      body: JSON.stringify({ prompt })
+    // 🔥 FIX LOGIN LOOP (IMPORTANT)
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        console.log("Logged in:", user.email);
+        document.getElementById("app").style.display = "block";
+        document.getElementById("login").style.display = "none";
+      } else {
+        document.getElementById("app").style.display = "none";
+        document.getElementById("login").style.display = "block";
+      }
     });
-
-    const data = await res.json();
-
-    if(data.error){
-      result.innerHTML = "❌ " + data.error;
-      return;
-    }
-
-    if(data.data?.url){
-      result.innerHTML = `<img src="${data.data.url}" />`;
-    }else{
-      result.innerHTML = `<p>${data.data?.content}</p>`;
-    }
-
-  }catch(e){
-    result.innerHTML = "❌ Error: " + e.message;
-  }
-}
-</script>
+  </script>
 
 </body>
-</html>
+                              </html>
