@@ -64,8 +64,8 @@ button{
 <!-- LOGIN -->
 <div id="loginBox">
   <div class="card">
-    <h3>Login</h3>
-    <button onclick="loginWithGoogle()">Login with Google</button>
+    <h3>Enter ReelMind</h3>
+    <button onclick="loginAnon()">Continue</button>
   </div>
 </div>
 
@@ -83,7 +83,7 @@ button{
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
 <script>
-// 🔥 YOUR FIREBASE CONFIG (KEEP YOURS)
+// 🔥 YOUR FIREBASE CONFIG
 firebase.initializeApp({
   apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
   authDomain: "reelmind-ai-f07cb.firebaseapp.com",
@@ -93,31 +93,22 @@ firebase.initializeApp({
 const auth = firebase.auth();
 let TOKEN = null;
 
-// 🔐 GOOGLE LOGIN (FIXED)
-async function loginWithGoogle(){
-  const provider = new firebase.auth.GoogleAuthProvider();
-
+// 🔐 ANONYMOUS LOGIN (NO MORE ERRORS)
+async function loginAnon(){
   try{
-    const result = await auth.signInWithPopup(provider);
-
+    const result = await auth.signInAnonymously();
     TOKEN = await result.user.getIdToken();
 
     document.getElementById("loginBox").style.display = "none";
 
-    alert("✅ Logged in: " + result.user.email);
+    console.log("✅ Logged in");
 
   }catch(e){
-    console.error(e);
-
-    if(e.code === "auth/admin-restricted-operation"){
-      alert("❌ Enable Google sign-in in Firebase");
-    }else{
-      alert("❌ " + e.message);
-    }
+    alert("Login error: " + e.message);
   }
 }
 
-// 🚀 GENERATE FUNCTION
+// 🚀 GENERATE
 async function generate(){
   const prompt = document.getElementById("prompt").value;
   const result = document.getElementById("result");
