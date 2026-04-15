@@ -7,150 +7,170 @@
 
   <style>
     body {
+      font-family: Arial, sans-serif;
       background: #0f172a;
       color: white;
-      font-family: Arial;
       text-align: center;
-      padding: 40px;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
     }
 
     input {
-      width: 80%;
+      width: 90%;
       padding: 12px;
       border-radius: 10px;
       border: none;
-      margin-bottom: 15px;
+      margin-top: 15px;
+      font-size: 16px;
     }
 
     button {
-      padding: 12px 25px;
-      border-radius: 10px;
+      margin-top: 15px;
+      padding: 12px 20px;
       border: none;
+      border-radius: 10px;
       background: #06b6d4;
       color: white;
       font-size: 16px;
       cursor: pointer;
     }
 
-    #app {
-      display: none;
+    button:hover {
+      background: #0891b2;
+    }
+
+    #result {
+      margin-top: 20px;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 10px;
     }
   </style>
 </head>
 
 <body>
 
-<h1>🚀 ReelMind AI</h1>
+  <h1>🚀 ReelMind AI</h1>
 
-<!-- LOGIN -->
-<div id="loginBox">
-  <button onclick="login()">Login with Google</button>
-</div>
+  <div id="user"></div>
 
-<!-- APP -->
-<div id="app">
-  <p id="user"></p>
+  <input id="prompt" placeholder="Type something like: image of lion..." />
 
-  <input id="prompt" placeholder="Type something like: image of lion" />
   <br>
   <button onclick="generate()">⚡ Generate</button>
-
-  <br><br>
+  <br>
   <button onclick="logout()">Logout</button>
 
   <div id="result"></div>
-</div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import {
-    getAuth,
-    GoogleAuthProvider,
-    signInWithPopup,
-    signOut,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  <!-- FIREBASE SCRIPT -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  // 🔥 YOUR CORRECT CONFIG
-  const firebaseConfig = {
-    apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
-    authDomain: "reelmind-ai-f07cb.firebaseapp.com",
-    projectId: "reelmind-ai-f07cb",
-    storageBucket: "reelmind-ai-f07cb.appspot.com",
-    messagingSenderId: "731354245603",
-    appId: "1:731354245603:web:7810ca9154efda2f82d8d6"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
+      authDomain: "reelmind-ai-f07cb.firebaseapp.com",
+      projectId: "reelmind-ai-f07cb",
+      storageBucket: "reelmind-ai-f07cb.firebasestorage.app",
+      messagingSenderId: "731354245603",
+      appId: "1:731354245603:web:7810ca9154efda2f82d8d6",
+      measurementId: "G-2H2MRJJP9R"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-  let TOKEN = null;
+    let TOKEN = null;
 
-  // 🔐 LOGIN
-  window.login = async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      TOKEN = await result.user.getIdToken();
-    } catch (err) {
-      alert("❌ " + err.message);
-    }
-  };
+    // LOGIN STATE
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        document.getElementById("user").innerText =
+          "Logged in as: " + user.email;
 
-  // 🔓 LOGOUT
-  window.logout = async () => {
-    await signOut(auth);
-  };
-
-  // 🔁 AUTH STATE (fixes login loop)
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      document.getElementById("loginBox").style.display = "none";
-      document.getElementById("app").style.display = "block";
-      document.getElementById("user").innerText = "Logged in as: " + user.email;
-
-      TOKEN = await user.getIdToken();
-    } else {
-      document.getElementById("loginBox").style.display = "block";
-      document.getElementById("app").style.display = "none";
-    }
-  });
-
-  // 🚀 GENERATE (test version)
-  window.generate = async () => {
-    const prompt = document.getElementById("prompt").value;
-
-    if (!prompt) return alert("Type something");
-
-    if (!TOKEN) return alert("Login first");
-
-    document.getElementById("result").innerHTML = "⏳ Generating...";
-
-    try {
-      const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + TOKEN
-        },
-        body: JSON.stringify({ prompt })
-      });
-
-      const data = await res.json();
-
-      if (data.error) {
-        document.getElementById("result").innerHTML = "❌ " + data.error;
-        return;
+        TOKEN = await user.getIdToken();
+      } else {
+        login();
       }
+    });
 
-      document.getElementById("result").innerHTML =
-        "<p>" + data.data.content + "</p>";
+    // LOGIN FUNCTION
+    function login() {
+      signInWithPopup(auth, provider)
+        .then(async (result) => {
+          const user = result.user;
+          TOKEN = await user.getIdToken();
 
-    } catch (err) {
-      document.getElementById("result").innerHTML = "❌ " + err.message;
+          document.getElementById("user").innerText =
+            "Logged in as: " + user.email;
+        })
+        .catch((error) => {
+          alert("Login error: " + error.message);
+        });
     }
-  };
-</script>
+
+    // LOGOUT
+    window.logout = function () {
+      signOut(auth);
+      location.reload();
+    };
+
+    // GENERATE FUNCTION (UPGRADED)
+    window.generate = async function () {
+      const prompt = document.getElementById("prompt").value;
+
+      if (!prompt) return alert("Type something first");
+      if (!TOKEN) return alert("Login first");
+
+      const resultBox = document.getElementById("result");
+
+      resultBox.innerHTML = `
+        <p style="color:#06b6d4;">⏳ Generating...</p>
+      `;
+
+      try {
+        const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + TOKEN
+          },
+          body: JSON.stringify({ prompt })
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+          resultBox.innerHTML = `<p style="color:red;">❌ ${data.error}</p>`;
+          return;
+        }
+
+        resultBox.innerHTML = `
+          <div class="card">
+            <p>${data.data.content}</p>
+          </div>
+        `;
+
+      } catch (err) {
+        resultBox.innerHTML = `<p style="color:red;">❌ ${err.message}</p>`;
+      }
+    };
+  </script>
 
 </body>
 </html>
