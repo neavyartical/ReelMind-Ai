@@ -1,67 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>🚀 ReelMind AI</title>
-
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      font-family: Arial;
-      text-align: center;
-      padding: 40px;
-    }
-
-    input {
-      width: 80%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      margin-bottom: 15px;
-    }
-
-    button {
-      padding: 12px 25px;
-      border-radius: 10px;
-      border: none;
-      background: #06b6d4;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #result {
-      margin-top: 20px;
-    }
-
-    img {
-      max-width: 90%;
-      margin-top: 20px;
-      border-radius: 10px;
-    }
-  </style>
-</head>
-
-<body>
-
-<h1>🚀 ReelMind AI</h1>
-
-<input id="prompt" placeholder="Type something like: image of dragon" />
-
-<br>
-<button onclick="generate()">⚡ Generate</button>
-
-<div id="result"></div>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
     getAuth,
-    signInAnonymously
+    signInAnonymously,
+    onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  // 🔥 YOUR FIREBASE CONFIG
+  // 🔥 Firebase Config (yours is OK)
   const firebaseConfig = {
     apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
     authDomain: "reelmind-ai-f07cb.firebaseapp.com",
@@ -76,23 +21,32 @@
 
   let token = null;
 
-  // 🔐 LOGIN (IMPORTANT)
-  signInAnonymously(auth)
-    .then(async (userCred) => {
-      token = await userCred.user.getIdToken();
-      console.log("✅ Logged in");
-    })
-    .catch(err => {
-      alert("Firebase Auth Error: " + err.message);
-    });
+  // 🔐 AUTH STATE LISTENER (better than manual login)
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      token = await user.getIdToken();
+      console.log("✅ User ready");
+    } else {
+      try {
+        await signInAnonymously(auth);
+      } catch (err) {
+        alert("❌ Firebase Auth Error: " + err.message);
+      }
+    }
+  });
 
   // 🚀 GENERATE FUNCTION
   window.generate = async () => {
     const prompt = document.getElementById("prompt").value;
     const resultDiv = document.getElementById("result");
 
+    if (!prompt) {
+      alert("Enter a prompt");
+      return;
+    }
+
     if (!token) {
-      alert("Wait... logging in");
+      alert("Still connecting... try again");
       return;
     }
 
@@ -110,9 +64,8 @@
 
       const data = await res.json();
 
-      if (data.error) {
-        resultDiv.innerHTML = "❌ " + data.error;
-        return;
+      if (!res.ok) {
+        throw new Error(data.error || "Server error");
       }
 
       resultDiv.innerHTML = `<img src="${data.data.url}" />`;
@@ -122,6 +75,3 @@
     }
   };
 </script>
-
-</body>
-</html>
