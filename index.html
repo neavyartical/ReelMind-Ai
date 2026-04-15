@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>🚀 ReelMind AI (Working)</title>
+<title>🚀 ReelMind AI FINAL FIX</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -21,21 +21,16 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 
 <body>
 
-<!-- NAV -->
 <div id="topbar">
   <div onclick="switchTab('home')">🏠</div>
   <div onclick="switchTab('create')">➕</div>
   <div onclick="switchTab('admin')">👑</div>
 </div>
 
-<!-- CREDITS -->
 <div id="creditsBox">💰 Credits: <span id="credits">...</span></div>
 
-<!-- HOME -->
 <div id="home" class="section active">
-  <div class="card">
-    ⚡ ReelMind AI LIVE (Connected Mode)
-  </div>
+  <div class="card">⚡ ReelMind AI (LIVE)</div>
 
   <div class="card">
     <h3>💰 Buy Credits</h3>
@@ -45,17 +40,14 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   </div>
 </div>
 
-<!-- CREATE -->
 <div id="create" class="section">
   <select id="mode">
     <option value="text">Text</option>
     <option value="image">Image</option>
   </select>
-
   <div id="result"></div>
 </div>
 
-<!-- ADMIN -->
 <div id="admin" class="section">
   <h3>Admin</h3>
   <button onclick="loadStats()">Load Stats</button>
@@ -70,31 +62,27 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 
 <script>
 
-const API = "https://YOUR_BACKEND_URL"; // 🔥 PUT YOUR REAL BACKEND HERE
+const API = "https://YOUR_BACKEND_URL"; // 🔥 PUT YOUR REAL URL
 
-// ================= NAV =================
+// NAV
 function switchTab(tab){
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
 }
 
-// ================= LOAD USER =================
+// LOAD USER
 async function loadUser(){
   try{
-    const res = await fetch(API+"/user");
+    const res = await fetch(API + "/user");
     const data = await res.json();
-
     document.getElementById("credits").innerText = data.credits;
-
   }catch(e){
-    console.error("USER ERROR:", e);
     alert("❌ Backend not reachable");
   }
 }
-
 loadUser();
 
-// ================= GENERATE =================
+// GENERATE
 document.getElementById("generate").onclick = async ()=>{
 
   const prompt = document.getElementById("prompt").value.trim();
@@ -103,62 +91,55 @@ document.getElementById("generate").onclick = async ()=>{
   if(!prompt) return alert("Enter prompt");
 
   document.getElementById("result").innerHTML =
-    `<div class="card">⚡ Sending request...</div>`;
+    `<div class="card">⚡ Generating...</div>`;
 
   try{
 
-    const res = await fetch(API+"/generate",{
+    let endpoint = "/generate-text";
+    if(mode === "image") endpoint = "/generate-image";
+
+    const res = await fetch(API + endpoint,{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({ prompt, mode })
+      body:JSON.stringify({ prompt })
     });
 
-    console.log("STATUS:", res.status);
-
     const data = await res.json();
-
-    console.log("DATA:", data);
 
     if(data.error){
       alert(data.error);
       return;
     }
 
-    document.getElementById("credits").innerText = data.credits;
+    document.getElementById("credits").innerText = data.credits || "...";
 
     if(mode==="text"){
       document.getElementById("result").innerHTML =
-        `<div class="card">${data.output}</div>`;
+        `<div class="card">${data.output || data.data?.content}</div>`;
     }
 
     if(mode==="image"){
       document.getElementById("result").innerHTML =
-        `<div class="card"><img src="${data.output}" style="width:100%"></div>`;
+        `<div class="card"><img src="${data.output || data.data?.url}" style="width:100%"></div>`;
     }
 
   }catch(e){
-    console.error("GENERATE ERROR:", e);
-
+    console.error(e);
     document.getElementById("result").innerHTML =
-      `<div class="card">❌ Backend error (check URL or CORS)</div>`;
+      `<div class="card">❌ Backend error</div>`;
   }
 };
 
-// ================= ADMIN =================
+// ADMIN
 async function loadStats(){
-  try{
-    const res = await fetch(API+"/admin");
-    const data = await res.json();
+  const res = await fetch(API + "/admin");
+  const data = await res.json();
 
-    document.getElementById("stats").innerHTML =
-      `<div class="card">
-        Users: ${data.users}<br>
-        Requests: ${data.requests}
-      </div>`;
-
-  }catch(e){
-    console.error("ADMIN ERROR:", e);
-  }
+  document.getElementById("stats").innerHTML =
+    `<div class="card">
+      Users: ${data.users}<br>
+      Requests: ${data.requests}
+    </div>`;
 }
 
 </script>
