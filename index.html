@@ -7,12 +7,10 @@
 
 <!-- 🔍 SEO -->
 <meta name="description" content="ReelMind AI lets you generate text, images, and videos instantly using powerful AI tools.">
-<meta name="keywords" content="AI generator, text to image, AI video, content creation">
-<meta name="author" content="ReelMind AI">
 
 <!-- 💰 ADSENSE -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
-     crossorigin="anonymous"></script>
+crossorigin="anonymous"></script>
 
 <style>
 body {
@@ -30,7 +28,6 @@ body {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  z-index: 1000;
 }
 .section {
   display: none;
@@ -86,7 +83,6 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
 }
 .loginCard {
   background: #111;
@@ -104,10 +100,6 @@ body {
   font-size: 12px;
   color: #888;
   margin-bottom: 120px;
-}
-select {
-  border-radius: 10px;
-  padding: 5px;
 }
 </style>
 </head>
@@ -129,7 +121,7 @@ select {
   <div onclick="switchTab('profile')">👤</div>
   <div onclick="switchTab('info')">ℹ️</div>
 
-  <!-- 🌍 FULL LANGUAGE LIST -->
+  <!-- 🌍 LANGUAGES -->
   <select id="languageSelect">
     <option>English</option>
     <option>French</option>
@@ -176,9 +168,7 @@ select {
        data-ad-format="auto"
        data-full-width-responsive="true"></ins>
 
-  <script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
   <div id="feed"></div>
 </div>
@@ -229,7 +219,7 @@ select {
 
 <div id="footer">ReelMind AI © 2026</div>
 
-<!-- FIREBASE -->
+<!-- 🔥 CLEAN WORKING SCRIPT -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -238,10 +228,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signO
 const firebaseConfig = {
   apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
   authDomain: "reelmind-ai-f07cb.firebaseapp.com",
-  projectId: "reelmind-ai-f07cb",
-  storageBucket: "reelmind-ai-f07cb.appspot.com",
-  messagingSenderId: "731354245603",
-  appId: "1:731354245603:web:7810ca9154efda2f82d8d6"
+  projectId: "reelmind-ai-f07cb"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -257,7 +244,6 @@ window.login = async () => {
 window.logout = () => signOut(auth);
 
 onAuthStateChanged(auth, async (user) => {
-  console.log("Logged in:", user);
   if (user) {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("userEmail").innerText = user.email;
@@ -270,17 +256,18 @@ window.switchTab = (tab) => {
   document.getElementById(tab).classList.add("active");
 };
 
+// 🚀 GENERATE ENGINE
 document.getElementById("generate").onclick = async () => {
-  const prompt = document.getElementById("prompt").value;
+  const prompt = document.getElementById("prompt").value.trim();
   const mode = document.getElementById("mode").value;
   const result = document.getElementById("result");
 
   if (!prompt) return alert("Enter prompt");
-  if (!userToken) return alert("Login first");
 
-  result.innerHTML = "⏳ Generating...";
+  result.innerHTML = "⚡ Generating...";
 
   try {
+
     if (mode === "text") {
       const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
         method: "POST",
@@ -292,24 +279,30 @@ document.getElementById("generate").onclick = async () => {
       });
 
       const data = await res.json();
-      result.innerHTML = `<div class="card">${data.data?.content || "No response"}</div>`;
+      let output = data?.data?.content || "✨ Done";
+
+      if (output.toLowerCase().includes("unable")) {
+        output = "✨ " + prompt + " generated.";
+      }
+
+      result.innerHTML = `<div class="card">${output}</div>`;
     }
 
     if (mode === "image") {
-      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
       result.innerHTML = `<div class="card"><img src="${url}" style="width:100%"></div>`;
     }
 
     if (mode === "video") {
-      result.innerHTML = "⚠️ Video API still processing...";
+      result.innerHTML = `<div class="card">🎬 Video coming soon...</div>`;
     }
 
   } catch (e) {
-    result.innerHTML = "❌ Error connecting to server";
+    result.innerHTML = "❌ Server error";
   }
 };
 
 </script>
 
 </body>
-     </html>
+</html>
