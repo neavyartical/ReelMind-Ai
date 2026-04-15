@@ -1,141 +1,155 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>🚀 ReelMind AI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>🚀 ReelMind AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script>
-const API = "https://reelmindbackend-1.onrender.com";
-</script>
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+      padding: 40px;
+    }
 
-<style>
-body{
-  margin:0;
-  background:#0f172a;
-  color:white;
-  font-family:Arial;
-  text-align:center;
-  padding:40px;
-}
+    input {
+      width: 80%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      margin-bottom: 15px;
+    }
 
-input{
-  width:80%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  margin-top:20px;
-}
+    button {
+      padding: 12px 25px;
+      border-radius: 10px;
+      border: none;
+      background: #06b6d4;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-button{
-  margin-top:15px;
-  padding:12px 20px;
-  border:none;
-  border-radius:10px;
-  background:#06b6d4;
-  color:white;
-  font-size:16px;
-  cursor:pointer;
-}
-
-#result img, video{
-  max-width:90%;
-  margin-top:20px;
-  border-radius:10px;
-}
-</style>
+    #app {
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
 
 <h1>🚀 ReelMind AI</h1>
 
-<input id="prompt" placeholder="Type: image of lion or video of city" />
+<!-- LOGIN -->
+<div id="loginBox">
+  <button onclick="login()">Login with Google</button>
+</div>
 
-<br>
-<button onclick="generate()">⚡ Generate</button>
+<!-- APP -->
+<div id="app">
+  <p id="user"></p>
 
-<div id="result"></div>
+  <input id="prompt" placeholder="Type something like: image of lion" />
+  <br>
+  <button onclick="generate()">⚡ Generate</button>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <br><br>
+  <button onclick="logout()">Logout</button>
 
-<script>
-firebase.initializeApp({
-  apiKey: "YOUR_API_KEY",
-  authDomain: "reelmind-ai-f07cb.firebaseapp.com",
-  projectId: "reelmind-ai-f07cb"
-});
+  <div id="result"></div>
+</div>
 
-const auth = firebase.auth();
-let TOKEN = null;
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-// 🔥 AUTO LOGIN (NO BUTTON NEEDED)
-auth.signInAnonymously()
-.then(async (user) => {
-  TOKEN = await user.user.getIdToken();
-  console.log("✅ Logged in");
-})
-.catch(err => {
-  alert("Login error: " + err.message);
-});
+  // 🔥 YOUR CORRECT CONFIG
+  const firebaseConfig = {
+    apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
+    authDomain: "reelmind-ai-f07cb.firebaseapp.com",
+    projectId: "reelmind-ai-f07cb",
+    storageBucket: "reelmind-ai-f07cb.appspot.com",
+    messagingSenderId: "731354245603",
+    appId: "1:731354245603:web:7810ca9154efda2f82d8d6"
+  };
 
-// 🚀 GENERATE
-async function generate(){
-  const prompt = document.getElementById("prompt").value;
-  const result = document.getElementById("result");
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
 
-  if(!prompt) return alert("Type something");
+  let TOKEN = null;
 
-  if(!TOKEN){
-    alert("Still logging in...");
-    return;
-  }
-
-  result.innerHTML = "⏳ Generating...";
-
-  try{
-    let route = "/generate-text";
-
-    if(prompt.toLowerCase().includes("image")){
-      route = "/generate-image";
+  // 🔐 LOGIN
+  window.login = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      TOKEN = await result.user.getIdToken();
+    } catch (err) {
+      alert("❌ " + err.message);
     }
+  };
 
-    if(prompt.toLowerCase().includes("video")){
-      route = "/generate-video";
-    }
+  // 🔓 LOGOUT
+  window.logout = async () => {
+    await signOut(auth);
+  };
 
-    const res = await fetch(API + route, {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer " + TOKEN
-      },
-      body: JSON.stringify({ prompt })
-    });
+  // 🔁 AUTH STATE (fixes login loop)
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      document.getElementById("user").innerText = "Logged in as: " + user.email;
 
-    const data = await res.json();
-
-    if(data.error){
-      result.innerHTML = "❌ " + data.error;
-      return;
-    }
-
-    if(data.data?.url){
-      if(route === "/generate-video"){
-        result.innerHTML = `<video controls src="${data.data.url}"></video>`;
-      } else {
-        result.innerHTML = `<img src="${data.data.url}" />`;
-      }
+      TOKEN = await user.getIdToken();
     } else {
-      result.innerHTML = `<p>${data.data?.content}</p>`;
+      document.getElementById("loginBox").style.display = "block";
+      document.getElementById("app").style.display = "none";
     }
+  });
 
-  }catch(e){
-    result.innerHTML = "❌ Error: " + e.message;
-  }
-}
+  // 🚀 GENERATE (test version)
+  window.generate = async () => {
+    const prompt = document.getElementById("prompt").value;
+
+    if (!prompt) return alert("Type something");
+
+    if (!TOKEN) return alert("Login first");
+
+    document.getElementById("result").innerHTML = "⏳ Generating...";
+
+    try {
+      const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + TOKEN
+        },
+        body: JSON.stringify({ prompt })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        document.getElementById("result").innerHTML = "❌ " + data.error;
+        return;
+      }
+
+      document.getElementById("result").innerHTML =
+        "<p>" + data.data.content + "</p>";
+
+    } catch (err) {
+      document.getElementById("result").innerHTML = "❌ " + err.message;
+    }
+  };
 </script>
 
 </body>
