@@ -1,35 +1,147 @@
-<script>
-async function generate() {
-  const prompt = document.getElementById("prompt").value;
-  const resultDiv = document.getElementById("result");
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ReelMind AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  if (!prompt) {
-    alert("Enter something first");
+<script>
+const API = "https://reelmindbackend-1.onrender.com"; // your backend
+</script>
+
+<style>
+body{
+  margin:0;
+  background:#0b0f14;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+}
+
+#loginBox{
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:#000d;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.card{
+  background:#111;
+  padding:20px;
+  border-radius:10px;
+}
+
+input{
+  width:80%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin-top:20px;
+}
+
+button{
+  margin-top:15px;
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  background:cyan;
+  cursor:pointer;
+}
+
+#result img{
+  max-width:90%;
+  margin-top:20px;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginBox">
+  <div class="card">
+    <h3>Login</h3>
+    <button onclick="login()">Continue</button>
+  </div>
+</div>
+
+<h1>🚀 ReelMind AI</h1>
+
+<input id="prompt" placeholder="Type something like: image of lion" />
+
+<br>
+<button onclick="generate()">⚡ Generate</button>
+
+<div id="result"></div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<script>
+// 🔥 YOUR FIREBASE CONFIG
+firebase.initializeApp({
+  apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
+  authDomain: "reelmind-ai-f07cb.firebaseapp.com",
+  projectId: "reelmind-ai-f07cb"
+});
+
+const auth = firebase.auth();
+let TOKEN = null;
+
+// 🔐 LOGIN (SAFE)
+async function login(){
+  try{
+    const user = await auth.signInAnonymously();
+    TOKEN = await user.user.getIdToken();
+    document.getElementById("loginBox").style.display = "none";
+  }catch(e){
+    alert("Login error: " + e.message);
+  }
+}
+
+// 🚀 GENERATE
+async function generate(){
+  const prompt = document.getElementById("prompt").value;
+  const result = document.getElementById("result");
+
+  if(!prompt) return alert("Type something");
+
+  if(!TOKEN){
+    alert("Login first");
     return;
   }
 
-  resultDiv.innerHTML = "⏳ Generating...";
+  result.innerHTML = "⏳ Generating...";
 
-  try {
-    const res = await fetch("https://your-backend-url.onrender.com/generate-image", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
+  try{
+    const res = await fetch(API + "/generate-image", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + TOKEN
       },
       body: JSON.stringify({ prompt })
     });
 
     const data = await res.json();
 
-    if (data.error) {
-      resultDiv.innerHTML = "❌ " + data.error;
+    if(data.error){
+      result.innerHTML = "❌ " + data.error;
       return;
     }
 
-    resultDiv.innerHTML = `<img src="${data.data.url}" style="max-width:100%;border-radius:10px;" />`;
+    result.innerHTML = `<img src="${data.data.url}" />`;
 
-  } catch (err) {
-    resultDiv.innerHTML = "❌ Error: " + err.message;
+  }catch(e){
+    result.innerHTML = "❌ Error: " + e.message;
   }
 }
 </script>
+
+</body>
+</html>
