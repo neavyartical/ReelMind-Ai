@@ -15,11 +15,10 @@ body{margin:0;font-family:Segoe UI;background:#020617;color:white;}
 .btn{width:60px;height:60px;border-radius:50%;background:#06b6d4;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;}
 .card{background:#111;padding:15px;border-radius:12px;margin-top:15px;}
 #creditsBox{position:fixed;top:50px;right:10px;background:#111;padding:8px;border-radius:10px;}
-input{padding:10px;margin:5px;width:90%;border-radius:8px;border:none;}
+input,select{padding:10px;margin:5px;width:90%;border-radius:8px;border:none;}
 button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white;margin-top:5px;cursor:pointer;}
 </style>
 </head>
-
 <body>
 
 <div id="topbar">
@@ -47,30 +46,20 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 
 <div id="create" class="section">
   <select id="mode">
-    <option value="text">Text</option>
+    <option value="text">Text / Story</option>
     <option value="image">Image</option>
     <option value="video">Video</option>
   </select>
-
   <div id="result"></div>
 </div>
 
 <div id="profile" class="section">
   <h3>User</h3>
   <p id="userEmail">Guest Mode</p>
-
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-
-  <button onclick="emailLogin()">Login</button>
-  <button onclick="emailRegister()">Register</button>
-  <button onclick="googleLogin()">Google</button>
-  <button onclick="logout()">Logout</button>
 </div>
 
 <div id="admin" class="section">
   <h3>👑 Admin Panel</h3>
-  <button onclick="loadStats()">Load Stats</button>
   <div id="stats"></div>
 </div>
 
@@ -80,54 +69,19 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   <div id="generate" class="btn">⚡</div>
 </div>
 
-<script type="module">
-
-const API = "https://YOUR_BACKEND_URL"; // 🔥 PUT YOUR REAL URL
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-const app = initializeApp({
-  apiKey: "YOUR_FIREBASE_KEY",
-  authDomain: "reelmind-ai-f07cb.firebaseapp.com"
-});
-
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-
+<script>
+const API = "https://YOUR_BACKEND_URL";
 let token = null;
 
-function val(id){return document.getElementById(id).value;}
+function val(id){
+  return document.getElementById(id).value;
+}
 
-window.googleLogin = async ()=> await signInWithPopup(auth, provider);
-window.emailLogin = async ()=> await signInWithEmailAndPassword(auth, val("email"), val("password"));
-window.emailRegister = async ()=> await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-window.logout = ()=> signOut(auth);
-
-onAuthStateChanged(auth, async user=>{
-  if(user){
-    token = await user.getIdToken();
-    document.getElementById("userEmail").innerText = user.email;
-  } else {
-    token = null;
-    document.getElementById("userEmail").innerText = "Guest Mode";
-  }
-});
-
-window.switchTab = (tab)=>{
+function switchTab(tab){
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
-};
+}
 
-// ================= FINAL GENERATE =================
 document.getElementById("generate").onclick = async ()=>{
 
   const prompt = val("prompt").trim();
@@ -136,87 +90,97 @@ document.getElementById("generate").onclick = async ()=>{
 
   if(!prompt) return alert("Enter prompt");
 
-  result.innerHTML = "⚡ Generating...";
+  result.innerHTML = "<div class='card'>⚡ Generating...</div>";
 
   try{
 
-    console.log("🚀 START");
-
-    // 🔥 GUEST MODE (NOW ENABLED FOR TEXT)
+    // ===== GUEST MODE =====
     if(!token){
-      console.log("👤 Guest mode");
 
-      if(mode === "text"){
-        const res = await fetch(API + "/generate-text",{
+      if(mode==="image"){
+        const url=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
+        result.innerHTML=`<div class="card"><img src="${url}" style="width:100%"></div>`;
+        return;
+      }
+
+      if(mode==="text"){
+        const res = await fetch(API+"/generate-text",{
           method:"POST",
           headers:{
             "Content-Type":"application/json"
           },
-          body: JSON.stringify({ prompt })
+          body:JSON.stringify({prompt})
         });
 
         const data = await res.json();
 
-        result.innerHTML =
-          `<div class="card">${data?.data?.content || "⚠️ No response"}</div>`;
+        const output =
+          data?.data?.content ||
+          data?.text ||
+          data?.story ||
+          data?.response ||
+          data?.output ||
+          "⚠️ No response";
+
+        result.innerHTML=`<div class="card">${output}</div>`;
+        return;
       }
 
-      else if(mode === "image"){
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
-        result.innerHTML =
-          `<div class="card"><img src="${url}" style="width:100%"></div>`;
-      }
-
-      else {
-        result.innerHTML =
-          `<div class="card">⚠️ Login required for video</div>`;
-      }
-
+      result.innerHTML=`<div class="card">⚠️ Login required for video</div>`;
       return;
     }
 
-    let endpoint = "/generate-text";
+    // ===== LOGGED IN MODE =====
+    let endpoint="/generate-text";
     if(mode==="image") endpoint="/generate-image";
     if(mode==="video") endpoint="/generate-video";
 
-    const res = await fetch(API + endpoint,{
+    const res = await fetch(API+endpoint,{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
         "Authorization":"Bearer "+token
       },
-      body: JSON.stringify({ prompt })
+      body:JSON.stringify({prompt})
     });
 
     const data = await res.json();
 
     if(mode==="text"){
-      result.innerHTML = `<div class="card">${data?.data?.content || "No response"}</div>`;
+      const output =
+        data?.data?.content ||
+        data?.text ||
+        data?.story ||
+        data?.response ||
+        data?.output ||
+        "⚠️ No response";
+
+      result.innerHTML=`<div class="card">${output}</div>`;
     }
 
     if(mode==="image"){
-      result.innerHTML = `<div class="card"><img src="${data?.data?.url}" style="width:100%"></div>`;
+      const url =
+        data?.data?.url ||
+        data?.image ||
+        data?.output;
+
+      result.innerHTML=`<div class="card"><img src="${url}" style="width:100%"></div>`;
     }
 
     if(mode==="video"){
-      result.innerHTML =
-        `<div class="card"><video src="${data.preview}" controls style="width:100%"></video></div>`;
+      const vid =
+        data?.preview ||
+        data?.video ||
+        data?.output;
+
+      result.innerHTML=`<div class="card"><video src="${vid}" controls style="width:100%"></video></div>`;
     }
 
-  }catch(e){
-    console.error(e);
-    result.innerHTML = `<div class="card">❌ Failed</div>`;
+  }catch(err){
+    console.error(err);
+    result.innerHTML="<div class='card'>❌ Failed</div>";
   }
 };
-
-window.loadStats = async ()=>{
-  const res = await fetch(API+"/admin");
-  const data = await res.json();
-
-  document.getElementById("stats").innerHTML =
-    `<div class="card">Users: ${data.users}<br>Requests: ${data.requests}</div>`;
-};
-
 </script>
 
 </body>
