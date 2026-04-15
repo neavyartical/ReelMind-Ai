@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- SEO -->
-<meta name="description" content="ReelMind AI lets you generate text, images, and videos instantly.">
+<meta name="description" content="ReelMind AI generates text, images & videos instantly.">
 
 <!-- ADSENSE -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429" crossorigin="anonymous"></script>
@@ -14,7 +14,7 @@
 <style>
 body {
   margin:0;
-  font-family:'Segoe UI',Arial;
+  font-family:'Segoe UI';
   background:linear-gradient(135deg,#020617,#0f172a);
   color:white;
 }
@@ -26,6 +26,7 @@ body {
   padding:10px;
   display:flex;
   justify-content:space-around;
+  z-index:1000;
 }
 .section {
   display:none;
@@ -62,6 +63,7 @@ body {
   justify-content:center;
   background:#222;
   font-size:22px;
+  cursor:pointer;
 }
 #generate {
   background:linear-gradient(135deg,#06b6d4,#3b82f6);
@@ -80,11 +82,7 @@ body {
   display:flex;
   justify-content:center;
   align-items:center;
-}
-.loginCard {
-  background:#111;
-  padding:20px;
-  border-radius:10px;
+  z-index:2000;
 }
 #creditsBox {
   position:fixed;
@@ -101,7 +99,7 @@ body {
 
 <!-- LOGIN -->
 <div id="loginBox">
-  <div class="loginCard">
+  <div class="card">
     <h2>ReelMind AI</h2>
     <button onclick="login()">Login with Google</button>
   </div>
@@ -112,18 +110,17 @@ body {
   <div onclick="switchTab('home')">🏠</div>
   <div onclick="switchTab('create')">➕</div>
   <div onclick="switchTab('profile')">👤</div>
+  <div onclick="switchTab('admin')">👑</div>
 </div>
 
-<!-- 💰 CREDITS -->
+<!-- CREDITS -->
 <div id="creditsBox">💰 Credits: <span id="credits">5</span></div>
 
 <!-- HOME -->
 <div id="home" class="section active">
-  <h2>Feed</h2>
-
   <div class="card">
-    <h3>Welcome to ReelMind AI</h3>
-    <p>Generate text, images & videos instantly.</p>
+    <h3>Welcome to ReelMind AI ⚡</h3>
+    <p>Fast. Smart. Creative AI engine.</p>
   </div>
 
   <!-- ADS -->
@@ -131,24 +128,20 @@ body {
        style="display:block"
        data-ad-client="ca-pub-1714638410489429"
        data-ad-slot="1234567890"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
+       data-ad-format="auto"></ins>
   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
-  <!-- 💰 BUY -->
+  <!-- KO-FI -->
   <div class="card">
     <h3>💰 Buy Credits</h3>
     <a href="https://ko-fi.com/articalneavy" target="_blank">
       <button>Buy on Ko-fi ☕</button>
     </a>
   </div>
-
 </div>
 
 <!-- CREATE -->
 <div id="create" class="section">
-  <h2>Create</h2>
-
   <select id="mode">
     <option value="text">Text</option>
     <option value="image">Image</option>
@@ -165,16 +158,20 @@ body {
   <button onclick="logout()">Logout</button>
 </div>
 
-<input id="prompt" placeholder="Type prompt..." />
-
-<!-- CONTROLS -->
-<div id="controls">
-  <div class="btn">🎤</div>
-  <div id="generate" class="btn">⚡</div>
-  <div class="btn">🖼</div>
+<!-- ADMIN -->
+<div id="admin" class="section">
+  <h2>👑 Admin Panel</h2>
+  <button onclick="addCredits(10)">+10 Credits</button>
+  <button onclick="resetCredits()">Reset Credits</button>
 </div>
 
-<!-- FIREBASE + AI -->
+<input id="prompt" placeholder="Type anything..." />
+
+<div id="controls">
+  <div id="generate" class="btn">⚡</div>
+</div>
+
+<!-- SCRIPT -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -191,22 +188,12 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 let userToken = null;
-let credits = 5;
-
-function updateCredits(){
-  document.getElementById("credits").innerText = credits;
-}
-updateCredits();
 
 // LOGIN
-window.login = async () => {
-  await signInWithPopup(auth, provider);
-};
-
-// LOGOUT
+window.login = async () => await signInWithPopup(auth, provider);
 window.logout = () => signOut(auth);
 
-// AUTH
+// AUTH STATE
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     document.getElementById("loginBox").style.display = "none";
@@ -221,7 +208,47 @@ window.switchTab = (tab) => {
   document.getElementById(tab).classList.add("active");
 };
 
-// 🚀 GENERATE ENGINE
+// ================= CREDITS =================
+let credits = localStorage.getItem("credits") || 5;
+
+function updateCredits(){
+  document.getElementById("credits").innerText = credits;
+  localStorage.setItem("credits", credits);
+}
+updateCredits();
+
+window.addCredits = (n)=>{
+  credits = Number(credits) + n;
+  updateCredits();
+};
+
+window.resetCredits = ()=>{
+  credits = 5;
+  updateCredits();
+};
+
+// ================= ANTI ABUSE =================
+let lastTime = 0;
+let count = 0;
+
+function canUse(){
+  const now = Date.now();
+
+  if(now - lastTime < 15000){
+    count++;
+    if(count > 5){
+      alert("⚠️ Slow down");
+      return false;
+    }
+  } else {
+    count = 0;
+  }
+
+  lastTime = now;
+  return true;
+}
+
+// ================= GENERATE =================
 document.getElementById("generate").onclick = async () => {
 
   const prompt = document.getElementById("prompt").value.trim();
@@ -229,20 +256,21 @@ document.getElementById("generate").onclick = async () => {
   const result = document.getElementById("result");
 
   if (!prompt) return alert("Enter prompt");
+  if (!canUse()) return;
 
-  if (credits <= 0) {
-    alert("No credits! Buy more 👇");
+  if (credits <= 0){
+    alert("No credits 💰");
     return;
   }
 
   credits--;
   updateCredits();
 
-  result.innerHTML = "⚡ Generating...";
+  result.innerHTML = "⚡ Ultra-fast generating...";
 
   try {
 
-    // 🧠 TEXT (OpenRouter)
+    // 🧠 TEXT (OpenRouter Brain)
     if (mode === "text") {
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -252,29 +280,38 @@ document.getElementById("generate").onclick = async () => {
         },
         body: JSON.stringify({
           model: "openai/gpt-4o-mini",
-          messages: [{ role:"user", content:prompt }]
+          messages: [
+            {
+              role: "system",
+              content: "You are ReelMind AI: extremely fast, smart, creative, and direct."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ]
         })
       });
 
       const data = await res.json();
-      const output = data?.choices?.[0]?.message?.content || "No response";
+      const output = data?.choices?.[0]?.message?.content || "Done";
 
       result.innerHTML = `<div class="card">${output}</div>`;
     }
 
-    // 🖼 IMAGE (FIXED)
+    // 🖼 IMAGE (FAST CDN)
     if (mode === "image") {
       const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
-      result.innerHTML = `<div class="card"><img src="${url}" style="width:100%"></div>`;
+      result.innerHTML = `<div class="card"><img src="${url}" style="width:100%;border-radius:10px"></div>`;
     }
 
-    // 🎬 VIDEO
+    // 🎬 VIDEO (placeholder ready)
     if (mode === "video") {
-      result.innerHTML = `<div class="card">🎬 Video processing...</div>`;
+      result.innerHTML = `<div class="card">🎬 Video AI (Runway / Pika coming soon)</div>`;
     }
 
   } catch (e) {
-    result.innerHTML = "❌ Error";
+    result.innerHTML = `<div class="card">❌ Error</div>`;
   }
 };
 
