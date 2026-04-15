@@ -2,32 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>🚀 ReelMind AI GOD MODE</title>
+<title>🚀 ReelMind AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script async 
-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
-crossorigin="anonymous"></script>
 
 <style>
 body{margin:0;font-family:Segoe UI;background:#020617;color:white;}
-#topbar{position:fixed;top:0;width:100%;background:#111;padding:10px;display:flex;justify-content:space-around;z-index:1000;}
-.section{display:none;margin-top:80px;padding:15px;}
+#topbar{position:fixed;top:0;width:100%;background:#111;padding:10px;display:flex;justify-content:space-around;}
+.section{display:none;margin-top:80px;padding:20px;}
 .active{display:block;}
-
-#chatBox{max-height:65vh;overflow-y:auto;margin-bottom:100px;}
-.msg{padding:10px;margin:8px 0;border-radius:10px;}
-.user{background:#06b6d4;color:black;}
-.ai{background:#111;}
-
-#prompt{position:fixed;bottom:80px;width:90%;left:5%;padding:12px;border-radius:25px;border:none;}
+#prompt{position:fixed;bottom:90px;width:90%;left:5%;padding:12px;border-radius:25px;border:none;}
 #controls{position:fixed;bottom:0;width:100%;height:70px;display:flex;justify-content:center;background:#111;}
-.btn{width:60px;height:60px;border-radius:50%;background:#06b6d4;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;}
-
+.btn{width:60px;height:60px;border-radius:50%;background:#06b6d4;display:flex;align-items:center;justify-content:center;}
 .card{background:#111;padding:15px;border-radius:12px;margin-top:15px;}
 #creditsBox{position:fixed;top:50px;right:10px;background:#111;padding:8px;border-radius:10px;}
-input{padding:10px;margin:5px;width:90%;border-radius:8px;border:none;}
-button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white;margin-top:5px;cursor:pointer;}
 </style>
 </head>
 
@@ -36,16 +23,20 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
 <div id="topbar">
   <div onclick="switchTab('home')">🏠</div>
   <div onclick="switchTab('create')">➕</div>
-  <div onclick="switchTab('profile')">👤</div>
+  <div onclick="switchTab('admin')">👑</div>
 </div>
 
-<div id="creditsBox">💰 Credits: <span id="credits">∞</span></div>
+<div id="creditsBox">💰 Credits: <span id="credits">0</span></div>
 
 <!-- HOME -->
 <div id="home" class="section active">
+  <div class="card">⚡ ReelMind AI LIVE</div>
+
   <div class="card">
-    <h2>⚡ ReelMind AI GOD MODE</h2>
-    <p>Multi-AI • Real-Time • Smart Memory</p>
+    <h3>💰 Buy Credits</h3>
+    <a href="https://ko-fi.com/articalneavy" target="_blank">
+      <button>Ko-fi ☕</button>
+    </a>
   </div>
 </div>
 
@@ -56,20 +47,14 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
     <option value="image">Image</option>
   </select>
 
-  <div id="chatBox"></div>
+  <div id="result"></div>
 </div>
 
-<!-- PROFILE -->
-<div id="profile" class="section">
-  <p id="userEmail">Guest</p>
-
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-
-  <button onclick="emailLogin()">Login</button>
-  <button onclick="emailRegister()">Register</button>
-  <button onclick="googleLogin()">Google</button>
-  <button onclick="logout()">Logout</button>
+<!-- ADMIN -->
+<div id="admin" class="section">
+  <h3>Admin</h3>
+  <button onclick="loadStats()">Load Stats</button>
+  <div id="stats"></div>
 </div>
 
 <input id="prompt" placeholder="Ask anything..." />
@@ -78,128 +63,67 @@ button{padding:10px;border:none;border-radius:8px;background:#06b6d4;color:white
   <div id="generate" class="btn">⚡</div>
 </div>
 
-<script type="module">
+<script>
 
-// ========= CONFIG =========
 const API = "https://YOUR_BACKEND_URL";
 
-// ========= FIREBASE =========
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getAuth, GoogleAuthProvider, signInWithPopup,
-  signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  onAuthStateChanged, signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-const app = initializeApp({
-  apiKey: "YOUR_FIREBASE_KEY",
-  authDomain: "reelmind-ai-f07cb.firebaseapp.com"
-});
-
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-
-let token = null;
-let chatHistory = [];
-
-// ========= SAFE FETCH =========
-async function safeFetch(url, options, retries = 2) {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
-    const res = await fetch(url, {...options, signal: controller.signal});
-    clearTimeout(timeout);
-
-    if (!res.ok) throw new Error("API Error");
-    return await res.json();
-
-  } catch (e) {
-    if (retries > 0) return safeFetch(url, options, retries - 1);
-    throw e;
-  }
-}
-
-// ========= AUTH =========
-window.googleLogin = async ()=> await signInWithPopup(auth, provider);
-window.emailLogin = async ()=> await signInWithEmailAndPassword(auth, val("email"), val("password"));
-window.emailRegister = async ()=> await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-window.logout = ()=> signOut(auth);
-
-function val(id){return document.getElementById(id).value;}
-
-onAuthStateChanged(auth, async user=>{
-  if(user){
-    token = await user.getIdToken();
-    document.getElementById("userEmail").innerText = user.email;
-  } else {
-    token = null;
-    document.getElementById("userEmail").innerText = "Guest";
-  }
-});
-
-// ========= NAV =========
-window.switchTab = (tab)=>{
+// NAV
+function switchTab(tab){
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
-};
-
-// ========= UI =========
-function addMessage(text, type){
-  const box = document.getElementById("chatBox");
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerText = text;
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
 }
 
-// ========= GENERATE =========
+// LOAD USER
+async function loadUser(){
+  const res = await fetch(API+"/user");
+  const data = await res.json();
+  document.getElementById("credits").innerText = data.credits;
+}
+loadUser();
+
+// GENERATE
 document.getElementById("generate").onclick = async ()=>{
 
-  const prompt = val("prompt").trim();
+  const prompt = document.getElementById("prompt").value;
   const mode = document.getElementById("mode").value;
+
   if(!prompt) return;
 
-  addMessage(prompt, "user");
+  document.getElementById("result").innerHTML = "⚡ Thinking...";
 
-  const loading = document.createElement("div");
-  loading.className="msg ai";
-  loading.innerText="⚡ Thinking...";
-  document.getElementById("chatBox").appendChild(loading);
+  const res = await fetch(API+"/generate",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ prompt, mode })
+  });
 
-  try{
+  const data = await res.json();
 
-    if(!token && mode==="text"){
-      loading.innerText="⚠️ Login required";
-      return;
-    }
+  if(data.error){
+    alert(data.error);
+    return;
+  }
 
-    if(!token && mode==="image"){
-      loading.innerHTML = `<img src="https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}" style="width:100%">`;
-      return;
-    }
+  document.getElementById("credits").innerText = data.credits;
 
-    const data = await safeFetch(API+"/generate-text",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer "+token
-      },
-      body:JSON.stringify({
-        history: chatHistory,
-        prompt
-      })
-    });
+  if(mode==="text"){
+    document.getElementById("result").innerHTML =
+      `<div class="card">${data.output}</div>`;
+  }
 
-    loading.innerText = data.data.content;
-
-    chatHistory.push({user: prompt, ai: data.data.content});
-
-  }catch(e){
-    loading.innerText="❌ Failed. Try again.";
+  if(mode==="image"){
+    document.getElementById("result").innerHTML =
+      `<div class="card"><img src="${data.output}" style="width:100%"></div>`;
   }
 };
+
+// ADMIN
+async function loadStats(){
+  const res = await fetch(API+"/admin");
+  const data = await res.json();
+  document.getElementById("stats").innerHTML =
+    `<div class="card">Users: ${data.users} | Requests: ${data.requests}</div>`;
+}
 
 </script>
 
