@@ -5,21 +5,22 @@
 <title>🚀 ReelMind AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- 🔍 SEO -->
+<meta name="description" content="ReelMind AI lets you generate text, images, and videos instantly using powerful AI tools.">
+<meta name="keywords" content="AI generator, text to image, AI video, content creation">
+<meta name="author" content="ReelMind AI">
+
 <!-- 💰 ADSENSE -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
      crossorigin="anonymous"></script>
 
 <style>
-
-/* ================= BASE ================= */
 body {
   margin: 0;
   font-family: 'Segoe UI', Arial;
   background: linear-gradient(135deg,#020617,#0f172a);
   color: white;
 }
-
-/* ================= NAV ================= */
 #topbar {
   position: fixed;
   top: 0;
@@ -31,17 +32,13 @@ body {
   align-items: center;
   z-index: 1000;
 }
-
-/* ================= SECTIONS ================= */
 .section {
   display: none;
-  margin-top: 80px;
+  margin-top: 90px;
   padding: 20px;
   padding-bottom: 160px;
 }
 .active { display: block; }
-
-/* ================= INPUT ================= */
 #prompt {
   position: fixed;
   bottom: 90px;
@@ -51,8 +48,6 @@ body {
   border-radius: 25px;
   border: none;
 }
-
-/* ================= CONTROLS ================= */
 #controls {
   position: fixed;
   bottom: 0;
@@ -63,7 +58,6 @@ body {
   align-items: center;
   background: #111;
 }
-
 .btn {
   width: 55px;
   height: 55px;
@@ -75,20 +69,15 @@ body {
   font-size: 22px;
   cursor: pointer;
 }
-
 #generate {
   background: linear-gradient(135deg,#06b6d4,#3b82f6);
 }
-
-/* ================= CARD ================= */
 .card {
   background: rgba(30,41,59,0.85);
   padding: 15px;
   border-radius: 15px;
   margin-top: 20px;
 }
-
-/* ================= LOGIN ================= */
 #loginBox {
   position: fixed;
   width: 100%;
@@ -99,40 +88,33 @@ body {
   align-items: center;
   z-index: 2000;
 }
-
 .loginCard {
   background: #111;
   padding: 20px;
   border-radius: 10px;
 }
-
-/* ================= PROFILE ================= */
 .avatar {
   width: 80px;
   height: 80px;
   border-radius: 50%;
   background: #333;
 }
-
-/* ================= FOOTER ================= */
 #footer {
   text-align: center;
   font-size: 12px;
   color: #888;
   margin-bottom: 120px;
 }
-
 select {
   border-radius: 10px;
   padding: 5px;
 }
-
 </style>
 </head>
 
 <body>
 
-<!-- 🔐 LOGIN -->
+<!-- LOGIN -->
 <div id="loginBox">
   <div class="loginCard">
     <h2>ReelMind AI</h2>
@@ -140,16 +122,26 @@ select {
   </div>
 </div>
 
-<!-- 🔝 NAV -->
+<!-- NAV -->
 <div id="topbar">
   <div onclick="switchTab('home')">🏠</div>
   <div onclick="switchTab('create')">➕</div>
   <div onclick="switchTab('profile')">👤</div>
   <div onclick="switchTab('info')">ℹ️</div>
 
-  <!-- 🌍 LANGUAGES -->
+  <!-- 🌍 FULL LANGUAGE LIST -->
   <select id="languageSelect">
     <option>English</option>
+    <option>French</option>
+    <option>Arabic</option>
+    <option>Spanish</option>
+    <option>Portuguese</option>
+    <option>Chinese</option>
+    <option>Hindi</option>
+    <option>Russian</option>
+    <option>German</option>
+    <option>Swahili</option>
+
     <option>Krio</option>
     <option>Mende</option>
     <option>Temne</option>
@@ -168,11 +160,15 @@ select {
   </select>
 </div>
 
-<!-- 🏠 HOME -->
+<!-- HOME -->
 <div id="home" class="section active">
   <h2>Feed</h2>
 
-  <!-- 💰 ADS -->
+  <div class="card">
+    <h3>Welcome to ReelMind AI</h3>
+    <p>Create AI text, images, and videos instantly.</p>
+  </div>
+
   <ins class="adsbygoogle"
        style="display:block"
        data-ad-client="ca-pub-1714638410489429"
@@ -187,7 +183,7 @@ select {
   <div id="feed"></div>
 </div>
 
-<!-- ➕ CREATE -->
+<!-- CREATE -->
 <div id="create" class="section">
   <h2>Create</h2>
 
@@ -200,7 +196,7 @@ select {
   <div id="result"></div>
 </div>
 
-<!-- 👤 PROFILE -->
+<!-- PROFILE -->
 <div id="profile" class="section">
   <h2>Profile</h2>
   <div class="avatar"></div>
@@ -208,25 +204,23 @@ select {
   <button onclick="logout()">Logout</button>
 </div>
 
-<!-- ℹ️ INFO -->
+<!-- INFO -->
 <div id="info" class="section">
   <h2>About</h2>
-  <p>ReelMind AI is a creative AI platform for generating text, images, and videos instantly. Built for creators and innovators.</p>
+  <p>AI platform for text, image, and video generation.</p>
 
-  <h2>Privacy Policy</h2>
-  <p>We respect your privacy. We do not sell user data and only use information to improve experience.</p>
+  <h2>Privacy</h2>
+  <p>No selling of data. Secure usage.</p>
 
   <h2>Blog</h2>
-  <p>Discover AI trends, tips, and strategies to grow faster using modern tools.</p>
+  <p>Learn AI growth tips.</p>
 
   <h2>Contact</h2>
-  <p>Reach out for support, ideas, or collaborations anytime.</p>
+  <p>Reach us anytime.</p>
 </div>
 
-<!-- INPUT -->
 <input id="prompt" placeholder="Type prompt..." />
 
-<!-- CONTROLS -->
 <div id="controls">
   <div class="btn">🎤</div>
   <div id="generate" class="btn">⚡</div>
@@ -235,7 +229,7 @@ select {
 
 <div id="footer">ReelMind AI © 2026</div>
 
-<!-- 🔥 FIREBASE -->
+<!-- FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -256,16 +250,14 @@ const provider = new GoogleAuthProvider();
 
 let userToken = null;
 
-// LOGIN
 window.login = async () => {
   await signInWithPopup(auth, provider);
 };
 
-// LOGOUT
 window.logout = () => signOut(auth);
 
-// AUTH STATE
 onAuthStateChanged(auth, async (user) => {
+  console.log("Logged in:", user);
   if (user) {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("userEmail").innerText = user.email;
@@ -273,65 +265,51 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// SWITCH TAB
 window.switchTab = (tab) => {
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
 };
 
-// LANGUAGE
-document.getElementById("languageSelect").onchange = function(){
-  alert("Language: " + this.value);
-};
-
-// GENERATE
 document.getElementById("generate").onclick = async () => {
   const prompt = document.getElementById("prompt").value;
   const mode = document.getElementById("mode").value;
   const result = document.getElementById("result");
 
   if (!prompt) return alert("Enter prompt");
+  if (!userToken) return alert("Login first");
 
   result.innerHTML = "⏳ Generating...";
 
-  if (mode === "text") {
-    const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + userToken
-      },
-      body: JSON.stringify({ prompt })
-    });
-    const data = await res.json();
-    result.innerHTML = `<div class="card">${data.data.content}</div>`;
-  }
+  try {
+    if (mode === "text") {
+      const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + userToken
+        },
+        body: JSON.stringify({ prompt })
+      });
 
-  if (mode === "image") {
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
-    result.innerHTML = `<div class="card"><img src="${url}" style="width:100%"></div>`;
-  }
+      const data = await res.json();
+      result.innerHTML = `<div class="card">${data.data?.content || "No response"}</div>`;
+    }
 
-  if (mode === "video") {
-    const res = await fetch("https://reelmindbackend-1.onrender.com/generate-video", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + userToken
-      },
-      body: JSON.stringify({ prompt })
-    });
-    const data = await res.json();
-    result.innerHTML = `
-      <div class="card">
-        <video src="${data.preview}" controls style="width:100%"></video>
-        <p>${data.status}</p>
-      </div>
-    `;
+    if (mode === "image") {
+      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+      result.innerHTML = `<div class="card"><img src="${url}" style="width:100%"></div>`;
+    }
+
+    if (mode === "video") {
+      result.innerHTML = "⚠️ Video API still processing...";
+    }
+
+  } catch (e) {
+    result.innerHTML = "❌ Error connecting to server";
   }
 };
 
 </script>
 
 </body>
-</html>
+     </html>
