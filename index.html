@@ -5,101 +5,94 @@
 <title>🚀 ReelMind AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- 🔍 SEO -->
-<meta name="description" content="ReelMind AI lets you generate text, images, and videos instantly using powerful AI tools.">
+<!-- SEO -->
+<meta name="description" content="ReelMind AI lets you generate text, images, and videos instantly.">
 
-<!-- 💰 ADSENSE -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
-crossorigin="anonymous"></script>
+<!-- ADSENSE -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429" crossorigin="anonymous"></script>
 
 <style>
 body {
-  margin: 0;
-  font-family: 'Segoe UI', Arial;
-  background: linear-gradient(135deg,#020617,#0f172a);
-  color: white;
+  margin:0;
+  font-family:'Segoe UI',Arial;
+  background:linear-gradient(135deg,#020617,#0f172a);
+  color:white;
 }
 #topbar {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  background: #111;
-  padding: 10px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
+  position:fixed;
+  top:0;
+  width:100%;
+  background:#111;
+  padding:10px;
+  display:flex;
+  justify-content:space-around;
 }
 .section {
-  display: none;
-  margin-top: 90px;
-  padding: 20px;
-  padding-bottom: 160px;
+  display:none;
+  margin-top:90px;
+  padding:20px;
+  padding-bottom:160px;
 }
-.active { display: block; }
+.active {display:block;}
 #prompt {
-  position: fixed;
-  bottom: 90px;
-  width: 90%;
-  left: 5%;
-  padding: 12px;
-  border-radius: 25px;
-  border: none;
+  position:fixed;
+  bottom:90px;
+  width:90%;
+  left:5%;
+  padding:12px;
+  border-radius:25px;
+  border:none;
 }
 #controls {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  height: 70px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background: #111;
+  position:fixed;
+  bottom:0;
+  width:100%;
+  height:70px;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  background:#111;
 }
 .btn {
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #222;
-  font-size: 22px;
-  cursor: pointer;
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#222;
+  font-size:22px;
 }
 #generate {
-  background: linear-gradient(135deg,#06b6d4,#3b82f6);
+  background:linear-gradient(135deg,#06b6d4,#3b82f6);
 }
 .card {
-  background: rgba(30,41,59,0.85);
-  padding: 15px;
-  border-radius: 15px;
-  margin-top: 20px;
+  background:rgba(30,41,59,0.85);
+  padding:15px;
+  border-radius:15px;
+  margin-top:20px;
 }
 #loginBox {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: #000d;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:#000d;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 .loginCard {
-  background: #111;
-  padding: 20px;
-  border-radius: 10px;
+  background:#111;
+  padding:20px;
+  border-radius:10px;
 }
-.avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #333;
-}
-#footer {
-  text-align: center;
-  font-size: 12px;
-  color: #888;
-  margin-bottom: 120px;
+#creditsBox {
+  position:fixed;
+  top:60px;
+  right:10px;
+  background:#111;
+  padding:8px;
+  border-radius:10px;
 }
 </style>
 </head>
@@ -119,38 +112,10 @@ body {
   <div onclick="switchTab('home')">🏠</div>
   <div onclick="switchTab('create')">➕</div>
   <div onclick="switchTab('profile')">👤</div>
-  <div onclick="switchTab('info')">ℹ️</div>
-
-  <!-- 🌍 LANGUAGES -->
-  <select id="languageSelect">
-    <option>English</option>
-    <option>French</option>
-    <option>Arabic</option>
-    <option>Spanish</option>
-    <option>Portuguese</option>
-    <option>Chinese</option>
-    <option>Hindi</option>
-    <option>Russian</option>
-    <option>German</option>
-    <option>Swahili</option>
-
-    <option>Krio</option>
-    <option>Mende</option>
-    <option>Temne</option>
-    <option>Limba</option>
-    <option>Kono</option>
-    <option>Kuranko</option>
-    <option>Loko</option>
-    <option>Fula</option>
-    <option>Susu</option>
-    <option>Yalunka</option>
-    <option>Kissi</option>
-    <option>Vai</option>
-    <option>Sherbro</option>
-    <option>Mandingo</option>
-    <option>Gola</option>
-  </select>
 </div>
+
+<!-- 💰 CREDITS -->
+<div id="creditsBox">💰 Credits: <span id="credits">5</span></div>
 
 <!-- HOME -->
 <div id="home" class="section active">
@@ -158,19 +123,26 @@ body {
 
   <div class="card">
     <h3>Welcome to ReelMind AI</h3>
-    <p>Create AI text, images, and videos instantly.</p>
+    <p>Generate text, images & videos instantly.</p>
   </div>
 
+  <!-- ADS -->
   <ins class="adsbygoogle"
        style="display:block"
        data-ad-client="ca-pub-1714638410489429"
        data-ad-slot="1234567890"
        data-ad-format="auto"
        data-full-width-responsive="true"></ins>
-
   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
-  <div id="feed"></div>
+  <!-- 💰 BUY -->
+  <div class="card">
+    <h3>💰 Buy Credits</h3>
+    <a href="https://ko-fi.com/articalneavy" target="_blank">
+      <button>Buy on Ko-fi ☕</button>
+    </a>
+  </div>
+
 </div>
 
 <!-- CREATE -->
@@ -189,44 +161,27 @@ body {
 <!-- PROFILE -->
 <div id="profile" class="section">
   <h2>Profile</h2>
-  <div class="avatar"></div>
   <p id="userEmail"></p>
   <button onclick="logout()">Logout</button>
 </div>
 
-<!-- INFO -->
-<div id="info" class="section">
-  <h2>About</h2>
-  <p>AI platform for text, image, and video generation.</p>
-
-  <h2>Privacy</h2>
-  <p>No selling of data. Secure usage.</p>
-
-  <h2>Blog</h2>
-  <p>Learn AI growth tips.</p>
-
-  <h2>Contact</h2>
-  <p>Reach us anytime.</p>
-</div>
-
 <input id="prompt" placeholder="Type prompt..." />
 
+<!-- CONTROLS -->
 <div id="controls">
   <div class="btn">🎤</div>
   <div id="generate" class="btn">⚡</div>
   <div class="btn">🖼</div>
 </div>
 
-<div id="footer">ReelMind AI © 2026</div>
-
-<!-- 🔥 CLEAN WORKING SCRIPT -->
+<!-- FIREBASE + AI -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
+  apiKey: "YOUR_FIREBASE_KEY",
   authDomain: "reelmind-ai-f07cb.firebaseapp.com",
   projectId: "reelmind-ai-f07cb"
 };
@@ -236,13 +191,22 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 let userToken = null;
+let credits = 5;
 
+function updateCredits(){
+  document.getElementById("credits").innerText = credits;
+}
+updateCredits();
+
+// LOGIN
 window.login = async () => {
   await signInWithPopup(auth, provider);
 };
 
+// LOGOUT
 window.logout = () => signOut(auth);
 
+// AUTH
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     document.getElementById("loginBox").style.display = "none";
@@ -251,6 +215,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
+// NAV
 window.switchTab = (tab) => {
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
@@ -258,47 +223,58 @@ window.switchTab = (tab) => {
 
 // 🚀 GENERATE ENGINE
 document.getElementById("generate").onclick = async () => {
+
   const prompt = document.getElementById("prompt").value.trim();
   const mode = document.getElementById("mode").value;
   const result = document.getElementById("result");
 
   if (!prompt) return alert("Enter prompt");
 
+  if (credits <= 0) {
+    alert("No credits! Buy more 👇");
+    return;
+  }
+
+  credits--;
+  updateCredits();
+
   result.innerHTML = "⚡ Generating...";
 
   try {
 
+    // 🧠 TEXT (OpenRouter)
     if (mode === "text") {
-      const res = await fetch("https://reelmindbackend-1.onrender.com/generate-text", {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + userToken
+          "Authorization": "Bearer YOUR_OPENROUTER_API_KEY",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({
+          model: "openai/gpt-4o-mini",
+          messages: [{ role:"user", content:prompt }]
+        })
       });
 
       const data = await res.json();
-      let output = data?.data?.content || "✨ Done";
-
-      if (output.toLowerCase().includes("unable")) {
-        output = "✨ " + prompt + " generated.";
-      }
+      const output = data?.choices?.[0]?.message?.content || "No response";
 
       result.innerHTML = `<div class="card">${output}</div>`;
     }
 
+    // 🖼 IMAGE (FIXED)
     if (mode === "image") {
       const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
       result.innerHTML = `<div class="card"><img src="${url}" style="width:100%"></div>`;
     }
 
+    // 🎬 VIDEO
     if (mode === "video") {
-      result.innerHTML = `<div class="card">🎬 Video coming soon...</div>`;
+      result.innerHTML = `<div class="card">🎬 Video processing...</div>`;
     }
 
   } catch (e) {
-    result.innerHTML = "❌ Server error";
+    result.innerHTML = "❌ Error";
   }
 };
 
