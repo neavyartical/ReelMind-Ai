@@ -55,7 +55,11 @@ document.getElementById("generate").onclick = async function(){
     return;
   }
 
-  result.innerHTML = `<div class="card">⏳ Generating ${mode}...</div>`;
+  result.innerHTML = `
+    <div class="card">
+      ⏳ Generating ${mode}...
+    </div>
+  `;
 
   try{
     let endpoint = "";
@@ -106,10 +110,10 @@ document.getElementById("generate").onclick = async function(){
             <video controls autoplay src="${data.preview}"></video>
           </div>
         `;
-      }else{
+      } else {
         result.innerHTML = `
           <div class="card">
-            ❌ Video unavailable
+            <pre style="white-space:pre-wrap;">${JSON.stringify(data, null, 2)}</pre>
           </div>
         `;
       }
@@ -117,6 +121,7 @@ document.getElementById("generate").onclick = async function(){
 
   }catch(error){
     console.error(error);
+
     result.innerHTML = `
       <div class="card">
         ❌ Generation failed
@@ -130,7 +135,8 @@ window.startMic = function(){
   rec.lang = "en-US";
 
   rec.onresult = function(e){
-    document.getElementById("prompt").value = e.results[0][0].transcript;
+    document.getElementById("prompt").value =
+      e.results[0][0].transcript;
   };
 
   rec.start();
