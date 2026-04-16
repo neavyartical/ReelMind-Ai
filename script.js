@@ -50,9 +50,9 @@ function setUserInfo(email, credits){
   if(creditsEl) creditsEl.innerText = credits;
 
   if(buyBtn){
-    if(credits === "∞" || credits > 10){
+    if(credits === "∞" || Number(credits) > 10){
       buyBtn.style.display = "none";
-    } else {
+    }else{
       buyBtn.style.display = "block";
     }
   }
@@ -63,6 +63,15 @@ function showResult(html){
   if(result){
     result.innerHTML = html;
   }
+}
+
+function showLoading(){
+  showResult(`
+    <div class="card">
+      <div class="spinner"></div>
+      Generating...
+    </div>
+  `);
 }
 
 /* =========================
@@ -158,9 +167,9 @@ window.switchTab = function(tab){
     section.classList.remove("active");
   });
 
-  const activeTab = getEl(tab);
-  if(activeTab){
-    activeTab.classList.add("active");
+  const target = getEl(tab);
+  if(target){
+    target.classList.add("active");
   }
 };
 
@@ -189,21 +198,23 @@ function typeWriter(text){
 ========================= */
 async function waitForVideo(taskId){
   for(let i=0;i<30;i++){
-    await new Promise(r=>setTimeout(r,5000));
+    await new Promise(resolve=>setTimeout(resolve,5000));
 
-    const res = await fetch(API + "/video-status/" + taskId);
-    const data = await res.json();
+    try{
+      const res = await fetch(API + "/video-status/" + taskId);
+      const data = await res.json();
 
-    if(data.video){
-      showResult(`
-        <div class="card">
-          <video controls autoplay playsinline src="${data.video}"></video>
-        </div>
-      `);
+      if(data.video){
+        showResult(`
+          <div class="card">
+            <video controls autoplay playsinline src="${data.video}"></video>
+          </div>
+        `);
 
-      loadUserProfile();
-      return;
-    }
+        loadUserProfile();
+        return;
+      }
+    }catch{}
   }
 
   showResult(`<div class="card">Video is still processing...</div>`);
@@ -212,19 +223,14 @@ async function waitForVideo(taskId){
 /* =========================
    GENERATE
 ========================= */
-getEl("generate")?.addEventListener("click", async()=>{
+async function generateContent(){
   const prompt = val("prompt").trim();
   const mode = val("mode");
   const language = val("language");
 
   if(!prompt) return;
 
-  showResult(`
-    <div class="card">
-      <div class="spinner"></div>
-      Generating...
-    </div>
-  `);
+  showLoading();
 
   try{
     const headers = {
@@ -235,10 +241,10 @@ getEl("generate")?.addEventListener("click", async()=>{
       headers.Authorization = "Bearer " + userToken;
     }
 
-    const res = await fetch(`${API}/generate-${mode}`,{
+    const res = await fetch(`${API}/generate-${mode}`, {
       method:"POST",
       headers,
-      body: JSON.stringify({
+      body:JSON.stringify({
         prompt,
         language
       })
@@ -282,7 +288,14 @@ getEl("generate")?.addEventListener("click", async()=>{
   }catch{
     showResult(`<div class="card">Generation failed</div>`);
   }
-});
+}
+
+/* =========================
+   VOICE PLACEHOLDER
+========================= */
+window.startMic = function(){
+  alert("Voice input coming soon");
+};
 
 /* =========================
    COOKIE BANNER
@@ -305,18 +318,23 @@ function initCookieBanner(){
 }
 
 /* =========================
-   LOAD
+   PAGE LOAD
 ========================= */
 window.addEventListener("load", ()=>{
   initCookieBanner();
 
+  const generateBtn = getEl("generate");
+  if(generateBtn){
+    generateBtn.addEventListener("click", generateContent);
+  }
+
   setTimeout(()=>{
-    const welcome = getEl("welcomeCard");
-    if(welcome){
-      welcome.style.opacity = "0";
+    const welcomeCard = getEl("welcomeCard");
+    if(welcomeCard){
+      welcomeCard.style.opacity = "0";
       setTimeout(()=>{
-        welcome.style.display = "none";
-      },800);
+        welcomeCard.style.display = "none";
+      }, 800);
     }
-  },6000);
+  }, 6000);
 });
