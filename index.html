@@ -4,18 +4,15 @@
   <meta charset="UTF-8">
   <title>ReelMind AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 
   <!-- Google AdSense -->
-  <meta name="google-adsense-account" content="pub-1714638410489429">
   <script async
-    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=pub-1714638410489429"
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
     crossorigin="anonymous"></script>
-
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- TOP MENU -->
 <div id="topbar">
   <div onclick="switchTab('home')">🏠</div>
   <div onclick="switchTab('create')">➕</div>
@@ -23,28 +20,30 @@
   <div onclick="switchTab('more')">ℹ️</div>
 </div>
 
-<!-- LOGO -->
 <div id="startupLogo">
   <img src="logo.png" alt="ReelMind AI">
 </div>
 
-<!-- CREDITS -->
 <div id="creditsBox">
   💰 <span id="credits">∞</span>
 </div>
 
-<!-- HOME -->
 <div id="home" class="section active">
   <div id="welcomeCard" class="card">
     <h2>✨ Welcome to ReelMind AI</h2>
-    <p>
-      Turn simple ideas into cinematic stories, visuals and videos
-      that keep your audience engaged.
-    </p>
+    <p>Create cinematic stories, images and videos from a single idea.</p>
+  </div>
+
+  <div class="card ad-card">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-1714638410489429"
+         data-ad-slot="1234567890"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
   </div>
 </div>
 
-<!-- CREATE -->
 <div id="create" class="section">
   <select id="mode">
     <option value="text">Story</option>
@@ -63,7 +62,6 @@
   <div id="result"></div>
 </div>
 
-<!-- PROFILE -->
 <div id="profile" class="section">
   <div class="card">
     <p id="userEmail">Guest Mode</p>
@@ -77,32 +75,25 @@
     <button onclick="logout()">Logout</button>
 
     <button id="buyCreditsBtn" onclick="buyCredits()" style="display:none;">
-      Buy More Credits
+      Buy Credits
     </button>
   </div>
 </div>
 
-<!-- MORE -->
 <div id="more" class="section">
   <div class="card">
     <h3>About</h3>
-    <p>
-      ReelMind AI transforms simple prompts into premium cinematic content.
-    </p>
+    <p>ReelMind AI helps creators turn simple prompts into engaging digital content.</p>
   </div>
 
   <div class="card">
     <h3>Privacy Policy</h3>
-    <p>
-      Your prompts remain private and your creative ownership stays yours.
-    </p>
+    <p>Your prompts remain private and secure.</p>
   </div>
 
   <div class="card">
     <h3>Terms of Service</h3>
-    <p>
-      Use the platform responsibly while respecting safe creative standards.
-    </p>
+    <p>Use responsibly and respect content guidelines.</p>
   </div>
 
   <div class="card">
@@ -111,31 +102,26 @@
   </div>
 </div>
 
-<!-- PROMPT -->
 <input id="prompt" placeholder="Describe what you want...">
 <input type="file" id="fileInput" hidden>
 
-<!-- CONTROLS -->
 <div id="controls">
   <div class="btn" onclick="document.getElementById('fileInput').click()">📎</div>
   <div class="btn" id="generate">⚡</div>
   <div class="btn" onclick="startMic()">🎤</div>
 </div>
 
-<!-- COOKIE -->
 <div id="cookieBanner">
   <div class="cookieText">
-    We use cookies to improve your experience and personalize your content.
+    We use cookies to improve your experience.
   </div>
   <button id="acceptCookies">Accept</button>
 </div>
 
-<!-- FOOTER -->
 <div id="footer">
   Powered by Artical Neavy
 </div>
 
 <script type="module" src="script.js"></script>
-
 </body>
 </html>
