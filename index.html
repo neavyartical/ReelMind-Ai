@@ -10,166 +10,160 @@ src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pu
 crossorigin="anonymous"></script>
 
 <style>
-body{
-  margin:0;
-  font-family:Segoe UI;
-  background:#020617;
-  color:white;
-}
+body{margin:0;font-family:Segoe UI;background:#020617;color:white;}
 #topbar{
-  position:fixed;
-  top:0;
-  width:100%;
-  background:#111;
-  padding:12px;
-  display:flex;
-  justify-content:space-around;
-  z-index:1000;
+position:fixed;top:0;width:100%;
+background:#111;padding:10px;
+display:flex;justify-content:space-around;
+z-index:1000;
 }
-.section{
-  display:none;
-  margin-top:80px;
-  padding:20px;
-}
+.section{display:none;margin-top:80px;padding:20px;}
 .active{display:block;}
-.card{
-  background:#111827;
-  padding:15px;
-  border-radius:14px;
-  margin-top:15px;
-}
 #creditsBox{
-  position:fixed;
-  top:52px;
-  right:10px;
-  background:#111;
-  padding:8px;
-  border-radius:10px;
+position:fixed;top:50px;right:10px;
+background:#111;padding:8px;border-radius:10px;
 }
-#prompt{
-  position:fixed;
-  bottom:90px;
-  left:12%;
-  width:76%;
-  padding:12px;
-  border:none;
-  border-radius:25px;
+.card{
+background:#111;
+padding:15px;
+border-radius:12px;
+margin-top:15px;
 }
-#controls{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  height:70px;
-  background:#111;
-}
-.ctrl{
-  position:absolute;
-  bottom:10px;
-  width:52px;
-  height:52px;
-  border-radius:50%;
-  background:#06b6d4;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  cursor:pointer;
-}
-#uploadBtn{left:12px;}
-#generateBtn{left:50%;transform:translateX(-50%);}
-#micBtn{right:12px;}
-select,input{
-  padding:10px;
-  margin:5px 0;
-  width:100%;
-  border:none;
-  border-radius:10px;
+input,select{
+padding:10px;
+margin:5px 0;
+width:100%;
+border:none;
+border-radius:10px;
+box-sizing:border-box;
 }
 button{
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  background:#06b6d4;
-  color:white;
-  margin-top:8px;
+padding:10px;
+border:none;
+border-radius:10px;
+background:#06b6d4;
+color:white;
+cursor:pointer;
+margin-top:6px;
+}
+#promptBar{
+position:fixed;
+bottom:0;
+width:100%;
+background:#111;
+padding:10px;
+display:flex;
+gap:10px;
+align-items:center;
+box-sizing:border-box;
+}
+#prompt{
+flex:1;
+padding:12px;
+border:none;
+border-radius:25px;
+}
+.iconBtn,.btn{
+width:50px;
+height:50px;
+border-radius:50%;
+border:none;
+background:#06b6d4;
+color:white;
+font-size:20px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+}
+img,video{
+max-width:100%;
+border-radius:12px;
+}
+.adBox{
+margin-top:20px;
+text-align:center;
 }
 </style>
 </head>
+
 <body>
 
 <div id="topbar">
-  <div onclick="switchTab('home')">🏠</div>
-  <div onclick="switchTab('create')">➕</div>
-  <div onclick="switchTab('profile')">👤</div>
-  <div onclick="switchTab('admin')">👑</div>
+<div onclick="switchTab('home')">🏠</div>
+<div onclick="switchTab('create')">➕</div>
+<div onclick="switchTab('profile')">👤</div>
+<div onclick="switchTab('admin')">👑</div>
 </div>
 
-<div id="creditsBox">💰 <span id="credits">...</span></div>
+<div id="creditsBox">💰 <span id="credits">∞</span></div>
 
 <div id="home" class="section active">
-  <div class="card">
-    <h2>ReelMind AI</h2>
-    <p>Fast multilingual AI generation</p>
-  </div>
+<div class="card">
+<h2>ReelMind AI</h2>
+<p>Generate stories, images and content in many languages.</p>
+</div>
 
-  <div class="card">
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-1714638410489429"
-         data-ad-slot="1234567890"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-  </div>
+<div class="adBox">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-1714638410489429"
+data-ad-slot="YOUR_AD_SLOT_ID"
+data-ad-format="auto"
+data-full-width-responsive="true"></ins>
+</div>
 </div>
 
 <div id="create" class="section">
-  <select id="mode">
-    <option value="text">Story / Text</option>
-    <option value="image">Image</option>
-    <option value="video">Video</option>
-  </select>
+<select id="mode">
+<option value="text">Story / Text</option>
+<option value="image">Image</option>
+<option value="video">Video</option>
+</select>
 
-  <select id="language">
-    <option value="English">English</option>
-    <option value="Krio">Krio</option>
-    <option value="French">French</option>
-    <option value="Arabic">Arabic</option>
-    <option value="Temne">Temne</option>
-    <option value="Mende">Mende</option>
-    <option value="Limba">Limba</option>
-  </select>
+<select id="language">
+<option value="English">English</option>
+<option value="Krio">Krio</option>
+<option value="Temne">Temne</option>
+<option value="Mende">Mende</option>
+<option value="Limba">Limba</option>
+<option value="French">French</option>
+<option value="Arabic">Arabic</option>
+<option value="Spanish">Spanish</option>
+</select>
 
-  <div id="result"></div>
+<div id="result"></div>
 </div>
 
 <div id="profile" class="section">
-  <p id="userEmail">Guest Mode</p>
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-
-  <button onclick="emailRegister()">Register</button>
-  <button onclick="emailLogin()">Login</button>
-  <button onclick="googleLogin()">Google</button>
-  <button onclick="logout()">Logout</button>
+<p id="userEmail">Guest Mode</p>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="emailLogin()">Login</button>
+<button onclick="emailRegister()">Register</button>
+<button onclick="googleLogin()">Google Login</button>
+<button onclick="logout()">Logout</button>
 </div>
 
 <div id="admin" class="section">
-  <button onclick="loadStats()">Load Stats</button>
-  <button onclick="window.open('https://ko-fi.com/articalneavy')">Ko-fi</button>
-  <div id="stats"></div>
+<button onclick="loadStats()">Load Stats</button>
+<a href="https://ko-fi.com/articalneavy" target="_blank">
+<button>Ko-fi Monetisation</button>
+</a>
+<div id="stats"></div>
 </div>
 
-<input id="prompt" placeholder="Type anything...">
-
-<div id="controls">
-  <div id="uploadBtn" class="ctrl">📎</div>
-  <div id="generateBtn" class="ctrl">⚡</div>
-  <div id="micBtn" class="ctrl">🎤</div>
+<div id="promptBar">
+<button class="iconBtn" onclick="document.getElementById('fileInput').click()">📎</button>
+<input id="prompt" placeholder="Ask anything...">
+<button id="generate" class="btn">⚡</button>
+<button class="iconBtn" onclick="startMic()">🎤</button>
 </div>
+
+<input type="file" id="fileInput" hidden>
 
 <script type="module">
-
-const API="https://reelmindbackend-1.onrender.com";
+const API = "https://reelmindbackend-1.onrender.com";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -182,24 +176,26 @@ onAuthStateChanged,
 signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const firebaseConfig={
-  apiKey:"YOUR_FIREBASE_KEY",
-  authDomain:"YOUR_AUTH_DOMAIN",
-  projectId:"YOUR_PROJECT_ID",
-  appId:"YOUR_APP_ID"
-};
+const firebaseApp = initializeApp({
+apiKey:"AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
+authDomain:"reelmind-ai-f07cb.firebaseapp.com",
+projectId:"reelmind-ai-f07cb",
+storageBucket:"reelmind-ai-f07cb.firebasestorage.app",
+messagingSenderId:"731354245603",
+appId:"1:731354245603:web:7861b1c97e70b19982d8d6"
+});
 
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const provider=new GoogleAuthProvider();
+const auth = getAuth(firebaseApp);
+const provider = new GoogleAuthProvider();
+let token = null;
 
-let token=null;
-
-function val(id){return document.getElementById(id).value;}
+function val(id){
+return document.getElementById(id).value;
+}
 
 window.switchTab=(tab)=>{
- document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
- document.getElementById(tab).classList.add("active");
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(tab).classList.add("active");
 };
 
 window.googleLogin=()=>signInWithPopup(auth,provider);
@@ -207,86 +203,113 @@ window.emailLogin=()=>signInWithEmailAndPassword(auth,val("email"),val("password
 window.emailRegister=()=>createUserWithEmailAndPassword(auth,val("email"),val("password"));
 window.logout=()=>signOut(auth);
 
-onAuthStateChanged(auth,async user=>{
- if(user){
-   token=await user.getIdToken();
-   document.getElementById("userEmail").innerText=user.email;
-   loadUser();
- }else{
-   token=null;
-   document.getElementById("userEmail").innerText="Guest Mode";
-   document.getElementById("credits").innerText="∞";
- }
+onAuthStateChanged(auth,async(user)=>{
+if(user){
+token=await user.getIdToken();
+document.getElementById("userEmail").innerText=user.email;
+loadUser();
+}else{
+token=null;
+document.getElementById("userEmail").innerText="Guest Mode";
+document.getElementById("credits").innerText="∞";
+}
 });
 
 async function loadUser(){
- if(!token)return;
- const res=await fetch(API+"/me",{headers:{Authorization:"Bearer "+token}});
- const data=await res.json();
- document.getElementById("credits").innerText=data.credits;
+if(!token)return;
+const res=await fetch(API+"/me",{headers:{Authorization:"Bearer "+token}});
+const data=await res.json();
+document.getElementById("credits").innerText=data.credits;
 }
 
-function typeWriter(text, element){
- element.innerHTML="";
- let i=0;
- const timer=setInterval(()=>{
-   if(i<text.length){
-     element.innerHTML += text.charAt(i);
-     i++;
-   }else{
-     clearInterval(timer);
-   }
- },10);
+function typeWriter(text){
+const result=document.getElementById("result");
+result.innerHTML=`<div class="card" id="typed"></div>`;
+let i=0;
+const el=document.getElementById("typed");
+function write(){
+if(i<text.length){
+el.innerHTML+=text.charAt(i);
+i++;
+setTimeout(write,8);
+}
+}
+write();
 }
 
-document.getElementById("generateBtn").onclick=async()=>{
- const prompt=val("prompt").trim();
- const mode=val("mode");
- const lang=val("language");
- const result=document.getElementById("result");
+document.getElementById("generate").onclick=async()=>{
+const prompt=val("prompt").trim();
+const mode=val("mode");
+const language=val("language");
+const result=document.getElementById("result");
 
- if(!prompt)return;
- result.innerHTML="⚡ Generating...";
+if(!prompt)return;
 
- let endpoint="/generate-text";
- if(mode==="image") endpoint="/generate-image";
- if(mode==="video") endpoint="/generate-video";
+result.innerHTML="⚡ Generating...";
 
- const headers={"Content-Type":"application/json"};
- if(token) headers.Authorization="Bearer "+token;
+try{
+if(!token && mode==="image"){
+const url=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
+result.innerHTML=`<div class="card"><img src="${url}"></div>`;
+return;
+}
 
- const res=await fetch(API+endpoint,{
-   method:"POST",
-   headers,
-   body:JSON.stringify({prompt,language:lang})
- });
+const endpoint=
+mode==="text"?"/generate-text":
+mode==="image"?"/generate-image":
+"/generate-video";
 
- const data=await res.json();
+const headers={"Content-Type":"application/json"};
+if(token) headers.Authorization="Bearer "+token;
 
- if(mode==="text"){
-   result.innerHTML='<div class="card" id="typed"></div>';
-   typeWriter(data?.data?.content || data?.output || "No response",document.getElementById("typed"));
- }
+const res=await fetch(API+endpoint,{
+method:"POST",
+headers,
+body:JSON.stringify({prompt,language})
+});
 
- if(mode==="image"){
-   result.innerHTML=`<div class="card"><img src="${data?.data?.url || data?.output}" style="width:100%"></div>`;
- }
+const data=await res.json();
 
- if(mode==="video"){
-   result.innerHTML=`<div class="card"><video controls style="width:100%" src="${data.preview}"></video></div>`;
- }
+if(mode==="text"){
+typeWriter(data?.data?.content || "No response");
+}
 
- loadUser();
+if(mode==="image"){
+result.innerHTML=`<div class="card"><img src="${data?.data?.url}"></div>`;
+}
+
+if(mode==="video"){
+result.innerHTML=`<div class="card"><video controls src="${data?.preview}"></video></div>`;
+}
+
+loadUser();
+
+}catch(e){
+result.innerHTML=`<div class="card">❌ Connection failed</div>`;
+}
 };
 
 window.loadStats=async()=>{
- const res=await fetch(API+"/admin");
- const data=await res.json();
- document.getElementById("stats").innerHTML=
- `<div class="card">Users: ${data.users}<br>Requests: ${data.requests}</div>`;
+const res=await fetch(API+"/admin");
+const data=await res.json();
+document.getElementById("stats").innerHTML=
+`<div class="card">Users: ${data.users}<br>Requests: ${data.requests}</div>`;
 };
 
-(adsbygoogle = window.adsbygoogle || []).push({});
+window.startMic=()=>{
+const rec=new webkitSpeechRecognition();
+rec.lang="en-US";
+rec.onresult=(e)=>{
+document.getElementById("prompt").value=e.results[0][0].transcript;
+};
+rec.start();
+};
+
+window.addEventListener("load",()=>{
+try{
+(adsbygoogle=window.adsbygoogle||[]).push({});
+}catch(e){}
+});
 </script>
 
 </body>
