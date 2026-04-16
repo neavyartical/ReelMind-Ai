@@ -33,20 +33,35 @@ let userToken = null;
 /* =========================
    HELPERS
 ========================= */
+function getEl(id){
+  return document.getElementById(id);
+}
+
 function val(id){
-  return document.getElementById(id).value;
+  return getEl(id)?.value || "";
 }
 
 function setUserInfo(email, credits){
-  const emailEl = document.getElementById("userEmail");
-  const creditsEl = document.getElementById("credits");
-  const buyBtn = document.getElementById("buyCreditsBtn");
+  const emailEl = getEl("userEmail");
+  const creditsEl = getEl("credits");
+  const buyBtn = getEl("buyCreditsBtn");
 
   if(emailEl) emailEl.innerText = email;
   if(creditsEl) creditsEl.innerText = credits;
 
   if(buyBtn){
-    buyBtn.style.display = credits <= 10 ? "block" : "none";
+    if(credits === "∞" || credits > 10){
+      buyBtn.style.display = "none";
+    } else {
+      buyBtn.style.display = "block";
+    }
+  }
+}
+
+function showResult(html){
+  const result = getEl("result");
+  if(result){
+    result.innerHTML = html;
   }
 }
 
@@ -54,7 +69,7 @@ function setUserInfo(email, credits){
    BUY CREDITS
 ========================= */
 window.buyCredits = function(){
-  window.open("https://ko-fi.com/articalneavy","_blank");
+  window.open("https://ko-fi.com/articalneavy", "_blank");
 };
 
 /* =========================
@@ -64,27 +79,35 @@ async function loadUserProfile(){
   if(!userToken) return;
 
   try{
-    const res = await fetch(API + "/me",{
+    const res = await fetch(API + "/me", {
       headers:{
-        Authorization:"Bearer " + userToken
+        Authorization: "Bearer " + userToken
       }
     });
 
     const data = await res.json();
-    setUserInfo(data.email || "Guest", data.credits || 0);
+
+    setUserInfo(
+      data.email || "Guest",
+      data.credits ?? 0
+    );
 
   }catch{
-    setUserInfo("Guest",0);
+    setUserInfo("Guest", 0);
   }
 }
 
 /* =========================
-   AUTH
+   AUTH FUNCTIONS
 ========================= */
 window.emailRegister = async function(){
   try{
-    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
-    alert("Account created");
+    await createUserWithEmailAndPassword(
+      auth,
+      val("email"),
+      val("password")
+    );
+    alert("Account created successfully");
   }catch(err){
     alert(err.message);
   }
@@ -92,7 +115,11 @@ window.emailRegister = async function(){
 
 window.emailLogin = async function(){
   try{
-    await signInWithEmailAndPassword(auth,val("email"),val("password"));
+    await signInWithEmailAndPassword(
+      auth,
+      val("email"),
+      val("password")
+    );
   }catch(err){
     alert(err.message);
   }
@@ -100,7 +127,7 @@ window.emailLogin = async function(){
 
 window.googleLogin = async function(){
   try{
-    await signInWithPopup(auth,provider);
+    await signInWithPopup(auth, provider);
   }catch(err){
     alert(err.message);
   }
@@ -113,43 +140,44 @@ window.logout = async function(){
 /* =========================
    AUTH STATE
 ========================= */
-onAuthStateChanged(auth, async user=>{
+onAuthStateChanged(auth, async(user)=>{
   if(user){
     userToken = await user.getIdToken();
     await loadUserProfile();
   }else{
     userToken = null;
-    setUserInfo("Guest Mode","∞");
+    setUserInfo("Guest Mode", "∞");
   }
 });
 
 /* =========================
-   TABS
+   TAB SWITCH
 ========================= */
 window.switchTab = function(tab){
   document.querySelectorAll(".section").forEach(section=>{
     section.classList.remove("active");
   });
 
-  const target = document.getElementById(tab);
-  if(target) target.classList.add("active");
+  const activeTab = getEl(tab);
+  if(activeTab){
+    activeTab.classList.add("active");
+  }
 };
 
 /* =========================
    TYPEWRITER
 ========================= */
 function typeWriter(text){
-  const result = document.getElementById("result");
-  result.innerHTML = `<div class="card" id="typed"></div>`;
+  showResult(`<div class="card" id="typed"></div>`);
 
-  const typed = document.getElementById("typed");
+  const el = getEl("typed");
   let i = 0;
 
   function write(){
     if(i < text.length){
-      typed.innerHTML += text.charAt(i);
+      el.innerHTML += text.charAt(i);
       i++;
-      setTimeout(write,8);
+      setTimeout(write, 8);
     }
   }
 
@@ -157,11 +185,9 @@ function typeWriter(text){
 }
 
 /* =========================
-   VIDEO STATUS
+   VIDEO WAIT
 ========================= */
 async function waitForVideo(taskId){
-  const result = document.getElementById("result");
-
   for(let i=0;i<30;i++){
     await new Promise(r=>setTimeout(r,5000));
 
@@ -169,37 +195,36 @@ async function waitForVideo(taskId){
     const data = await res.json();
 
     if(data.video){
-      result.innerHTML = `
+      showResult(`
         <div class="card">
           <video controls autoplay playsinline src="${data.video}"></video>
         </div>
-      `;
+      `);
 
       loadUserProfile();
       return;
     }
   }
 
-  result.innerHTML = `<div class="card">Video still processing...</div>`;
+  showResult(`<div class="card">Video is still processing...</div>`);
 }
 
 /* =========================
    GENERATE
 ========================= */
-document.getElementById("generate").onclick = async ()=>{
+getEl("generate")?.addEventListener("click", async()=>{
   const prompt = val("prompt").trim();
   const mode = val("mode");
   const language = val("language");
-  const result = document.getElementById("result");
 
   if(!prompt) return;
 
-  result.innerHTML = `
+  showResult(`
     <div class="card">
       <div class="spinner"></div>
       Generating...
     </div>
-  `;
+  `);
 
   try{
     const headers = {
@@ -210,10 +235,10 @@ document.getElementById("generate").onclick = async ()=>{
       headers.Authorization = "Bearer " + userToken;
     }
 
-    const res = await fetch(API + "/generate-" + mode,{
+    const res = await fetch(`${API}/generate-${mode}`,{
       method:"POST",
       headers,
-      body:JSON.stringify({
+      body: JSON.stringify({
         prompt,
         language
       })
@@ -222,7 +247,7 @@ document.getElementById("generate").onclick = async ()=>{
     const data = await res.json();
 
     if(data.error){
-      result.innerHTML = `<div class="card">${data.error}</div>`;
+      showResult(`<div class="card">${data.error}</div>`);
       return;
     }
 
@@ -231,50 +256,50 @@ document.getElementById("generate").onclick = async ()=>{
     }
 
     if(mode === "image"){
-      result.innerHTML = `
+      showResult(`
         <div class="card">
-          <img src="${data?.data?.url}">
+          <img src="${data?.data?.url}" alt="Generated image">
         </div>
-      `;
+      `);
     }
 
     if(mode === "video"){
       if(data.preview){
-        result.innerHTML = `
+        showResult(`
           <div class="card">
-            <video controls autoplay src="${data.preview}"></video>
+            <video controls autoplay playsinline src="${data.preview}"></video>
           </div>
-        `;
+        `);
       }else if(data.taskId){
         waitForVideo(data.taskId);
       }else{
-        result.innerHTML = `<div class="card">Video unavailable</div>`;
+        showResult(`<div class="card">Video unavailable</div>`);
       }
     }
 
     loadUserProfile();
 
   }catch{
-    result.innerHTML = `<div class="card">Generation failed</div>`;
+    showResult(`<div class="card">Generation failed</div>`);
   }
-};
+});
 
 /* =========================
-   COOKIE
+   COOKIE BANNER
 ========================= */
 function initCookieBanner(){
-  const banner = document.getElementById("cookieBanner");
-  const btn = document.getElementById("acceptCookies");
+  const banner = getEl("cookieBanner");
+  const button = getEl("acceptCookies");
 
-  if(!banner || !btn) return;
+  if(!banner || !button) return;
 
-  if(localStorage.getItem("reelmind_cookie_accept")==="yes"){
+  if(localStorage.getItem("reelmind_cookie_accept") === "yes"){
     banner.style.display = "none";
     return;
   }
 
-  btn.onclick = ()=>{
-    localStorage.setItem("reelmind_cookie_accept","yes");
+  button.onclick = ()=>{
+    localStorage.setItem("reelmind_cookie_accept", "yes");
     banner.style.display = "none";
   };
 }
@@ -282,20 +307,16 @@ function initCookieBanner(){
 /* =========================
    LOAD
 ========================= */
-window.addEventListener("load",()=>{
+window.addEventListener("load", ()=>{
   initCookieBanner();
 
-  try{
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  }catch{}
-
   setTimeout(()=>{
-    const welcome = document.getElementById("welcomeCard");
+    const welcome = getEl("welcomeCard");
     if(welcome){
       welcome.style.opacity = "0";
       setTimeout(()=>{
         welcome.style.display = "none";
       },800);
     }
-  },7000);
+  },6000);
 });
