@@ -1,4 +1,3 @@
-
 const API = "https://reelmindbackend-1.onrender.com";
 
 function val(id){
@@ -31,6 +30,7 @@ window.logout = function(){
 function typeWriter(text){
   const result = document.getElementById("result");
   result.innerHTML = '<div class="card" id="typed"></div>';
+
   let i = 0;
   const el = document.getElementById("typed");
 
@@ -38,9 +38,10 @@ function typeWriter(text){
     if(i < text.length){
       el.innerHTML += text.charAt(i);
       i++;
-      setTimeout(write, 8);
+      setTimeout(write,8);
     }
   }
+
   write();
 }
 
@@ -77,7 +78,11 @@ document.getElementById("generate").onclick = async ()=>{
     }
 
     if(mode==="video"){
-      result.innerHTML = `<div class="card"><video controls src="${data?.preview}"></video></div>`;
+      if(data?.preview){
+        result.innerHTML = `<div class="card"><video controls src="${data.preview}"></video></div>`;
+      }else{
+        result.innerHTML = "<div class='card'>⚠️ Video generation unavailable</div>";
+      }
     }
 
   }catch(error){
@@ -98,5 +103,17 @@ window.addEventListener("load", ()=>{
   setTimeout(()=>{
     const card = document.getElementById("welcomeCard");
     if(card) card.style.display = "none";
-  }, 8000);
+  },8000);
+
+  const banner = document.getElementById("cookieBanner");
+  const accepted = localStorage.getItem("cookiesAccepted");
+
+  if(accepted){
+    banner.style.display = "none";
+  }
+
+  document.getElementById("acceptCookies").onclick = ()=>{
+    localStorage.setItem("cookiesAccepted","yes");
+    banner.style.display = "none";
+  };
 });
