@@ -24,15 +24,10 @@
 </div>
 
 <div id="home" class="section active">
-  <div class="card" id="welcomeCard">
+  <div id="welcomeCard" class="card">
     <h2>✨ Welcome to ReelMind AI</h2>
-    <p>
-      Step into a world where your imagination becomes cinematic reality.
-      Create stories, visuals and powerful videos in seconds.
-    </p>
-    <p>
-      Every idea you type can become something unforgettable.
-    </p>
+    <p>Transform simple thoughts into cinematic stories and premium visuals.</p>
+    <p>Your imagination deserves more than ordinary tools.</p>
   </div>
 </div>
 
@@ -44,10 +39,10 @@
   </select>
 
   <select id="language">
-    <option>English</option>
-    <option>French</option>
-    <option>Arabic</option>
-    <option>Spanish</option>
+    <option value="English">English</option>
+    <option value="French">French</option>
+    <option value="Arabic">Arabic</option>
+    <option value="Spanish">Spanish</option>
   </select>
 
   <div id="result"></div>
@@ -56,8 +51,9 @@
 <div id="profile" class="section">
   <div class="card">
     <p id="userEmail">Guest Mode</p>
-    <input id="email" placeholder="Email">
+    <input id="email" type="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
+
     <button onclick="emailLogin()">Login</button>
     <button onclick="emailRegister()">Register</button>
     <button onclick="googleLogin()">Google Login</button>
@@ -66,9 +62,9 @@
 </div>
 
 <div id="more" class="section">
-  <div class="card"><h3>About</h3><p>ReelMind AI turns ideas into visual stories instantly.</p></div>
-  <div class="card"><h3>Privacy</h3><p>Your prompts remain protected and private.</p></div>
-  <div class="card"><h3>Support</h3><p>Need help? Reach out anytime.</p></div>
+  <div class="card"><h3>About</h3><p>ReelMind AI helps creators generate visual content instantly.</p></div>
+  <div class="card"><h3>Privacy</h3><p>Your prompts stay secure and private.</p></div>
+  <div class="card"><h3>Support</h3><p>Need help? Support is always available.</p></div>
 </div>
 
 <input id="prompt" placeholder="Describe what you want...">
@@ -82,6 +78,6 @@
 
 <div id="footer">Powered by Artical Neavy</div>
 
-<script type="module" src="app.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
