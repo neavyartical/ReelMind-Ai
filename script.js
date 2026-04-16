@@ -55,11 +55,7 @@ document.getElementById("generate").onclick = async function(){
     return;
   }
 
-  result.innerHTML = `
-    <div class="card">
-      ⏳ Generating ${mode}...
-    </div>
-  `;
+  result.innerHTML = `<div class="card">⏳ Generating ${mode}...</div>`;
 
   try{
     let endpoint = "";
@@ -89,10 +85,15 @@ document.getElementById("generate").onclick = async function(){
 
     const data = await res.json();
 
-    console.log("API response:", data);
+    console.log("API RESPONSE:", data);
 
     if(mode === "text"){
-      typeWriter(data?.data?.content || "No response");
+      const story =
+        data?.data?.content ||
+        data?.content ||
+        JSON.stringify(data, null, 2);
+
+      typeWriter(story);
     }
 
     if(mode === "image"){
@@ -113,7 +114,7 @@ document.getElementById("generate").onclick = async function(){
       } else {
         result.innerHTML = `
           <div class="card">
-            <pre style="white-space:pre-wrap;">${JSON.stringify(data, null, 2)}</pre>
+            ${JSON.stringify(data, null, 2)}
           </div>
         `;
       }
