@@ -1,55 +1,44 @@
 const API = "https://reelmindbackend-1.onrender.com";
 
-function val(id) {
+function val(id){
   return document.getElementById(id).value;
 }
 
 /* =========================
    TAB SWITCHING
 ========================= */
-window.switchTab = function (tab) {
-  document.querySelectorAll(".section").forEach(section => {
-    section.classList.remove("active");
+window.switchTab = function(tab){
+  document.querySelectorAll(".section").forEach(s=>{
+    s.classList.remove("active");
   });
 
   const selected = document.getElementById(tab);
-  if (selected) selected.classList.add("active");
+  if(selected) selected.classList.add("active");
 };
 
 /* =========================
    AUTH PLACEHOLDERS
 ========================= */
-window.emailLogin = function () {
-  alert("Login system will be connected soon.");
-};
-
-window.emailRegister = function () {
-  alert("Registration system will be connected soon.");
-};
-
-window.googleLogin = function () {
-  alert("Google login will be connected soon.");
-};
-
-window.logout = function () {
-  alert("Logged out successfully.");
-};
+window.emailLogin = ()=> alert("Login coming soon");
+window.emailRegister = ()=> alert("Register coming soon");
+window.googleLogin = ()=> alert("Google login coming soon");
+window.logout = ()=> alert("Logged out");
 
 /* =========================
-   TYPEWRITER EFFECT
+   TYPEWRITER
 ========================= */
-function typeWriter(text) {
+function typeWriter(text){
   const result = document.getElementById("result");
   result.innerHTML = `<div class="card" id="typed"></div>`;
 
   let i = 0;
   const typed = document.getElementById("typed");
 
-  function write() {
-    if (i < text.length) {
+  function write(){
+    if(i < text.length){
       typed.innerHTML += text.charAt(i);
       i++;
-      setTimeout(write, 8);
+      setTimeout(write,8);
     }
   }
 
@@ -57,15 +46,54 @@ function typeWriter(text) {
 }
 
 /* =========================
-   GENERATE CONTENT
+   WAIT FOR VIDEO
 ========================= */
-document.getElementById("generate").onclick = async () => {
+async function waitForVideo(taskId){
+  const result = document.getElementById("result");
+
+  for(let i=0;i<30;i++){
+    await new Promise(r=>setTimeout(r,5000));
+
+    try{
+      const res = await fetch(API + "/video-status/" + taskId);
+      const data = await res.json();
+
+      const videoUrl =
+        data?.video ||
+        data?.url ||
+        data?.preview ||
+        data?.output?.[0] ||
+        "";
+
+      if(videoUrl){
+        result.innerHTML = `
+          <div class="card">
+            <video controls autoplay playsinline src="${videoUrl}"></video>
+          </div>
+        `;
+        return;
+      }
+
+    }catch(e){}
+  }
+
+  result.innerHTML = `
+    <div class="card">
+      Video is still processing. Please try again later.
+    </div>
+  `;
+}
+
+/* =========================
+   GENERATE
+========================= */
+document.getElementById("generate").onclick = async ()=>{
   const prompt = val("prompt").trim();
   const mode = val("mode");
   const language = val("language");
   const result = document.getElementById("result");
 
-  if (!prompt) return;
+  if(!prompt) return;
 
   result.innerHTML = `
     <div class="card">
@@ -74,13 +102,13 @@ document.getElementById("generate").onclick = async () => {
     </div>
   `;
 
-  try {
-    const res = await fetch(API + "/generate-" + mode, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
+  try{
+    const res = await fetch(API + "/generate-" + mode,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
       },
-      body: JSON.stringify({
+      body:JSON.stringify({
         prompt,
         language
       })
@@ -88,7 +116,7 @@ document.getElementById("generate").onclick = async () => {
 
     const data = await res.json();
 
-    if (mode === "text") {
+    if(mode==="text"){
       const story =
         data?.data?.content ||
         data?.content ||
@@ -98,7 +126,7 @@ document.getElementById("generate").onclick = async () => {
       typeWriter(story);
     }
 
-    if (mode === "image") {
+    if(mode==="image"){
       const imageUrl =
         data?.data?.url ||
         data?.url ||
@@ -106,27 +134,49 @@ document.getElementById("generate").onclick = async () => {
         "";
 
       result.innerHTML = imageUrl
-        ? `<div class="card"><img src="${imageUrl}" alt="Generated image"></div>`
+        ? `<div class="card"><img src="${imageUrl}"></div>`
         : `<div class="card">No image returned.</div>`;
     }
 
-    if (mode === "video") {
-      const videoUrl =
+    if(mode==="video"){
+      const instantVideo =
         data?.video ||
         data?.url ||
         data?.preview ||
-        data?.data?.url ||
         "";
 
-      result.innerHTML = videoUrl
-        ? `<div class="card"><video controls autoplay playsinline src="${videoUrl}"></video></div>`
-        : `<div class="card">Video unavailable.</div>`;
+      const taskId =
+        data?.taskId ||
+        data?.id ||
+        data?.task_id;
+
+      if(instantVideo){
+        result.innerHTML = `
+          <div class="card">
+            <video controls autoplay playsinline src="${instantVideo}"></video>
+          </div>
+        `;
+      } else if(taskId){
+        result.innerHTML = `
+          <div class="card">
+            <div class="spinner"></div>
+            Finalizing your cinematic video...
+          </div>
+        `;
+        waitForVideo(taskId);
+      } else {
+        result.innerHTML = `
+          <div class="card">
+            Video unavailable.
+          </div>
+        `;
+      }
     }
 
-  } catch (error) {
+  }catch(error){
     result.innerHTML = `
       <div class="card">
-        ❌ Generation failed. Please try again.
+        ❌ Generation failed.
       </div>
     `;
   }
@@ -135,66 +185,64 @@ document.getElementById("generate").onclick = async () => {
 /* =========================
    VOICE INPUT
 ========================= */
-window.startMic = function () {
-  if (!window.webkitSpeechRecognition) {
-    alert("Voice input not supported on this browser.");
+window.startMic = function(){
+  if(!window.webkitSpeechRecognition){
+    alert("Voice not supported.");
     return;
   }
 
-  const recognition = new webkitSpeechRecognition();
-  recognition.lang = "en-US";
+  const rec = new webkitSpeechRecognition();
+  rec.lang = "en-US";
 
-  recognition.onresult = e => {
+  rec.onresult = e=>{
     document.getElementById("prompt").value =
       e.results[0][0].transcript;
   };
 
-  recognition.start();
+  rec.start();
 };
 
 /* =========================
-   COOKIE CONSENT
+   COOKIE
 ========================= */
-function initCookieBanner() {
+function initCookieBanner(){
   const banner = document.getElementById("cookieBanner");
-  const button = document.getElementById("acceptCookies");
+  const btn = document.getElementById("acceptCookies");
 
-  if (!banner || !button) return;
+  if(!banner || !btn) return;
 
-  const accepted = localStorage.getItem("reelmind_cookie_accept");
+  const saved = localStorage.getItem("reelmind_cookie_accept");
 
-  if (accepted === "yes") {
-    banner.style.display = "none";
+  if(saved==="yes"){
+    banner.style.display="none";
     return;
   }
 
-  button.onclick = function () {
-    localStorage.setItem("reelmind_cookie_accept", "yes");
+  btn.onclick = ()=>{
+    localStorage.setItem("reelmind_cookie_accept","yes");
+    banner.style.opacity="0";
 
-    banner.style.opacity = "0";
-    banner.style.transform = "translate(-50%, 30px)";
-
-    setTimeout(() => {
-      banner.style.display = "none";
-    }, 500);
+    setTimeout(()=>{
+      banner.style.display="none";
+    },500);
   };
 }
 
 /* =========================
-   PAGE LOAD
+   LOAD
 ========================= */
-window.addEventListener("load", () => {
+window.addEventListener("load",()=>{
   initCookieBanner();
 
-  setTimeout(() => {
+  setTimeout(()=>{
     const welcome = document.getElementById("welcomeCard");
 
-    if (welcome) {
-      welcome.style.opacity = "0";
+    if(welcome){
+      welcome.style.opacity="0";
 
-      setTimeout(() => {
-        welcome.style.display = "none";
-      }, 800);
+      setTimeout(()=>{
+        welcome.style.display="none";
+      },800);
     }
-  }, 7000);
+  },7000);
 });
