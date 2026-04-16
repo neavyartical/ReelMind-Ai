@@ -34,7 +34,8 @@ let userToken = null;
    HELPERS
 ========================= */
 function val(id){
-  return document.getElementById(id).value;
+  const el = document.getElementById(id);
+  return el ? el.value : "";
 }
 
 function setUserInfo(email, credits){
@@ -46,7 +47,7 @@ function setUserInfo(email, credits){
   if(creditsEl) creditsEl.innerText = credits;
 
   if(buyBtn){
-    if(credits <= 10){
+    if(typeof credits === "number" && credits <= 10){
       buyBtn.style.display = "block";
     }else{
       buyBtn.style.display = "none";
@@ -62,13 +63,13 @@ window.buyCredits = function(){
 };
 
 /* =========================
-   LOAD USER PROFILE
+   LOAD PROFILE
 ========================= */
 async function loadUserProfile(){
   if(!userToken) return;
 
   try{
-    const res = await fetch(API + "/me",{
+    const res = await fetch(API + "/me", {
       headers:{
         Authorization:"Bearer " + userToken
       }
@@ -78,7 +79,7 @@ async function loadUserProfile(){
 
     setUserInfo(
       data.email || "Guest",
-      data.credits || 0
+      data.credits ?? 0
     );
 
   }catch{
@@ -87,7 +88,7 @@ async function loadUserProfile(){
 }
 
 /* =========================
-   AUTH FUNCTIONS
+   AUTH
 ========================= */
 window.emailRegister = async function(){
   try{
@@ -140,7 +141,7 @@ onAuthStateChanged(auth, async user=>{
 });
 
 /* =========================
-   TAB SWITCH
+   TABS
 ========================= */
 window.switchTab = function(tab){
   document.querySelectorAll(".section").forEach(section=>{
@@ -148,7 +149,9 @@ window.switchTab = function(tab){
   });
 
   const target = document.getElementById(tab);
-  if(target) target.classList.add("active");
+  if(target){
+    target.classList.add("active");
+  }
 };
 
 /* =========================
@@ -158,14 +161,14 @@ function typeWriter(text){
   const result = document.getElementById("result");
   result.innerHTML = `<div class="card" id="typed"></div>`;
 
-  const el = document.getElementById("typed");
+  const typed = document.getElementById("typed");
   let i = 0;
 
   function write(){
     if(i < text.length){
-      el.innerHTML += text.charAt(i);
+      typed.innerHTML += text.charAt(i);
       i++;
-      setTimeout(write,8);
+      setTimeout(write, 8);
     }
   }
 
@@ -179,7 +182,7 @@ async function waitForVideo(taskId){
   const result = document.getElementById("result");
 
   for(let i=0;i<30;i++){
-    await new Promise(r=>setTimeout(r,5000));
+    await new Promise(resolve => setTimeout(resolve,5000));
 
     const res = await fetch(API + "/video-status/" + taskId);
     const data = await res.json();
@@ -203,6 +206,8 @@ async function waitForVideo(taskId){
    GENERATE
 ========================= */
 document.getElementById("generate").onclick = async ()=>{
+  switchTab("create");
+
   const prompt = val("prompt").trim();
   const mode = val("mode");
   const language = val("language");
@@ -242,23 +247,23 @@ document.getElementById("generate").onclick = async ()=>{
       return;
     }
 
-    if(mode==="text"){
+    if(mode === "text"){
       typeWriter(data?.data?.content || "No response");
     }
 
-    if(mode==="image"){
+    if(mode === "image"){
       result.innerHTML = `
         <div class="card">
-          <img src="${data?.data?.url}">
+          <img src="${data?.data?.url}" alt="Generated image">
         </div>
       `;
     }
 
-    if(mode==="video"){
+    if(mode === "video"){
       if(data.preview){
         result.innerHTML = `
           <div class="card">
-            <video controls autoplay src="${data.preview}"></video>
+            <video controls autoplay playsinline src="${data.preview}"></video>
           </div>
         `;
       }else if(data.taskId){
@@ -284,28 +289,30 @@ function initCookieBanner(){
 
   if(!banner || !btn) return;
 
-  if(localStorage.getItem("reelmind_cookie_accept")==="yes"){
-    banner.style.display="none";
+  if(localStorage.getItem("reelmind_cookie_accept") === "yes"){
+    banner.style.display = "none";
     return;
   }
 
   btn.onclick = ()=>{
     localStorage.setItem("reelmind_cookie_accept","yes");
-    banner.style.display="none";
+    banner.style.display = "none";
   };
 }
 
 /* =========================
    LOAD
 ========================= */
-window.addEventListener("load",()=>{
+window.addEventListener("load", ()=>{
   initCookieBanner();
 
   setTimeout(()=>{
     const card = document.getElementById("welcomeCard");
     if(card){
-      card.style.opacity="0";
-      setTimeout(()=>card.style.display="none",800);
+      card.style.opacity = "0";
+      setTimeout(()=>{
+        card.style.display = "none";
+      },800);
     }
   },7000);
 });
