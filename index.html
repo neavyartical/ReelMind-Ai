@@ -4,85 +4,105 @@
 <meta charset="UTF-8">
 <title>ReelMind AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script async
-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
-crossorigin="anonymous"></script>
+<meta name="google-adsense-account" content="ca-pub-1714638410489429">
 
 <style>
-body{margin:0;font-family:Segoe UI;background:#020617;color:white;}
+body{
+  margin:0;
+  font-family:Segoe UI;
+  background:#020617;
+  color:white;
+}
 #topbar{
-position:fixed;top:0;width:100%;
-background:#111;padding:10px;
-display:flex;justify-content:space-around;
-z-index:1000;
+  position:fixed;
+  top:0;
+  width:100%;
+  background:#0f172a;
+  padding:12px;
+  display:flex;
+  justify-content:space-around;
+  z-index:1000;
+  box-shadow:0 2px 10px rgba(0,0,0,.3);
 }
-.section{display:none;margin-top:80px;padding:20px;}
+.section{
+  display:none;
+  margin-top:80px;
+  padding:20px;
+  min-height:70vh;
+}
 .active{display:block;}
-#creditsBox{
-position:fixed;top:50px;right:10px;
-background:#111;padding:8px;border-radius:10px;
-}
 .card{
-background:#111;
-padding:15px;
-border-radius:12px;
-margin-top:15px;
+  background:#111827;
+  padding:18px;
+  border-radius:18px;
+  margin-top:15px;
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
 }
-input,select{
-padding:10px;
-margin:5px 0;
-width:100%;
-border:none;
-border-radius:10px;
-box-sizing:border-box;
-}
-button{
-padding:10px;
-border:none;
-border-radius:10px;
-background:#06b6d4;
-color:white;
-cursor:pointer;
-margin-top:6px;
+#creditsBox{
+  position:fixed;
+  top:56px;
+  right:10px;
+  background:#111827;
+  padding:8px 14px;
+  border-radius:12px;
 }
 #promptBar{
-position:fixed;
-bottom:0;
-width:100%;
-background:#111;
-padding:10px;
-display:flex;
-gap:10px;
-align-items:center;
-box-sizing:border-box;
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#0f172a;
+  padding:10px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  box-sizing:border-box;
 }
 #prompt{
-flex:1;
-padding:12px;
-border:none;
-border-radius:25px;
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:24px;
 }
 .iconBtn,.btn{
-width:50px;
-height:50px;
-border-radius:50%;
-border:none;
-background:#06b6d4;
-color:white;
-font-size:20px;
-display:flex;
-align-items:center;
-justify-content:center;
-cursor:pointer;
+  width:50px;
+  height:50px;
+  border:none;
+  border-radius:50%;
+  background:#06b6d4;
+  color:white;
+  font-size:20px;
+  cursor:pointer;
+}
+input,select{
+  width:95%;
+  padding:10px;
+  margin:6px 0;
+  border:none;
+  border-radius:10px;
+}
+button{
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#06b6d4;
+  color:white;
+  cursor:pointer;
+  margin-top:8px;
 }
 img,video{
-max-width:100%;
-border-radius:12px;
+  max-width:100%;
+  border-radius:14px;
 }
-.adBox{
-margin-top:20px;
-text-align:center;
+footer{
+  text-align:center;
+  padding:25px;
+  color:#94a3b8;
+  font-size:14px;
+}
+footer a{
+  color:#06b6d4;
+  text-decoration:none;
+  margin:0 10px;
 }
 </style>
 </head>
@@ -90,93 +110,96 @@ text-align:center;
 <body>
 
 <div id="topbar">
-<div onclick="switchTab('home')">🏠</div>
-<div onclick="switchTab('create')">➕</div>
-<div onclick="switchTab('profile')">👤</div>
-<div onclick="switchTab('admin')">👑</div>
+  <div onclick="switchTab('home')">🏠</div>
+  <div onclick="switchTab('create')">➕</div>
+  <div onclick="switchTab('profile')">👤</div>
+  <div onclick="switchTab('admin')">👑</div>
 </div>
 
 <div id="creditsBox">💰 <span id="credits">∞</span></div>
 
 <div id="home" class="section active">
-<div class="card">
-<h2>ReelMind AI</h2>
-<p>Generate stories, images and content in many languages.</p>
-</div>
-
-<div class="adBox">
-<ins class="adsbygoogle"
-style="display:block"
-data-ad-client="ca-pub-1714638410489429"
-data-ad-slot="YOUR_AD_SLOT_ID"
-data-ad-format="auto"
-data-full-width-responsive="true"></ins>
-</div>
+  <div class="card">
+    <h2>Welcome</h2>
+    <p>Your AI workspace is ready.</p>
+  </div>
 </div>
 
 <div id="create" class="section">
-<select id="mode">
-<option value="text">Story / Text</option>
-<option value="image">Image</option>
-<option value="video">Video</option>
-</select>
+  <select id="mode">
+    <option value="text">Story / Text</option>
+    <option value="image">Image</option>
+    <option value="video">Video</option>
+  </select>
 
-<select id="language">
-<option value="English">English</option>
-<option value="Krio">Krio</option>
-<option value="Temne">Temne</option>
-<option value="Mende">Mende</option>
-<option value="Limba">Limba</option>
-<option value="French">French</option>
-<option value="Arabic">Arabic</option>
-<option value="Spanish">Spanish</option>
-</select>
+  <select id="language">
+    <option>English</option>
+    <option>Krio</option>
+    <option>Temne</option>
+    <option>Mende</option>
+    <option>Limba</option>
+    <option>French</option>
+    <option>Arabic</option>
+    <option>Spanish</option>
+  </select>
 
-<div id="result"></div>
+  <div id="result"></div>
 </div>
 
 <div id="profile" class="section">
-<p id="userEmail">Guest Mode</p>
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<button onclick="emailLogin()">Login</button>
-<button onclick="emailRegister()">Register</button>
-<button onclick="googleLogin()">Google Login</button>
-<button onclick="logout()">Logout</button>
+  <p id="userEmail">Guest Mode</p>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="emailLogin()">Login</button>
+  <button onclick="emailRegister()">Register</button>
+  <button onclick="googleLogin()">Google Login</button>
+  <button onclick="logout()">Logout</button>
 </div>
 
 <div id="admin" class="section">
-<button onclick="loadStats()">Load Stats</button>
-<a href="https://ko-fi.com/articalneavy" target="_blank">
-<button>Ko-fi Monetisation</button>
-</a>
-<div id="stats"></div>
+  <button onclick="loadStats()">Load Stats</button>
+  <a href="https://ko-fi.com/articalneavy" target="_blank">
+    <button>Ko-fi Monetisation</button>
+  </a>
+  <div id="stats"></div>
 </div>
 
+<div id="about" class="section"><div class="card"><h2>About</h2><p>ReelMind AI was created by Artical Neavy.</p></div></div>
+<div id="privacy" class="section"><div class="card"><h2>Privacy Policy</h2><p>Your data is securely protected.</p></div></div>
+<div id="blog" class="section"><div class="card"><h2>Blog</h2><p>Updates and AI insights coming soon.</p></div></div>
+<div id="contact" class="section"><div class="card"><h2>Contact</h2><p>articalneavy@gmail.com</p></div></div>
+
 <div id="promptBar">
-<button class="iconBtn" onclick="document.getElementById('fileInput').click()">📎</button>
-<input id="prompt" placeholder="Ask anything...">
-<button id="generate" class="btn">⚡</button>
-<button class="iconBtn" onclick="startMic()">🎤</button>
+  <button class="iconBtn" onclick="document.getElementById('fileInput').click()">📎</button>
+  <input id="prompt" placeholder="Ask anything...">
+  <button class="btn" id="generate">⚡</button>
+  <button class="iconBtn" onclick="startMic()">🎤</button>
 </div>
 
 <input type="file" id="fileInput" hidden>
 
+<footer>
+  <div>Powered by <strong>Artical Neavy</strong></div>
+  <div style="margin-top:10px;">
+    <a href="#" onclick="showPage('about')">About</a>
+    <a href="#" onclick="showPage('privacy')">Privacy</a>
+    <a href="#" onclick="showPage('blog')">Blog</a>
+    <a href="#" onclick="showPage('contact')">Contact</a>
+  </div>
+</footer>
+
 <script type="module">
-const API = "https://reelmindbackend-1.onrender.com";
+const API="https://reelmindbackend-1.onrender.com";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-getAuth,
-GoogleAuthProvider,
-signInWithPopup,
+getAuth,GoogleAuthProvider,signInWithPopup,
 signInWithEmailAndPassword,
 createUserWithEmailAndPassword,
-onAuthStateChanged,
-signOut
+onAuthStateChanged,signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const firebaseApp = initializeApp({
+const firebaseApp=initializeApp({
 apiKey:"AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
 authDomain:"reelmind-ai-f07cb.firebaseapp.com",
 projectId:"reelmind-ai-f07cb",
@@ -185,25 +208,24 @@ messagingSenderId:"731354245603",
 appId:"1:731354245603:web:7861b1c97e70b19982d8d6"
 });
 
-const auth = getAuth(firebaseApp);
-const provider = new GoogleAuthProvider();
-let token = null;
+const auth=getAuth(firebaseApp);
+const provider=new GoogleAuthProvider();
+let token=null;
 
-function val(id){
-return document.getElementById(id).value;
-}
+function val(id){return document.getElementById(id).value;}
 
 window.switchTab=(tab)=>{
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
 document.getElementById(tab).classList.add("active");
 };
 
+window.showPage=(page)=>switchTab(page);
 window.googleLogin=()=>signInWithPopup(auth,provider);
 window.emailLogin=()=>signInWithEmailAndPassword(auth,val("email"),val("password"));
 window.emailRegister=()=>createUserWithEmailAndPassword(auth,val("email"),val("password"));
 window.logout=()=>signOut(auth);
 
-onAuthStateChanged(auth,async(user)=>{
+onAuthStateChanged(auth,async user=>{
 if(user){
 token=await user.getIdToken();
 document.getElementById("userEmail").innerText=user.email;
@@ -219,22 +241,22 @@ async function loadUser(){
 if(!token)return;
 const res=await fetch(API+"/me",{headers:{Authorization:"Bearer "+token}});
 const data=await res.json();
-document.getElementById("credits").innerText=data.credits;
+document.getElementById("credits").innerText=data.credits||0;
 }
 
 function typeWriter(text){
 const result=document.getElementById("result");
-result.innerHTML=`<div class="card" id="typed"></div>`;
-let i=0;
+result.innerHTML='<div class="card" id="typed"></div>';
 const el=document.getElementById("typed");
-function write(){
-if(i<text.length){
-el.innerHTML+=text.charAt(i);
+const words=text.split(" ");
+let i=0;
+(function write(){
+if(i<words.length){
+el.innerHTML+=words[i]+" ";
 i++;
-setTimeout(write,8);
+setTimeout(write,35);
 }
-}
-write();
+})();
 }
 
 document.getElementById("generate").onclick=async()=>{
@@ -242,25 +264,13 @@ const prompt=val("prompt").trim();
 const mode=val("mode");
 const language=val("language");
 const result=document.getElementById("result");
-
 if(!prompt)return;
-
 result.innerHTML="⚡ Generating...";
 
 try{
-if(!token && mode==="image"){
-const url=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
-result.innerHTML=`<div class="card"><img src="${url}"></div>`;
-return;
-}
-
-const endpoint=
-mode==="text"?"/generate-text":
-mode==="image"?"/generate-image":
-"/generate-video";
-
+let endpoint=mode==="text"?"/generate-text":mode==="image"?"/generate-image":"/generate-video";
 const headers={"Content-Type":"application/json"};
-if(token) headers.Authorization="Bearer "+token;
+if(token)headers.Authorization="Bearer "+token;
 
 const res=await fetch(API+endpoint,{
 method:"POST",
@@ -270,21 +280,12 @@ body:JSON.stringify({prompt,language})
 
 const data=await res.json();
 
-if(mode==="text"){
-typeWriter(data?.data?.content || "No response");
-}
-
-if(mode==="image"){
-result.innerHTML=`<div class="card"><img src="${data?.data?.url}"></div>`;
-}
-
-if(mode==="video"){
-result.innerHTML=`<div class="card"><video controls src="${data?.preview}"></video></div>`;
-}
+if(mode==="text") typeWriter(data?.data?.content||"No response");
+if(mode==="image") result.innerHTML=`<div class="card"><img src="${data?.data?.url}"></div>`;
+if(mode==="video") result.innerHTML=`<div class="card"><video controls src="${data?.preview}"></video></div>`;
 
 loadUser();
-
-}catch(e){
+}catch{
 result.innerHTML=`<div class="card">❌ Connection failed</div>`;
 }
 };
@@ -299,17 +300,11 @@ document.getElementById("stats").innerHTML=
 window.startMic=()=>{
 const rec=new webkitSpeechRecognition();
 rec.lang="en-US";
-rec.onresult=(e)=>{
+rec.onresult=e=>{
 document.getElementById("prompt").value=e.results[0][0].transcript;
 };
 rec.start();
 };
-
-window.addEventListener("load",()=>{
-try{
-(adsbygoogle=window.adsbygoogle||[]).push({});
-}catch(e){}
-});
 </script>
 
 </body>
