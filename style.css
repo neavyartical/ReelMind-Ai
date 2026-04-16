@@ -1,6 +1,7 @@
 /* =========================
-🔥 BODY / BACKGROUND
+   REELMIND AI PREMIUM CSS
 ========================= */
+
 body{
   margin:0;
   font-family:'Segoe UI',Arial,sans-serif;
@@ -11,7 +12,28 @@ body{
 }
 
 /* =========================
-🔥 TOP NAVIGATION
+   STARTUP LOGO
+========================= */
+#startupLogo{
+  position:fixed;
+  inset:0;
+  background:#020617;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:5000;
+  animation:startupFade 3s ease forwards;
+}
+
+#startupLogo img{
+  width:220px;
+  max-width:70%;
+  opacity:0;
+  animation:logoSoftFade 2s ease forwards;
+}
+
+/* =========================
+   TOP NAV
 ========================= */
 #topbar{
   position:fixed;
@@ -28,7 +50,7 @@ body{
 }
 
 /* =========================
-🔥 CREDIT DISPLAY
+   CREDITS
 ========================= */
 #creditsBox{
   position:fixed;
@@ -43,7 +65,7 @@ body{
 }
 
 /* =========================
-🔥 MAIN SECTIONS
+   MAIN SECTIONS
 ========================= */
 .section{
   display:none;
@@ -58,4 +80,197 @@ body{
 }
 
 /* =========================
-🔥 CAR
+   CARDS
+========================= */
+.card{
+  background:rgba(30,41,59,0.85);
+  backdrop-filter:blur(12px);
+  border-radius:16px;
+  padding:20px;
+  margin-top:20px;
+  box-shadow:0 0 25px rgba(0,0,0,0.35);
+}
+
+/* =========================
+   FORM INPUTS
+========================= */
+input,
+select{
+  width:100%;
+  padding:12px 14px;
+  border:none;
+  border-radius:12px;
+  margin-top:10px;
+  box-sizing:border-box;
+  outline:none;
+  font-size:15px;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+button{
+  border:none;
+  border-radius:12px;
+  padding:12px 20px;
+  background:linear-gradient(135deg,#06b6d4,#3b82f6);
+  color:white;
+  cursor:pointer;
+  margin-top:10px;
+  transition:.2s;
+  font-size:15px;
+}
+
+button:hover{
+  transform:scale(1.04);
+}
+
+/* =========================
+   PROMPT FIELD
+========================= */
+#prompt{
+  position:fixed;
+  bottom:82px;
+  left:5%;
+  width:90%;
+  padding:14px 18px;
+  border:none;
+  border-radius:25px;
+  z-index:999;
+  font-size:15px;
+  box-sizing:border-box;
+}
+
+/* =========================
+   BOTTOM CONTROLS
+========================= */
+#controls{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  height:72px;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  background:rgba(17,17,17,0.95);
+  backdrop-filter:blur(10px);
+  z-index:999;
+}
+
+/* =========================
+   ROUND ICON BUTTONS
+========================= */
+.btn{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  cursor:pointer;
+  background:#222;
+  transition:.2s;
+}
+
+.btn:hover{
+  transform:scale(1.08);
+}
+
+/* =========================
+   GENERATE BUTTON
+========================= */
+#generate{
+  background:linear-gradient(135deg,#06b6d4,#3b82f6);
+  color:white;
+  box-shadow:0 0 20px rgba(6,182,212,.45);
+}
+
+/* =========================
+   MEDIA
+========================= */
+img,
+video{
+  max-width:100%;
+  border-radius:14px;
+  margin-top:12px;
+}
+
+/* =========================
+   FOOTER
+========================= */
+#footer{
+  text-align:center;
+  font-size:12px;
+  color:#aaa;
+  margin-bottom:120px;
+  padding:10px;
+}
+
+/* =========================
+   PROFILE
+========================= */
+.avatar{
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  background:#333;
+  margin:auto;
+}
+
+/* =========================
+   LOGIN BOX
+========================= */
+#loginBox{
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.85);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:2000;
+}
+
+.loginCard{
+  background:rgba(17,17,17,0.9);
+  padding:25px;
+  border-radius:15px;
+  text-align:center;
+  backdrop-filter:blur(10px);
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+@keyframes logoSoftFade{
+  from{
+    opacity:0;
+    transform:scale(.95);
+  }
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+@keyframes startupFade{
+  0%,70%{
+    opacity:1;
+  }
+  100%{
+    opacity:0;
+    visibility:hidden;
+  }
+}
+
+@keyframes fadeIn{
+  from{
+    opacity:0;
+    transform:translateY(20px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+                             }
