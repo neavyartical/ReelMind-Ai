@@ -4,119 +4,134 @@
   <meta charset="UTF-8">
   <title>ReelMind AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google AdSense -->
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
+    crossorigin="anonymous">
+  </script>
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="startupLogo">
-  <img src="logo.png" alt="ReelMind AI">
-</div>
-
-<div id="topbar">
-  <div onclick="switchTab('home')">🏠</div>
-  <div onclick="switchTab('create')">➕</div>
-  <div onclick="switchTab('profile')">👤</div>
-  <div onclick="switchTab('more')">ℹ️</div>
-</div>
-
-<div id="creditsBox">
-  💰 <span id="credits">∞</span>
-</div>
-
-<div id="home" class="section active">
-  <div id="welcomeCard" class="card">
-    <h2>✨ Welcome to ReelMind AI</h2>
-    <p>
-      Turn simple ideas into unforgettable cinematic stories, visuals and moments
-      that keep your audience watching.
-    </p>
+  <!-- TOP NAVIGATION -->
+  <div id="topbar">
+    <div onclick="switchTab('home')">🏠</div>
+    <div onclick="switchTab('create')">➕</div>
+    <div onclick="switchTab('profile')">👤</div>
+    <div onclick="switchTab('more')">ℹ️</div>
   </div>
 
-  <div class="card">
-    <button class="buy-btn" onclick="buyCredits()">Buy Credits</button>
-  </div>
-</div>
-
-<div id="create" class="section">
-  <select id="mode">
-    <option value="text">Story</option>
-    <option value="image">Image</option>
-    <option value="video">Video</option>
-  </select>
-
-  <select id="language">
-    <option value="English">English</option>
-    <option value="French">French</option>
-    <option value="Arabic">Arabic</option>
-    <option value="Spanish">Spanish</option>
-    <option value="Krio">Krio</option>
-  </select>
-
-  <div id="result"></div>
-</div>
-
-<div id="profile" class="section">
-  <div class="card">
-    <p id="userEmail">Guest Mode</p>
-
-    <input id="email" type="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-
-    <button onclick="emailLogin()">Login</button>
-    <button onclick="emailRegister()">Register</button>
-    <button onclick="googleLogin()">Google Login</button>
-    <button onclick="logout()">Logout</button>
-  </div>
-</div>
-
-<div id="more" class="section">
-  <div class="card">
-    <h3>About</h3>
-    <p>
-      ReelMind AI transforms simple ideas into premium cinematic digital experiences.
-    </p>
+  <!-- LOGO -->
+  <div id="startupLogo">
+    <img src="logo.png" alt="ReelMind AI">
   </div>
 
-  <div class="card">
-    <h3>Privacy Policy</h3>
-    <p>
-      Your prompts remain private and your creative ownership stays yours.
-    </p>
+  <!-- CREDITS -->
+  <div id="creditsBox">
+    💰 <span id="credits">∞</span>
   </div>
 
-  <div class="card">
-    <h3>Terms of Service</h3>
-    <p>
-      Use the platform responsibly while respecting safe creative standards.
-    </p>
+  <!-- HOME -->
+  <div id="home" class="section active">
+    <div id="welcomeCard" class="card">
+      <h2>✨ Welcome to ReelMind AI</h2>
+      <p>
+        Turn simple ideas into unforgettable cinematic stories,
+        images and videos in seconds.
+      </p>
+    </div>
+
+    <div class="card">
+      <button class="buy-btn" onclick="buyCredits()">Buy Credits</button>
+    </div>
   </div>
 
-  <div class="card">
-    <h3>Contact</h3>
-    <p>Email: support@reelmindai.com</p>
+  <!-- CREATE -->
+  <div id="create" class="section">
+    <select id="mode">
+      <option value="text">Story</option>
+      <option value="image">Image</option>
+      <option value="video">Video</option>
+    </select>
+
+    <select id="language">
+      <option value="English">English</option>
+      <option value="French">French</option>
+      <option value="Arabic">Arabic</option>
+      <option value="Spanish">Spanish</option>
+      <option value="Krio">Krio</option>
+    </select>
+
+    <div id="result"></div>
   </div>
-</div>
 
-<input id="prompt" placeholder="Describe what you want...">
-<input type="file" id="fileInput" hidden>
+  <!-- PROFILE -->
+  <div id="profile" class="section">
+    <div class="card">
+      <p id="userEmail">Guest Mode</p>
 
-<div id="controls">
-  <div class="btn" onclick="document.getElementById('fileInput').click()">📎</div>
-  <div class="btn" id="generate">⚡</div>
-  <div class="btn" onclick="startMic()">🎤</div>
-</div>
+      <input id="email" type="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Password">
 
-<div id="cookieBanner">
-  <div class="cookieText">
-    We use cookies to improve your experience and personalize your content.
+      <button onclick="emailLogin()">Login</button>
+      <button onclick="emailRegister()">Register</button>
+      <button onclick="googleLogin()">Google Login</button>
+      <button onclick="logout()">Logout</button>
+    </div>
   </div>
-  <button id="acceptCookies">Accept</button>
-</div>
 
-<div id="footer">
-  Powered by Artical Neavy
-</div>
+  <!-- MORE -->
+  <div id="more" class="section">
+    <div class="card">
+      <h3>About</h3>
+      <p>ReelMind AI transforms ideas into cinematic digital experiences.</p>
+    </div>
 
-<script type="module" src="script.js"></script>
+    <div class="card">
+      <h3>Privacy Policy</h3>
+      <p>Your prompts remain private and your creations stay yours.</p>
+    </div>
+
+    <div class="card">
+      <h3>Terms of Service</h3>
+      <p>Please use the platform responsibly.</p>
+    </div>
+
+    <div class="card">
+      <h3>Contact</h3>
+      <p>Email: support@reelmindai.com</p>
+    </div>
+  </div>
+
+  <!-- PROMPT -->
+  <div id="promptArea">
+    <input id="prompt" placeholder="Describe what you want...">
+    <input type="file" id="fileInput" hidden>
+  </div>
+
+  <!-- CONTROLS -->
+  <div id="controls">
+    <div class="btn" onclick="document.getElementById('fileInput').click()">📎</div>
+    <div class="btn" id="generate">⚡</div>
+    <div class="btn" onclick="startMic()">🎤</div>
+  </div>
+
+  <!-- COOKIE -->
+  <div id="cookieBanner">
+    <div class="cookieText">
+      We use cookies to improve your experience.
+    </div>
+    <button id="acceptCookies">Accept</button>
+  </div>
+
+  <!-- FOOTER -->
+  <div id="footer">
+    Powered by Artical Neavy
+  </div>
+
+  <script type="module" src="script.js"></script>
+
 </body>
 </html>
