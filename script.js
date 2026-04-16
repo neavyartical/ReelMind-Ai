@@ -1,4 +1,5 @@
 const API = "https://reelmindbackend-1.onrender.com";
+const ADMIN_EMAIL = "neavyartical@gmail.com";
 
 /* =========================
    FIREBASE IMPORT
@@ -18,13 +19,12 @@ import {
    FIREBASE CONFIG
 ========================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
-  authDomain: "reelmind-ai-f07cb.firebaseapp.com",
-  projectId: "reelmind-ai-f07cb",
-  storageBucket: "reelmind-ai-f07cb.firebasestorage.app",
-  messagingSenderId: "731354245603",
-  appId: "1:731354245603:web:1db1952458a8473082d8d6",
-  measurementId: "G-F23DP2G9MW"
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+  projectId: "YOUR_FIREBASE_PROJECT_ID",
+  storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_FIREBASE_MESSAGING_ID",
+  appId: "YOUR_FIREBASE_APP_ID"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
@@ -45,9 +45,20 @@ function val(id){
   return el(id)?.value.trim() || "";
 }
 
-function setUserInfo(email, credits){
-  if(el("userEmail")) el("userEmail").innerText = email;
-  if(el("credits")) el("credits").innerText = credits;
+function setUserInfo(email, credits, location="Unknown"){
+  const isAdmin = email === ADMIN_EMAIL;
+
+  if(el("userEmail")){
+    el("userEmail").innerText = email;
+  }
+
+  if(el("credits")){
+    el("credits").innerText = isAdmin ? "∞" : credits;
+  }
+
+  if(el("userLocation")){
+    el("userLocation").innerText = location;
+  }
 }
 
 function showMessage(message){
@@ -62,17 +73,48 @@ window.buyCredits = function(){
 };
 
 window.buyPlan = function(plan){
-  window.open("https://ko-fi.com/articalneavy", "_blank");
+  const links = {
+    starter: "https://ko-fi.com/articalneavy",
+    pro: "https://ko-fi.com/articalneavy",
+    unlimited: "https://ko-fi.com/articalneavy"
+  };
+
+  window.open(links[plan], "_blank");
 };
 
 /* =========================
-   USER PROFILE
+   LOCATION
+========================= */
+async function detectAndSaveLocation(){
+  if(!userToken) return;
+
+  try{
+    const response = await fetch("https://ipapi.co/json/");
+    const data = await response.json();
+
+    await fetch(`${API}/save-location`,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        Authorization:`Bearer ${userToken}`
+      },
+      body:JSON.stringify({
+        country:data.country_name || "Unknown",
+        city:data.city || "Unknown"
+      })
+    });
+
+  }catch{}
+}
+
+/* =========================
+   LOAD PROFILE
 ========================= */
 async function loadUserProfile(){
   if(!userToken) return;
 
   try{
-    const res = await fetch(`${API}/me`, {
+    const res = await fetch(`${API}/me`,{
       headers:{
         Authorization:`Bearer ${userToken}`
       }
@@ -80,13 +122,16 @@ async function loadUserProfile(){
 
     const data = await res.json();
 
+    const location = `${data.city || "Unknown"}, ${data.country || "Unknown"}`;
+
     setUserInfo(
       data.email || "Guest",
-      data.credits ?? 0
+      data.credits ?? 0,
+      location
     );
 
   }catch{
-    setUserInfo("Guest",0);
+    setUserInfo("Guest",0,"Unknown");
   }
 }
 
@@ -94,13 +139,15 @@ async function loadUserProfile(){
    LIVE CREDIT REFRESH
 ========================= */
 function startCreditRefresh(){
-  if(creditTimer) clearInterval(creditTimer);
+  if(creditTimer){
+    clearInterval(creditTimer);
+  }
 
   creditTimer = setInterval(()=>{
     if(userToken){
       loadUserProfile();
     }
-  }, 15000);
+  },20000);
 }
 
 /* =========================
@@ -110,7 +157,7 @@ async function loadTransactions(){
   if(!userToken || !el("transactionList")) return;
 
   try{
-    const res = await fetch(`${API}/transactions`, {
+    const res = await fetch(`${API}/transactions`,{
       headers:{
         Authorization:`Bearer ${userToken}`
       }
@@ -118,78 +165,30 @@ async function loadTransactions(){
 
     const data = await res.json();
 
-    if(!Array.isArray(data) || !data.length){
-      el("transactionList").innerHTML = `
-        <div class="card">No transaction history</div>
-      `;
+    if(!Array.isArray(data)){
+      el("transactionList").innerHTML = `<div class="card">No history yet</div>`;
       return;
     }
 
     el("transactionList").innerHTML = data.map(item => `
       <div class="card">
         <strong>${item.type}</strong><br>
-        ${item.description || ""}<br>
         Credits: ${item.amount}<br>
         <small>${new Date(item.date).toLocaleString()}</small>
       </div>
     `).join("");
 
   }catch{
-    el("transactionList").innerHTML = `
-      <div class="card">Unable to load history</div>
-    `;
+    el("transactionList").innerHTML = `<div class="card">Unable to load history</div>`;
   }
 }
-
-/* =========================
-   ADMIN DASHBOARD
-========================= */
-window.loadAdminDashboard = async function(){
-  if(!userToken || !el("adminDashboard")) return;
-
-  el("adminDashboard").innerHTML = `
-    <div class="card">Loading dashboard...</div>
-  `;
-
-  try{
-    const res = await fetch(`${API}/admin-dashboard`,{
-      headers:{
-        Authorization:`Bearer ${userToken}`
-      }
-    });
-
-    const data = await res.json();
-
-    if(data.error){
-      el("adminDashboard").innerHTML = `
-        <div class="card">${data.error}</div>
-      `;
-      return;
-    }
-
-    el("adminDashboard").innerHTML = `
-      <div class="card">
-        <h3>Admin Dashboard</h3>
-        <p>Total Users: ${data.totalUsers}</p>
-        <p>Total Revenue: $${data.totalRevenue}</p>
-        <p>Total Generations: ${data.totalGenerations}</p>
-        <p>Total Transactions: ${data.totalTransactions}</p>
-      </div>
-    `;
-
-  }catch{
-    el("adminDashboard").innerHTML = `
-      <div class="card">Dashboard unavailable</div>
-    `;
-  }
-};
 
 /* =========================
    AUTH
 ========================= */
 window.emailRegister = async ()=>{
   try{
-    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
+    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
     showMessage("Account created");
   }catch(err){
     showMessage(err.message);
@@ -198,7 +197,7 @@ window.emailRegister = async ()=>{
 
 window.emailLogin = async ()=>{
   try{
-    await signInWithEmailAndPassword(auth, val("email"), val("password"));
+    await signInWithEmailAndPassword(auth,val("email"),val("password"));
   }catch(err){
     showMessage(err.message);
   }
@@ -206,7 +205,7 @@ window.emailLogin = async ()=>{
 
 window.googleLogin = async ()=>{
   try{
-    await signInWithPopup(auth, provider);
+    await signInWithPopup(auth,provider);
   }catch(err){
     showMessage(err.message);
   }
@@ -222,18 +221,28 @@ window.logout = async ()=>{
 onAuthStateChanged(auth, async user=>{
   if(user){
     userToken = await user.getIdToken();
+
+    await detectAndSaveLocation();
     await loadUserProfile();
     await loadTransactions();
+
     startCreditRefresh();
   }else{
     userToken = null;
-    setUserInfo("Guest Mode","∞");
-    if(creditTimer) clearInterval(creditTimer);
+    setUserInfo("Guest Mode","∞","Unknown");
+
+    if(creditTimer){
+      clearInterval(creditTimer);
+    }
+
+    if(el("transactionList")){
+      el("transactionList").innerHTML = "";
+    }
   }
 });
 
 /* =========================
-   TAB SWITCH
+   TABS
 ========================= */
 window.switchTab = function(tab){
   document.querySelectorAll(".tab-section").forEach(section=>{
@@ -264,13 +273,15 @@ function showLoading(){
 ========================= */
 function typeWriter(text){
   el("result").innerHTML = `<div class="card" id="typedText"></div>`;
+
   let i = 0;
+  const target = el("typedText");
 
   function write(){
     if(i < text.length){
-      el("typedText").innerHTML += text.charAt(i);
+      target.innerHTML += text.charAt(i);
       i++;
-      setTimeout(write, 4);
+      setTimeout(write,4);
     }
   }
 
@@ -293,7 +304,6 @@ async function waitForVideo(taskId){
           <video controls autoplay playsinline src="${data.video}"></video>
         </div>
       `;
-
       loadUserProfile();
       loadTransactions();
       return;
@@ -329,7 +339,10 @@ window.generateContent = async ()=>{
     const res = await fetch(`${API}/generate-${mode}`,{
       method:"POST",
       headers,
-      body:JSON.stringify({ prompt, language })
+      body:JSON.stringify({
+        prompt,
+        language
+      })
     });
 
     const data = await res.json();
@@ -346,7 +359,7 @@ window.generateContent = async ()=>{
     if(mode === "image"){
       el("result").innerHTML = `
         <div class="card">
-          <img src="${data?.data?.url}" alt="Generated image">
+          <img src="${data?.data?.url}" alt="Generated">
         </div>
       `;
     }
@@ -367,9 +380,7 @@ window.generateContent = async ()=>{
     loadTransactions();
 
   }catch{
-    el("result").innerHTML = `
-      <div class="card">Generation failed</div>
-    `;
+    el("result").innerHTML = `<div class="card">Generation failed</div>`;
   }
 };
 
@@ -378,6 +389,7 @@ window.generateContent = async ()=>{
 ========================= */
 window.acceptCookies = function(){
   localStorage.setItem("cookieAccepted","yes");
+
   if(el("cookieBanner")){
     el("cookieBanner").style.display = "none";
   }
@@ -386,7 +398,7 @@ window.acceptCookies = function(){
 /* =========================
    LOAD
 ========================= */
-window.addEventListener("load", ()=>{
+window.addEventListener("load",()=>{
   if(localStorage.getItem("cookieAccepted")==="yes"){
     if(el("cookieBanner")){
       el("cookieBanner").style.display = "none";
@@ -401,14 +413,4 @@ window.addEventListener("load", ()=>{
       },700);
     }
   },3000);
-});
-
-/* =========================
-   PAYMENT RETURN REFRESH
-========================= */
-window.addEventListener("focus", ()=>{
-  if(userToken){
-    loadUserProfile();
-    loadTransactions();
-  }
 });
