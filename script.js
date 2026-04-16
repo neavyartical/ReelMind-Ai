@@ -40,9 +40,18 @@ function val(id){
 function setUserInfo(email, credits){
   const emailEl = document.getElementById("userEmail");
   const creditsEl = document.getElementById("credits");
+  const buyBtn = document.getElementById("buyCreditsBtn");
 
   if(emailEl) emailEl.innerText = email;
   if(creditsEl) creditsEl.innerText = credits;
+
+  if(buyBtn){
+    if(credits <= 10){
+      buyBtn.style.display = "block";
+    }else{
+      buyBtn.style.display = "none";
+    }
+  }
 }
 
 /* =========================
