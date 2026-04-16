@@ -2,18 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReelMind AI</title>
 
-  <meta name="description" content="Create viral AI videos, cinematic images and stories instantly with ReelMind AI.">
-  <meta name="keywords" content="AI video generator, AI stories, image generator, viral reels">
+  <meta name="description" content="Generate stunning AI videos, cinematic images and viral stories with ReelMind AI">
   <meta name="author" content="Artical Neavy">
 
-  <!-- Google Adsense -->
   <script async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
     crossorigin="anonymous">
@@ -23,37 +17,43 @@
 </head>
 <body>
 
-  <!-- Welcome -->
+  <!-- Splash -->
   <div id="welcomeCard" class="welcome-card">
     <h1>ReelMind AI</h1>
-    <p>Create viral content with AI</p>
+    <p>Where creativity meets intelligence</p>
   </div>
 
   <!-- Header -->
   <header class="topbar">
-    <div class="logo">ReelMind AI</div>
+    <div class="brand">
+      <h1>ReelMind AI</h1>
+      <small id="userEmail">Guest Mode</small>
+    </div>
 
-    <div class="top-user">
-      <span id="userEmail">Guest Mode</span>
-      <span class="credit-box">💰 <span id="credits">∞</span></span>
+    <div class="top-actions">
+      <span class="credits">💰 <span id="credits">∞</span></span>
+      <button class="settings-btn" onclick="switchTab('settings')">⚙️</button>
     </div>
   </header>
 
   <!-- Navigation -->
-  <div class="tabs">
+  <nav class="tabs">
     <button onclick="switchTab('home')">🏠</button>
     <button onclick="switchTab('create')">✨</button>
     <button onclick="switchTab('account')">👤</button>
-  </div>
+  </nav>
 
   <!-- HOME -->
   <section id="home" class="tab-section active container">
-    <h2>Create Stunning AI Content</h2>
-    <p>Generate stories, images and videos instantly.</p>
+    <div class="hero-card">
+      <h2>Create Professional AI Content</h2>
+      <p>Generate cinematic videos, powerful images and viral stories instantly.</p>
+    </div>
 
     <div class="card">🎬 AI Video Generation</div>
-    <div class="card">🖼 AI Image Creation</div>
+    <div class="card">🖼️ AI Image Creation</div>
     <div class="card">📖 Viral Story Writing</div>
+    <div class="card">⚡ Fast Cloud Processing</div>
   </section>
 
   <!-- CREATE -->
@@ -89,71 +89,41 @@
     <button class="action" onclick="buyCredits()">Buy Credits</button>
   </section>
 
-  <!-- ABOUT -->
-  <section class="info-page container">
-    <h3>About ReelMind AI</h3>
-    <p>
-      ReelMind AI helps creators generate cinematic videos, stunning visuals,
-      and engaging stories in seconds using advanced artificial intelligence.
-    </p>
-  </section>
+  <!-- SETTINGS -->
+  <section id="settings" class="tab-section container">
+    <div class="info-page">
+      <h3>Settings</h3>
+      <p>More customization features will appear here soon.</p>
+    </div>
 
-  <!-- PRIVACY -->
-  <section class="info-page container">
-    <h3>Privacy Policy</h3>
-    <p>
-      We respect your privacy. ReelMind AI does not sell your personal data.
-      Authentication is securely handled through Firebase.
-    </p>
-  </section>
+    <div class="info-page">
+      <h3>About</h3>
+      <p>ReelMind AI helps creators generate world-class content using AI.</p>
+    </div>
 
-  <!-- BLOG -->
-  <section class="info-page container">
-    <h3>Blog</h3>
-    <p>
-      Coming soon: AI creation tips, viral storytelling guides, and content
-      strategies to help creators grow faster.
-    </p>
-  </section>
+    <div class="info-page">
+      <h3>Privacy Policy</h3>
+      <p>Your data is protected and securely handled through Firebase authentication.</p>
+    </div>
 
-  <!-- CONTACT -->
-  <section class="info-page container">
-    <h3>Contact</h3>
-    <p>Email: neavyartical@gmail.com</p>
+    <div class="info-page">
+      <h3>Contact</h3>
+      <p>Email: neavyartical@gmail.com</p>
+    </div>
   </section>
-
-  <!-- AdSense -->
-  <div class="ad-box">
-    <ins class="adsbygoogle"
-      style="display:block"
-      data-ad-client="ca-pub-1714638410489429"
-      data-ad-slot="1234567890"
-      data-ad-format="auto"
-      data-full-width-responsive="true"></ins>
-  </div>
 
   <!-- Cookie -->
   <div id="cookieBanner" class="cookie-banner">
-    <span>This website uses cookies to improve your experience.</span>
+    <span>This website uses cookies.</span>
     <button onclick="acceptCookies()">Accept</button>
   </div>
 
   <!-- Footer -->
   <footer class="footer">
     <p>© 2026 ReelMind AI — Powered by Artical Neavy</p>
-    <div class="footer-links">
-      <a href="#">About</a>
-      <a href="#">Privacy</a>
-      <a href="#">Blog</a>
-      <a href="#">Contact</a>
-    </div>
   </footer>
 
   <script type="module" src="script.js"></script>
 
-  <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-
 </body>
-</html>
+    </html>
