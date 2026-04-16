@@ -11,7 +11,6 @@
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#020617">
 
-  <!-- Adsense -->
   <script async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
     crossorigin="anonymous"></script>
@@ -34,6 +33,7 @@
     <div class="brand">
       <h1>ReelMind AI</h1>
       <small id="userEmail">Guest Mode</small>
+      <small id="userLocation"></small>
     </div>
 
     <div class="top-actions">
@@ -137,41 +137,18 @@
     </div>
 
     <div class="info-page">
-      <h3>Payment Plans</h3>
-
-      <div class="plan-card">
-        <h4>Starter</h4>
-        <p>50 Credits</p>
-        <strong>$5</strong>
-        <button class="action" onclick="buyPlan('starter')">Buy Starter</button>
-      </div>
-
-      <div class="plan-card">
-        <h4>Pro</h4>
-        <p>150 Credits</p>
-        <strong>$12</strong>
-        <button class="action" onclick="buyPlan('pro')">Buy Pro</button>
-      </div>
-
-      <div class="plan-card">
-        <h4>Unlimited</h4>
-        <p>Unlimited Monthly Access</p>
-        <strong>$25</strong>
-        <button class="action" onclick="buyPlan('unlimited')">Go Unlimited</button>
-      </div>
-    </div>
-
-    <div class="info-page">
       <h3>Transaction History</h3>
       <div id="transactionList"></div>
     </div>
 
   </section>
 
+  <!-- HIDDEN FILE INPUT -->
+  <input type="file" id="fileInput" hidden onchange="handleUpload(event)">
+
   <!-- FLOATING BUTTONS -->
-  <div class="floating-left" onclick="uploadMedia()">📤</div>
-  <div class="floating-right" onclick="startVoiceInput()">🎤</div>
-  <button class="download-btn" onclick="downloadResult()">⬇ Download</button>
+  <button class="floating-btn upload-btn" onclick="triggerUpload()">📤</button>
+  <button class="floating-btn mic-btn" onclick="startVoiceInput()">🎤</button>
 
   <!-- COOKIE -->
   <div id="cookieBanner" class="cookie-banner">
@@ -185,6 +162,5 @@
   </footer>
 
   <script type="module" src="script.js"></script>
-
 </body>
-    </html>
+</html>
