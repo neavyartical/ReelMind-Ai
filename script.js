@@ -19,12 +19,13 @@ import {
    FIREBASE CONFIG
 ========================= */
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-  projectId: "YOUR_FIREBASE_PROJECT_ID",
-  storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_FIREBASE_MESSAGING_ID",
-  appId: "YOUR_FIREBASE_APP_ID"
+  apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
+  authDomain: "reelmind-ai-f07cb.firebaseapp.com",
+  projectId: "reelmind-ai-f07cb",
+  storageBucket: "reelmind-ai-f07cb.firebasestorage.app",
+  messagingSenderId: "731354245603",
+  appId: "1:731354245603:web:1db1952458a8473082d8d6",
+  measurementId: "G-F23DP2G9MW"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
@@ -52,17 +53,9 @@ function showMessage(message) {
 function setUserInfo(email, credits, location = "Unknown") {
   const isAdmin = email === ADMIN_EMAIL;
 
-  if (el("userEmail")) {
-    el("userEmail").innerText = email;
-  }
-
-  if (el("credits")) {
-    el("credits").innerText = isAdmin ? "∞" : credits;
-  }
-
-  if (el("userLocation")) {
-    el("userLocation").innerText = location;
-  }
+  if (el("userEmail")) el("userEmail").innerText = email;
+  if (el("credits")) el("credits").innerText = isAdmin ? "∞" : credits;
+  if (el("userLocation")) el("userLocation").innerText = location;
 }
 
 /* =========================
@@ -120,31 +113,22 @@ async function loadUserProfile() {
     });
 
     const data = await res.json();
-
     const location = `${data.city || "Unknown"}, ${data.country || "Unknown"}`;
 
-    setUserInfo(
-      data.email || "Guest",
-      data.credits ?? 0,
-      location
-    );
+    setUserInfo(data.email || "Guest", data.credits ?? 0, location);
   } catch {
     setUserInfo("Guest", 0, "Unknown");
   }
 }
 
 /* =========================
-   CREDIT AUTO REFRESH
+   CREDIT REFRESH
 ========================= */
 function startCreditRefresh() {
-  if (creditTimer) {
-    clearInterval(creditTimer);
-  }
+  if (creditTimer) clearInterval(creditTimer);
 
   creditTimer = setInterval(() => {
-    if (userToken) {
-      loadUserProfile();
-    }
+    if (userToken) loadUserProfile();
   }, 20000);
 }
 
@@ -164,9 +148,7 @@ async function loadTransactions() {
     const data = await res.json();
 
     if (!Array.isArray(data)) {
-      el("transactionList").innerHTML = `
-        <div class="card">No history yet</div>
-      `;
+      el("transactionList").innerHTML = `<div class="card">No history yet</div>`;
       return;
     }
 
@@ -178,9 +160,7 @@ async function loadTransactions() {
       </div>
     `).join("");
   } catch {
-    el("transactionList").innerHTML = `
-      <div class="card">Unable to load history</div>
-    `;
+    el("transactionList").innerHTML = `<div class="card">Unable to load history</div>`;
   }
 }
 
@@ -226,27 +206,20 @@ window.logout = async () => {
 /* =========================
    AUTH STATE
 ========================= */
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, async (user) => {
   if (user) {
     userToken = await user.getIdToken();
 
     await detectAndSaveLocation();
     await loadUserProfile();
     await loadTransactions();
-
     startCreditRefresh();
   } else {
     userToken = null;
-
     setUserInfo("Guest Mode", "∞", "Unknown");
 
-    if (creditTimer) {
-      clearInterval(creditTimer);
-    }
-
-    if (el("transactionList")) {
-      el("transactionList").innerHTML = "";
-    }
+    if (creditTimer) clearInterval(creditTimer);
+    if (el("transactionList")) el("transactionList").innerHTML = "";
   }
 });
 
@@ -292,7 +265,6 @@ function showLoading() {
 ========================= */
 function typeWriter(text) {
   el("result").innerHTML = `<div class="card" id="typedText"></div>`;
-
   let i = 0;
   const target = el("typedText");
 
@@ -330,9 +302,7 @@ async function waitForVideo(taskId) {
     }
   }
 
-  el("result").innerHTML = `
-    <div class="card">Video still processing...</div>
-  `;
+  el("result").innerHTML = `<div class="card">Video still processing...</div>`;
 }
 
 /* =========================
@@ -342,10 +312,9 @@ window.generateContent = async () => {
   const prompt = val("prompt");
   const mode = val("mode");
   const language = val("language");
+  const location = val("location");
 
-  if (!prompt) {
-    return showMessage("Enter a prompt");
-  }
+  if (!prompt) return showMessage("Enter a prompt");
 
   showLoading();
 
@@ -363,7 +332,8 @@ window.generateContent = async () => {
       headers,
       body: JSON.stringify({
         prompt,
-        language
+        language,
+        location
       })
     });
 
@@ -401,9 +371,7 @@ window.generateContent = async () => {
     loadUserProfile();
     loadTransactions();
   } catch {
-    el("result").innerHTML = `
-      <div class="card">Generation failed</div>
-    `;
+    el("result").innerHTML = `<div class="card">Generation failed</div>`;
   }
 };
 
@@ -412,10 +380,7 @@ window.generateContent = async () => {
 ========================= */
 window.acceptCookies = function () {
   localStorage.setItem("cookieAccepted", "yes");
-
-  if (el("cookieBanner")) {
-    el("cookieBanner").style.display = "none";
-  }
+  if (el("cookieBanner")) el("cookieBanner").style.display = "none";
 };
 
 /* =========================
@@ -423,9 +388,7 @@ window.acceptCookies = function () {
 ========================= */
 window.addEventListener("load", () => {
   if (localStorage.getItem("cookieAccepted") === "yes") {
-    if (el("cookieBanner")) {
-      el("cookieBanner").style.display = "none";
-    }
+    if (el("cookieBanner")) el("cookieBanner").style.display = "none";
   }
 
   setTimeout(() => {
@@ -433,7 +396,6 @@ window.addEventListener("load", () => {
 
     if (splash) {
       splash.style.opacity = "0";
-
       setTimeout(() => {
         splash.style.display = "none";
       }, 700);
