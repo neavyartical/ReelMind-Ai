@@ -1,5 +1,8 @@
 const API = "https://reelmindbackend-1.onrender.com";
 
+/* =========================
+   FIREBASE IMPORT
+========================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth,
@@ -11,6 +14,9 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+/* =========================
+   FIREBASE CONFIG
+========================= */
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -24,75 +30,142 @@ const provider = new GoogleAuthProvider();
 
 let userToken = null;
 
+/* =========================
+   HELPERS
+========================= */
 function val(id){
   return document.getElementById(id).value;
 }
 
-async function loadCredits(){
-  if(!userToken) return;
+function setUserInfo(email, credits){
+  const emailEl = document.getElementById("userEmail");
+  const creditsEl = document.getElementById("credits");
 
-  const res = await fetch(API + "/me", {
-    headers:{
-      Authorization:"Bearer " + userToken
-    }
-  });
-
-  const data = await res.json();
-
-  document.getElementById("credits").innerText = data?.credits ?? 0;
+  if(emailEl) emailEl.innerText = email;
+  if(creditsEl) creditsEl.innerText = credits;
 }
 
-window.emailRegister = async ()=>{
-  await createUserWithEmailAndPassword(auth, val("email"), val("password"));
+/* =========================
+   BUY CREDITS
+========================= */
+window.buyCredits = function(){
+  window.open("https://ko-fi.com/articalneavy", "_blank");
 };
 
-window.emailLogin = async ()=>{
-  await signInWithEmailAndPassword(auth, val("email"), val("password"));
+/* =========================
+   LOAD USER PROFILE
+========================= */
+async function loadUserProfile(){
+  if(!userToken) return;
+
+  try{
+    const res = await fetch(API + "/me",{
+      headers:{
+        Authorization:"Bearer " + userToken
+      }
+    });
+
+    const data = await res.json();
+
+    setUserInfo(
+      data.email || "Guest",
+      data.credits || 0
+    );
+
+  }catch{
+    setUserInfo("Guest",0);
+  }
+}
+
+/* =========================
+   AUTH FUNCTIONS
+========================= */
+window.emailRegister = async function(){
+  try{
+    await createUserWithEmailAndPassword(
+      auth,
+      val("email"),
+      val("password")
+    );
+    alert("Account created");
+  }catch(err){
+    alert(err.message);
+  }
 };
 
-window.googleLogin = async ()=>{
-  await signInWithPopup(auth, provider);
+window.emailLogin = async function(){
+  try{
+    await signInWithEmailAndPassword(
+      auth,
+      val("email"),
+      val("password")
+    );
+  }catch(err){
+    alert(err.message);
+  }
 };
 
-window.logout = async ()=>{
+window.googleLogin = async function(){
+  try{
+    await signInWithPopup(auth, provider);
+  }catch(err){
+    alert(err.message);
+  }
+};
+
+window.logout = async function(){
   await signOut(auth);
 };
 
+/* =========================
+   AUTH STATE
+========================= */
 onAuthStateChanged(auth, async user=>{
-  const label = document.getElementById("userEmail");
-
   if(user){
     userToken = await user.getIdToken();
-    label.innerText = user.email;
-    loadCredits();
+    await loadUserProfile();
   }else{
     userToken = null;
-    label.innerText = "Guest Mode";
-    document.getElementById("credits").innerText = "0";
+    setUserInfo("Guest Mode","∞");
   }
 });
 
+/* =========================
+   TAB SWITCH
+========================= */
 window.switchTab = function(tab){
-  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-  document.getElementById(tab).classList.add("active");
+  document.querySelectorAll(".section").forEach(section=>{
+    section.classList.remove("active");
+  });
+
+  const target = document.getElementById(tab);
+  if(target) target.classList.add("active");
 };
 
+/* =========================
+   TYPEWRITER
+========================= */
 function typeWriter(text){
   const result = document.getElementById("result");
   result.innerHTML = `<div class="card" id="typed"></div>`;
-  let i=0;
-  const el=document.getElementById("typed");
+
+  const el = document.getElementById("typed");
+  let i = 0;
 
   function write(){
-    if(i<text.length){
+    if(i < text.length){
       el.innerHTML += text.charAt(i);
       i++;
       setTimeout(write,8);
     }
   }
+
   write();
 }
 
+/* =========================
+   VIDEO WAIT
+========================= */
 async function waitForVideo(taskId){
   const result = document.getElementById("result");
 
@@ -102,16 +175,24 @@ async function waitForVideo(taskId){
     const res = await fetch(API + "/video-status/" + taskId);
     const data = await res.json();
 
-    if(data?.video){
-      result.innerHTML = `<div class="card"><video controls autoplay src="${data.video}"></video></div>`;
-      loadCredits();
+    if(data.video){
+      result.innerHTML = `
+        <div class="card">
+          <video controls autoplay playsinline src="${data.video}"></video>
+        </div>
+      `;
+
+      loadUserProfile();
       return;
     }
   }
 
-  result.innerHTML = `<div class="card">Video still processing.</div>`;
+  result.innerHTML = `<div class="card">Video still processing...</div>`;
 }
 
+/* =========================
+   GENERATE
+========================= */
 document.getElementById("generate").onclick = async ()=>{
   const prompt = val("prompt").trim();
   const mode = val("mode");
@@ -120,74 +201,102 @@ document.getElementById("generate").onclick = async ()=>{
 
   if(!prompt) return;
 
-  result.innerHTML = `<div class="card"><div class="spinner"></div>Generating...</div>`;
+  result.innerHTML = `
+    <div class="card">
+      <div class="spinner"></div>
+      Generating...
+    </div>
+  `;
 
-  const headers = {
-    "Content-Type":"application/json"
-  };
+  try{
+    const headers = {
+      "Content-Type":"application/json"
+    };
 
-  if(userToken){
-    headers.Authorization = "Bearer " + userToken;
-  }
-
-  const res = await fetch(API + "/generate-" + mode,{
-    method:"POST",
-    headers,
-    body:JSON.stringify({prompt,language})
-  });
-
-  const data = await res.json();
-
-  if(data?.error){
-    result.innerHTML = `<div class="card">${data.error}</div>`;
-    return;
-  }
-
-  if(mode==="text"){
-    typeWriter(data?.data?.content || "No response");
-    loadCredits();
-  }
-
-  if(mode==="image"){
-    result.innerHTML = `<div class="card"><img src="${data?.data?.url}"></div>`;
-    loadCredits();
-  }
-
-  if(mode==="video"){
-    if(data?.preview){
-      result.innerHTML = `<div class="card"><video controls autoplay src="${data.preview}"></video></div>`;
-      loadCredits();
-    }else if(data?.taskId){
-      waitForVideo(data.taskId);
-    }else{
-      result.innerHTML = `<div class="card">Video unavailable.</div>`;
+    if(userToken){
+      headers.Authorization = "Bearer " + userToken;
     }
+
+    const res = await fetch(API + "/generate-" + mode,{
+      method:"POST",
+      headers,
+      body:JSON.stringify({
+        prompt,
+        language
+      })
+    });
+
+    const data = await res.json();
+
+    if(data.error){
+      result.innerHTML = `<div class="card">${data.error}</div>`;
+      return;
+    }
+
+    if(mode==="text"){
+      typeWriter(data?.data?.content || "No response");
+    }
+
+    if(mode==="image"){
+      result.innerHTML = `
+        <div class="card">
+          <img src="${data?.data?.url}">
+        </div>
+      `;
+    }
+
+    if(mode==="video"){
+      if(data.preview){
+        result.innerHTML = `
+          <div class="card">
+            <video controls autoplay src="${data.preview}"></video>
+          </div>
+        `;
+      }else if(data.taskId){
+        waitForVideo(data.taskId);
+      }else{
+        result.innerHTML = `<div class="card">Video unavailable</div>`;
+      }
+    }
+
+    loadUserProfile();
+
+  }catch{
+    result.innerHTML = `<div class="card">Generation failed</div>`;
   }
 };
 
+/* =========================
+   COOKIE
+========================= */
 function initCookieBanner(){
   const banner = document.getElementById("cookieBanner");
   const btn = document.getElementById("acceptCookies");
+
+  if(!banner || !btn) return;
 
   if(localStorage.getItem("reelmind_cookie_accept")==="yes"){
     banner.style.display="none";
     return;
   }
 
-  btn.onclick=()=>{
+  btn.onclick = ()=>{
     localStorage.setItem("reelmind_cookie_accept","yes");
     banner.style.display="none";
   };
 }
 
+/* =========================
+   LOAD
+========================= */
 window.addEventListener("load",()=>{
   initCookieBanner();
 
   setTimeout(()=>{
-    const welcome = document.getElementById("welcomeCard");
-    if(welcome){
-      welcome.style.opacity="0";
-      setTimeout(()=>welcome.style.display="none",800);
+    const card = document.getElementById("welcomeCard");
+    if(card){
+      card.style.opacity="0";
+      setTimeout(()=>card.style.display="none",800);
     }
   },7000);
 });
