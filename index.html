@@ -13,7 +13,7 @@
   <meta name="keywords" content="AI video generator, AI stories, image generator, viral reels">
   <meta name="author" content="Artical Neavy">
 
-  <!-- Adsense Verification -->
+  <!-- Google Adsense -->
   <script async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
     crossorigin="anonymous">
@@ -33,93 +33,120 @@
   <header class="topbar">
     <div class="logo">ReelMind AI</div>
 
-    <div class="user-box">
+    <div class="top-user">
       <span id="userEmail">Guest Mode</span>
       <span class="credit-box">💰 <span id="credits">∞</span></span>
     </div>
   </header>
 
   <!-- Navigation -->
-  <nav class="bottom-nav">
+  <div class="tabs">
     <button onclick="switchTab('home')">🏠</button>
     <button onclick="switchTab('create')">✨</button>
     <button onclick="switchTab('account')">👤</button>
-  </nav>
+  </div>
 
   <!-- HOME -->
-  <section id="home" class="section active">
-    <div class="hero">
-      <h2>Create Stunning AI Content</h2>
-      <p>Generate stories, images and videos instantly.</p>
-    </div>
+  <section id="home" class="tab-section active container">
+    <h2>Create Stunning AI Content</h2>
+    <p>Generate stories, images and videos instantly.</p>
 
-    <div class="features">
-      <div class="card">🎬 AI Video Generation</div>
-      <div class="card">🖼 AI Image Creation</div>
-      <div class="card">📖 Viral Story Writing</div>
-    </div>
+    <div class="card">🎬 AI Video Generation</div>
+    <div class="card">🖼 AI Image Creation</div>
+    <div class="card">📖 Viral Story Writing</div>
   </section>
 
   <!-- CREATE -->
-  <section id="create" class="section">
-    <div class="generator-box">
+  <section id="create" class="tab-section container">
+    <textarea id="prompt" placeholder="Describe what you want..."></textarea>
 
-      <textarea
-        id="prompt"
-        placeholder="Describe what you want..."
-      ></textarea>
+    <select id="mode">
+      <option value="text">Story</option>
+      <option value="image">Image</option>
+      <option value="video">Video</option>
+    </select>
 
-      <select id="mode">
-        <option value="text">Text Story</option>
-        <option value="image">Image</option>
-        <option value="video">Video</option>
-      </select>
+    <select id="language">
+      <option value="English">English</option>
+      <option value="French">French</option>
+      <option value="Arabic">Arabic</option>
+    </select>
 
-      <select id="language">
-        <option value="English">English</option>
-        <option value="French">French</option>
-        <option value="Arabic">Arabic</option>
-      </select>
+    <button class="action" onclick="generateContent()">Generate</button>
 
-      <button id="generate">Generate</button>
-
-      <div id="result"></div>
-    </div>
+    <div id="result"></div>
   </section>
 
   <!-- ACCOUNT -->
-  <section id="account" class="section">
-    <div class="account-box">
-      <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Password">
+  <section id="account" class="tab-section container">
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
 
-      <button onclick="emailLogin()">Login</button>
-      <button onclick="emailRegister()">Register</button>
-      <button onclick="googleLogin()">Google Sign In</button>
-      <button onclick="logout()">Logout</button>
-      <button onclick="buyCredits()">Buy Credits</button>
-    </div>
+    <button class="action" onclick="emailLogin()">Login</button>
+    <button class="action" onclick="emailRegister()">Register</button>
+    <button class="action" onclick="googleLogin()">Google Sign In</button>
+    <button class="action" onclick="logout()">Logout</button>
+    <button class="action" onclick="buyCredits()">Buy Credits</button>
   </section>
 
-  <!-- Ad placeholder -->
+  <!-- ABOUT -->
+  <section class="info-page container">
+    <h3>About ReelMind AI</h3>
+    <p>
+      ReelMind AI helps creators generate cinematic videos, stunning visuals,
+      and engaging stories in seconds using advanced artificial intelligence.
+    </p>
+  </section>
+
+  <!-- PRIVACY -->
+  <section class="info-page container">
+    <h3>Privacy Policy</h3>
+    <p>
+      We respect your privacy. ReelMind AI does not sell your personal data.
+      Authentication is securely handled through Firebase.
+    </p>
+  </section>
+
+  <!-- BLOG -->
+  <section class="info-page container">
+    <h3>Blog</h3>
+    <p>
+      Coming soon: AI creation tips, viral storytelling guides, and content
+      strategies to help creators grow faster.
+    </p>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="info-page container">
+    <h3>Contact</h3>
+    <p>Email: neavyartical@gmail.com</p>
+  </section>
+
+  <!-- AdSense -->
   <div class="ad-box">
     <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-1714638410489429"
-         data-ad-slot="1234567890"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
+      style="display:block"
+      data-ad-client="ca-pub-1714638410489429"
+      data-ad-slot="1234567890"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
   </div>
 
   <!-- Cookie -->
   <div id="cookieBanner" class="cookie-banner">
     <span>This website uses cookies to improve your experience.</span>
-    <button id="acceptCookies">Accept</button>
+    <button onclick="acceptCookies()">Accept</button>
   </div>
 
   <!-- Footer -->
   <footer class="footer">
     <p>© 2026 ReelMind AI — Powered by Artical Neavy</p>
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">Privacy</a>
+      <a href="#">Blog</a>
+      <a href="#">Contact</a>
+    </div>
   </footer>
 
   <script type="module" src="script.js"></script>
