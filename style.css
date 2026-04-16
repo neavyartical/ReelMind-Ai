@@ -14,8 +14,8 @@ body{
   display:flex;
   justify-content:space-around;
   align-items:center;
-  padding:12px 8px;
-  font-size:24px;
+  padding:10px 8px;
+  font-size:22px;
   background:#0d0d0d;
   position:sticky;
   top:0;
@@ -28,16 +28,16 @@ body{
 }
 
 /* =========================
-   STARTUP LOGO
+   LOGO
 ========================= */
 #startupLogo{
   text-align:center;
-  padding:18px 0 8px;
+  padding:16px 0 6px;
 }
 
 #startupLogo img{
-  width:140px;
-  max-width:60%;
+  width:130px;
+  max-width:55%;
   display:block;
   margin:auto;
 }
@@ -49,7 +49,7 @@ body{
   text-align:center;
   font-size:18px;
   font-weight:bold;
-  margin:10px 0 18px;
+  margin:8px 0 14px;
 }
 
 /* =========================
@@ -67,7 +67,7 @@ body{
 }
 
 /* =========================
-   FORM
+   FORM ELEMENTS
 ========================= */
 select,
 input,
@@ -91,12 +91,12 @@ textarea{
 ========================= */
 button{
   width:100%;
-  padding:14px;
+  padding:13px;
   margin:10px 0;
   border:none;
   border-radius:12px;
   background:#00bfff;
-  color:white;
+  color:#fff;
   font-size:16px;
   font-weight:bold;
   cursor:pointer;
@@ -111,7 +111,7 @@ button:hover{
 }
 
 /* =========================
-   CONTROLS
+   CONTROL BUTTONS
 ========================= */
 #controls{
   width:92%;
@@ -119,16 +119,16 @@ button:hover{
   margin:16px auto;
   display:flex;
   justify-content:space-between;
-  gap:12px;
+  gap:10px;
 }
 
 .btn{
   flex:1;
   background:#111;
   text-align:center;
-  padding:14px;
+  padding:13px;
   border-radius:14px;
-  font-size:22px;
+  font-size:20px;
   cursor:pointer;
 }
 
@@ -139,7 +139,7 @@ button:hover{
   background:#111;
   padding:18px;
   border-radius:16px;
-  margin:16px auto;
+  margin:14px auto;
   font-size:16px;
   line-height:1.6;
 }
@@ -154,19 +154,19 @@ button:hover{
    RESULT
 ========================= */
 #result{
-  margin-top:16px;
+  margin-top:14px;
 }
 
 /* =========================
-   SPINNER
+   LOADING SPINNER
 ========================= */
 .spinner{
   width:34px;
   height:34px;
   border:4px solid rgba(255,255,255,.2);
-  border-top:4px solid white;
+  border-top:4px solid #fff;
   border-radius:50%;
-  margin:18px auto;
+  margin:16px auto;
   animation:spin 1s linear infinite;
 }
 
@@ -176,7 +176,7 @@ button:hover{
 }
 
 /* =========================
-   COOKIE
+   COOKIE BANNER
 ========================= */
 #cookieBanner{
   position:fixed;
@@ -211,7 +211,7 @@ button:hover{
 ========================= */
 #footer{
   text-align:center;
-  padding:20px;
+  padding:18px;
   font-size:14px;
   opacity:.75;
 }
@@ -220,13 +220,12 @@ button:hover{
    MOBILE
 ========================= */
 @media(max-width:768px){
-
   #topbar{
-    font-size:22px;
+    font-size:20px;
   }
 
   .btn{
-    font-size:20px;
+    font-size:18px;
     padding:12px;
   }
 
@@ -238,4 +237,4 @@ button:hover{
     flex-direction:column;
     text-align:center;
   }
-                      }
+  }
