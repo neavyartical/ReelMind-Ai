@@ -9,7 +9,7 @@ body{
   background:linear-gradient(to bottom,#030712,#0f172a);
   color:#fff;
   min-height:100vh;
-  padding-bottom:140px;
+  padding-bottom:180px;
 }
 
 /* =======================
@@ -116,7 +116,7 @@ body{
   border-radius:18px;
   background:linear-gradient(135deg,#00d9ff,#00aaff);
   color:#000;
-  font-size:18px;
+  font-size:16px;
   font-weight:bold;
   cursor:pointer;
   transition:0.3s;
@@ -232,8 +232,6 @@ select option{
   margin-bottom:14px;
   transition:0.3s;
   text-align:center;
-  text-decoration:none;
-  display:block;
 }
 
 .action:hover,
@@ -246,18 +244,18 @@ select option{
 ======================= */
 .floating-btn{
   position:fixed;
-  bottom:90px;
-  width:56px;
-  height:56px;
+  bottom:110px;
+  width:58px;
+  height:58px;
   border:none;
   border-radius:50%;
   background:linear-gradient(135deg,#00d9ff,#00aaff);
   color:#000;
   font-size:24px;
   font-weight:bold;
-  box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  box-shadow:0 8px 24px rgba(0,0,0,0.35);
   cursor:pointer;
-  z-index:500;
+  z-index:600;
 }
 
 .upload-btn{
@@ -269,7 +267,19 @@ select option{
 }
 
 /* =======================
-   PLANS
+   DOWNLOAD BUTTON
+======================= */
+.download-btn{
+  position:fixed;
+  bottom:28px;
+  left:50%;
+  transform:translateX(-50%);
+  width:220px;
+  z-index:500;
+}
+
+/* =======================
+   PLAN CARDS
 ======================= */
 .plan-card{
   background:rgba(255,255,255,0.04);
@@ -315,16 +325,6 @@ select option{
 .info-page p{
   color:#cbd5e1;
   line-height:1.7;
-}
-
-/* =======================
-   ADS
-======================= */
-.ad-box{
-  padding:20px;
-  margin:20px;
-  border-radius:20px;
-  background:rgba(255,255,255,0.03);
 }
 
 /* =======================
@@ -394,7 +394,7 @@ select option{
   }
 
   .tabs button{
-    font-size:16px;
+    font-size:14px;
     padding:12px;
   }
 
@@ -407,4 +407,8 @@ select option{
     gap:10px;
     text-align:center;
   }
+
+  .download-btn{
+    width:88%;
   }
+}
