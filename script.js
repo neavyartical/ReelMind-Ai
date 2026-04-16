@@ -23,12 +23,12 @@ const firebaseConfig = {
   projectId: "reelmind-ai-f07cb",
   storageBucket: "reelmind-ai-f07cb.firebasestorage.app",
   messagingSenderId: "731354245603",
-  appId: "1:731354245603:web:7861b1c97e70b19982d8d6",
-  measurementId: "G-WGL2F08WC7"
+  appId: "1:731354245603:web:1db1952458a8473082d8d6",
+  measurementId: "G-F23DP2G9MW"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
-const auth = getAuth(firebaseApp);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 let userToken = null;
@@ -41,12 +41,12 @@ function el(id){
 }
 
 function val(id){
-  return el(id)?.value?.trim() || "";
+  return el(id)?.value || "";
 }
 
 function setUserInfo(email, credits){
-  if(el("userEmail")) el("userEmail").innerText = email;
-  if(el("credits")) el("credits").innerText = credits;
+  if(el("userEmail")) el("userEmail").textContent = email;
+  if(el("credits")) el("credits").textContent = credits;
 }
 
 /* =========================
@@ -63,7 +63,7 @@ async function loadUserProfile(){
   if(!userToken) return;
 
   try{
-    const res = await fetch(`${API}/me`,{
+    const res = await fetch(`${API}/me`, {
       headers:{
         Authorization:`Bearer ${userToken}`
       }
@@ -73,56 +73,63 @@ async function loadUserProfile(){
 
     setUserInfo(
       data.email || "Guest",
-      data.credits ?? 0
+      data.credits || 0
     );
-
   }catch{
-    setUserInfo("Guest",0);
+    setUserInfo("Guest", 0);
   }
 }
 
 /* =========================
-   AUTH FUNCTIONS
+   AUTH
 ========================= */
-window.emailRegister = async ()=>{
+window.emailRegister = async function(){
   try{
-    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
-    alert("Account created");
+    await createUserWithEmailAndPassword(
+      auth,
+      val("email"),
+      val("password")
+    );
+    alert("Account created successfully");
   }catch(err){
     alert(err.message);
   }
 };
 
-window.emailLogin = async ()=>{
+window.emailLogin = async function(){
   try{
-    await signInWithEmailAndPassword(auth,val("email"),val("password"));
+    await signInWithEmailAndPassword(
+      auth,
+      val("email"),
+      val("password")
+    );
   }catch(err){
     alert(err.message);
   }
 };
 
-window.googleLogin = async ()=>{
+window.googleLogin = async function(){
   try{
-    await signInWithPopup(auth,provider);
+    await signInWithPopup(auth, provider);
   }catch(err){
     alert(err.message);
   }
 };
 
-window.logout = async ()=>{
+window.logout = async function(){
   await signOut(auth);
 };
 
 /* =========================
    AUTH STATE
 ========================= */
-onAuthStateChanged(auth, async user=>{
+onAuthStateChanged(auth, async (user)=>{
   if(user){
     userToken = await user.getIdToken();
     await loadUserProfile();
   }else{
     userToken = null;
-    setUserInfo("Guest Mode","∞");
+    setUserInfo("Guest Mode", "∞");
   }
 });
 
@@ -130,8 +137,8 @@ onAuthStateChanged(auth, async user=>{
    TAB SWITCH
 ========================= */
 window.switchTab = function(tab){
-  document.querySelectorAll(".section").forEach(sec=>{
-    sec.classList.remove("active");
+  document.querySelectorAll(".section").forEach(section=>{
+    section.classList.remove("active");
   });
 
   const target = el(tab);
@@ -152,9 +159,9 @@ function typeWriter(text){
 
   function write(){
     if(i < text.length){
-      target.innerHTML += text.charAt(i);
+      target.textContent += text.charAt(i);
       i++;
-      setTimeout(write,5);
+      setTimeout(write, 5);
     }
   }
 
@@ -170,34 +177,15 @@ function showLoading(mode){
   result.innerHTML = `
     <div class="card">
       <div class="spinner"></div>
-      <div id="loadingText">Preparing ${mode}...</div>
+      <p id="loadingText">Generating ${mode}...</p>
     </div>
   `;
-
-  const steps = [
-    "Analyzing prompt...",
-    "Building output...",
-    "Optimizing quality...",
-    "Almost ready..."
-  ];
-
-  let i = 0;
-
-  return setInterval(()=>{
-    const txt = el("loadingText");
-    if(txt){
-      txt.innerText = steps[i % steps.length];
-      i++;
-    }
-  },1500);
 }
 
 /* =========================
-   VIDEO STATUS
+   WAIT FOR VIDEO
 ========================= */
 async function waitForVideo(taskId){
-  const result = el("result");
-
   for(let i=0;i<20;i++){
     await new Promise(r=>setTimeout(r,3000));
 
@@ -205,7 +193,7 @@ async function waitForVideo(taskId){
     const data = await res.json();
 
     if(data.video){
-      result.innerHTML = `
+      el("result").innerHTML = `
         <div class="card">
           <video controls autoplay playsinline src="${data.video}"></video>
         </div>
@@ -215,24 +203,25 @@ async function waitForVideo(taskId){
     }
   }
 
-  result.innerHTML = `<div class="card">Video still processing...</div>`;
+  el("result").innerHTML = `
+    <div class="card">Video still processing...</div>
+  `;
 }
 
 /* =========================
    GENERATE
 ========================= */
-el("generate").onclick = async ()=>{
-  const prompt = val("prompt");
+el("generate").onclick = async function(){
+  const prompt = val("prompt").trim();
   const mode = val("mode");
   const language = val("language");
-  const result = el("result");
 
   if(!prompt){
-    alert("Please enter a prompt");
+    alert("Please enter prompt");
     return;
   }
 
-  const loading = showLoading(mode);
+  showLoading(mode);
 
   try{
     const headers = {
@@ -246,78 +235,48 @@ el("generate").onclick = async ()=>{
     const res = await fetch(`${API}/generate-${mode}`,{
       method:"POST",
       headers,
-      body:JSON.stringify({
+      body: JSON.stringify({
         prompt,
         language
       })
     });
 
-    clearInterval(loading);
-
     const data = await res.json();
 
     if(data.error){
-      result.innerHTML = `<div class="card">${data.error}</div>`;
+      el("result").innerHTML = `<div class="card">${data.error}</div>`;
       return;
     }
 
-    if(mode==="text"){
+    if(mode === "text"){
       typeWriter(data?.data?.content || "No response");
     }
 
-    if(mode==="image"){
-      result.innerHTML = `
+    if(mode === "image"){
+      el("result").innerHTML = `
         <div class="card">
-          <img src="${data?.data?.url}" alt="Generated">
+          <img src="${data?.data?.url}" alt="Generated image">
         </div>
       `;
     }
 
-    if(mode==="video"){
+    if(mode === "video"){
       if(data.preview){
-        result.innerHTML = `
+        el("result").innerHTML = `
           <div class="card">
             <video controls autoplay playsinline src="${data.preview}"></video>
           </div>
         `;
       }else if(data.taskId){
         waitForVideo(data.taskId);
-      }else{
-        result.innerHTML = `<div class="card">Video unavailable</div>`;
       }
     }
 
     loadUserProfile();
 
   }catch{
-    clearInterval(loading);
-    result.innerHTML = `<div class="card">Generation failed</div>`;
+    el("result").innerHTML = `
+      <div class="card">Generation failed</div>
+    `;
   }
 };
-
-/* =========================
-   COOKIE
-========================= */
-function initCookieBanner(){
-  const banner = el("cookieBanner");
-  const btn = el("acceptCookies");
-
-  if(!banner || !btn) return;
-
-  if(localStorage.getItem("reelmind_cookie_accept")==="yes"){
-    banner.style.display = "none";
-    return;
-  }
-
-  btn.onclick = ()=>{
-    localStorage.setItem("reelmind_cookie_accept","yes");
-    banner.style.display = "none";
-  };
-}
-
-/* =========================
-   LOAD
-========================= */
-window.addEventListener("load",()=>{
-  initCookieBanner();
-});
