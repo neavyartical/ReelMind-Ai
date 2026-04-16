@@ -1,12 +1,19 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ReelMind AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
 
-  <!-- Google AdSense verification -->
+  <title>ReelMind AI</title>
+
+  <meta name="description" content="Create viral AI videos, cinematic images and stories instantly with ReelMind AI.">
+  <meta name="keywords" content="AI video generator, AI stories, image generator, viral reels">
+  <meta name="author" content="Artical Neavy">
+
+  <!-- Adsense Verification -->
   <script async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
     crossorigin="anonymous">
@@ -16,166 +23,110 @@
 </head>
 <body>
 
-  <!-- Startup Logo -->
-  <div id="startupLogo">
-    <img src="logo.png" alt="ReelMind AI">
+  <!-- Welcome -->
+  <div id="welcomeCard" class="welcome-card">
+    <h1>ReelMind AI</h1>
+    <p>Create viral content with AI</p>
   </div>
 
-  <!-- Top Navigation -->
-  <div id="topbar">
-    <div onclick="switchTab('home')">🏠</div>
-    <div onclick="switchTab('create')">➕</div>
-    <div onclick="switchTab('profile')">👤</div>
-    <div onclick="switchTab('more')">ℹ️</div>
-  </div>
+  <!-- Header -->
+  <header class="topbar">
+    <div class="logo">ReelMind AI</div>
 
-  <!-- Credits -->
-  <div id="creditsBox">
-    💰 <span id="credits">∞</span>
-  </div>
+    <div class="user-box">
+      <span id="userEmail">Guest Mode</span>
+      <span class="credit-box">💰 <span id="credits">∞</span></span>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="bottom-nav">
+    <button onclick="switchTab('home')">🏠</button>
+    <button onclick="switchTab('create')">✨</button>
+    <button onclick="switchTab('account')">👤</button>
+  </nav>
 
   <!-- HOME -->
-  <div id="home" class="section active">
-
-    <div id="welcomeCard" class="card hero-card">
-      <h2>🎬 Welcome to ReelMind AI</h2>
-      <p>
-        ReelMind AI helps creators transform simple ideas into cinematic stories,
-        stunning images, and engaging short videos that captivate audiences.
-      </p>
+  <section id="home" class="section active">
+    <div class="hero">
+      <h2>Create Stunning AI Content</h2>
+      <p>Generate stories, images and videos instantly.</p>
     </div>
 
-    <div class="card feature-card">
-      <h3>✨ What You Can Create</h3>
-      <p>
-        • Viral short stories for social media<br>
-        • Cinematic AI-generated images<br>
-        • AI-powered short videos<br>
-        • Multilingual creative content
-      </p>
+    <div class="features">
+      <div class="card">🎬 AI Video Generation</div>
+      <div class="card">🖼 AI Image Creation</div>
+      <div class="card">📖 Viral Story Writing</div>
     </div>
-
-    <div class="card trust-card">
-      <h3>🔒 Why Creators Trust ReelMind</h3>
-      <p>
-        Your prompts remain private, your creations stay yours, and every result
-        is generated securely using trusted AI technology.
-      </p>
-    </div>
-
-    <div class="card feature-card">
-      <h3>🌍 Built for Global Creators</h3>
-      <p>
-        Create content in English, French, Arabic, Spanish, and Krio to reach
-        audiences worldwide from one platform.
-      </p>
-    </div>
-
-  </div>
+  </section>
 
   <!-- CREATE -->
-  <div id="create" class="section">
+  <section id="create" class="section">
+    <div class="generator-box">
 
-    <select id="mode">
-      <option value="text">Story</option>
-      <option value="image">Image</option>
-      <option value="video">Video</option>
-    </select>
+      <textarea
+        id="prompt"
+        placeholder="Describe what you want..."
+      ></textarea>
 
-    <select id="language">
-      <option value="English">English</option>
-      <option value="French">French</option>
-      <option value="Arabic">Arabic</option>
-      <option value="Spanish">Spanish</option>
-      <option value="Krio">Krio</option>
-    </select>
+      <select id="mode">
+        <option value="text">Text Story</option>
+        <option value="image">Image</option>
+        <option value="video">Video</option>
+      </select>
 
-    <div id="result"></div>
+      <select id="language">
+        <option value="English">English</option>
+        <option value="French">French</option>
+        <option value="Arabic">Arabic</option>
+      </select>
 
-  </div>
+      <button id="generate">Generate</button>
 
-  <!-- PROFILE -->
-  <div id="profile" class="section">
-    <div class="card">
-      <p id="userEmail">Guest Mode</p>
+      <div id="result"></div>
+    </div>
+  </section>
 
-      <input id="email" type="email" placeholder="Email">
-      <input id="password" type="password" placeholder="Password">
+  <!-- ACCOUNT -->
+  <section id="account" class="section">
+    <div class="account-box">
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
 
       <button onclick="emailLogin()">Login</button>
       <button onclick="emailRegister()">Register</button>
-      <button onclick="googleLogin()">Google Login</button>
+      <button onclick="googleLogin()">Google Sign In</button>
       <button onclick="logout()">Logout</button>
+      <button onclick="buyCredits()">Buy Credits</button>
     </div>
+  </section>
+
+  <!-- Ad placeholder -->
+  <div class="ad-box">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-1714638410489429"
+         data-ad-slot="1234567890"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
   </div>
 
-  <!-- MORE -->
-  <div id="more" class="section">
-
-    <div class="card">
-      <h3>About ReelMind AI</h3>
-      <p>
-        ReelMind AI is a creative platform that helps users generate stories,
-        images and short cinematic videos using artificial intelligence.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Privacy Policy</h3>
-      <p>
-        We respect your privacy. User prompts and generated content remain private.
-        We do not sell personal data to third parties.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Terms of Service</h3>
-      <p>
-        By using ReelMind AI, users agree to create lawful and responsible content.
-        Abuse of the service may result in restricted access.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Contact</h3>
-      <p>Email: support@reelmindai.com</p>
-    </div>
-
-  </div>
-
-  <!-- Prompt -->
-  <input id="prompt" placeholder="Describe what you want...">
-
-  <!-- Hidden upload -->
-  <input type="file" id="fileInput" hidden>
-
-  <!-- Controls -->
-  <div id="controls">
-    <div class="btn" onclick="document.getElementById('fileInput').click()">📎</div>
-    <div class="btn" id="generate">⚡</div>
-    <div class="btn" onclick="startMic()">🎤</div>
-  </div>
-
-  <!-- Buy Credits -->
-  <button id="buyCreditsBtn" class="buy-btn" onclick="buyCredits()">
-    Buy Credits
-  </button>
-
-  <!-- Cookie Banner -->
-  <div id="cookieBanner">
-    <div class="cookieText">
-      We use cookies to improve your experience and personalize your content.
-    </div>
+  <!-- Cookie -->
+  <div id="cookieBanner" class="cookie-banner">
+    <span>This website uses cookies to improve your experience.</span>
     <button id="acceptCookies">Accept</button>
   </div>
 
   <!-- Footer -->
-  <div id="footer">
+  <footer class="footer">
     <p>© 2026 ReelMind AI — Powered by Artical Neavy</p>
-    <p>Creative AI tools for modern storytellers worldwide.</p>
-  </div>
+  </footer>
 
   <script type="module" src="script.js"></script>
+
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 
 </body>
 </html>
