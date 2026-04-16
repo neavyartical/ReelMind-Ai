@@ -8,6 +8,8 @@
   <meta name="description" content="Create cinematic AI videos, images and stories instantly with ReelMind AI.">
   <meta name="keywords" content="AI video generator, AI image generator, AI stories, cinematic reels">
   <meta name="author" content="Artical Neavy">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#020617">
 
   <!-- Adsense -->
   <script async
@@ -21,7 +23,10 @@
   <!-- SPLASH -->
   <div id="welcomeCard" class="welcome-card">
     <h1>ReelMind AI</h1>
-    <p>Create premium AI content instantly</p>
+    <p>
+      Every invention begins as a thought.<br>
+      ReelMind AI was created to turn imagination into moving reality.
+    </p>
   </div>
 
   <!-- HEADER -->
@@ -39,9 +44,9 @@
 
   <!-- NAVIGATION -->
   <nav class="tabs">
-    <button onclick="switchTab('home')">🏠</button>
-    <button onclick="switchTab('create')">✨</button>
-    <button onclick="switchTab('account')">👤</button>
+    <button onclick="switchTab('home')">🏠 Home</button>
+    <button onclick="switchTab('create')">✨ Create</button>
+    <button onclick="switchTab('account')">👤 Account</button>
   </nav>
 
   <!-- HOME -->
@@ -68,7 +73,6 @@
       <option value="video">Video</option>
     </select>
 
-    <!-- LANGUAGE -->
     <select id="language">
       <option value="English">English</option>
       <option value="Mandarin Chinese">Mandarin Chinese</option>
@@ -88,13 +92,8 @@
       <option value="Italian">Italian</option>
       <option value="Dutch">Dutch</option>
       <option value="Swahili">Swahili</option>
-      <option value="Krio">Krio</option>
-      <option value="Temne">Temne</option>
-      <option value="Mende">Mende</option>
-      <option value="Limba">Limba</option>
     </select>
 
-    <!-- LOCATION -->
     <input id="location" type="text" placeholder="Enter city or country (optional)">
 
     <button class="action" onclick="generateContent()">Generate</button>
@@ -118,8 +117,23 @@
   <section id="settings" class="tab-section container">
 
     <div class="info-page">
-      <h3>Settings</h3>
-      <p>Manage your premium tools and account.</p>
+      <h3>About</h3>
+      <p>ReelMind AI helps creators turn ideas into cinematic videos, images and stories from any device worldwide.</p>
+    </div>
+
+    <div class="info-page">
+      <h3>Privacy Policy</h3>
+      <p>Your data is protected with secure authentication and encrypted cloud systems. We never sell personal information.</p>
+    </div>
+
+    <div class="info-page">
+      <h3>Terms of Service</h3>
+      <p>Users must not create harmful or illegal content. Abuse may lead to account restrictions without notice.</p>
+    </div>
+
+    <div class="info-page">
+      <h3>Contact</h3>
+      <p>Email: neavyartical@gmail.com<br>Average response within 24 hours.</p>
     </div>
 
     <div class="info-page">
@@ -152,42 +166,16 @@
       <div id="transactionList"></div>
     </div>
 
-    <div class="info-page">
-      <h3>About</h3>
-      <p>ReelMind AI helps creators generate professional AI content from mobile devices worldwide.</p>
-    </div>
-
-    <div class="info-page">
-      <h3>Privacy Policy</h3>
-      <p>Your data is protected using Firebase secure authentication and encrypted cloud systems.</p>
-    </div>
-
-    <div class="info-page">
-      <h3>Blog</h3>
-      <p>Creator updates, tutorials and AI tips will appear here soon.</p>
-    </div>
-
-    <div class="info-page">
-      <h3>Contact</h3>
-      <p>Email: neavyartical@gmail.com</p>
-    </div>
-
   </section>
 
-  <!-- ADS -->
-  <div class="ad-box">
-    <ins class="adsbygoogle"
-      style="display:block"
-      data-ad-client="ca-pub-1714638410489429"
-      data-ad-slot="1234567890"
-      data-ad-format="auto"
-      data-full-width-responsive="true">
-    </ins>
-  </div>
+  <!-- FLOATING BUTTONS -->
+  <div class="floating-left" onclick="uploadMedia()">📤</div>
+  <div class="floating-right" onclick="startVoiceInput()">🎤</div>
+  <button class="download-btn" onclick="downloadResult()">⬇ Download</button>
 
   <!-- COOKIE -->
   <div id="cookieBanner" class="cookie-banner">
-    <span>This website uses cookies to improve your experience.</span>
+    <span>ReelMind AI uses cookies to improve security and user experience.</span>
     <button onclick="acceptCookies()">Accept</button>
   </div>
 
@@ -198,9 +186,5 @@
 
   <script type="module" src="script.js"></script>
 
-  <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-
 </body>
-                                                                            </html>
+    </html>
