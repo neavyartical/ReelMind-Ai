@@ -34,8 +34,7 @@ let userToken = null;
    HELPERS
 ========================= */
 function val(id){
-  const el = document.getElementById(id);
-  return el ? el.value : "";
+  return document.getElementById(id).value;
 }
 
 function setUserInfo(email, credits){
@@ -47,11 +46,7 @@ function setUserInfo(email, credits){
   if(creditsEl) creditsEl.innerText = credits;
 
   if(buyBtn){
-    if(typeof credits === "number" && credits <= 10){
-      buyBtn.style.display = "block";
-    }else{
-      buyBtn.style.display = "none";
-    }
+    buyBtn.style.display = credits <= 10 ? "block" : "none";
   }
 }
 
@@ -59,28 +54,24 @@ function setUserInfo(email, credits){
    BUY CREDITS
 ========================= */
 window.buyCredits = function(){
-  window.open("https://ko-fi.com/articalneavy", "_blank");
+  window.open("https://ko-fi.com/articalneavy","_blank");
 };
 
 /* =========================
-   LOAD PROFILE
+   LOAD USER PROFILE
 ========================= */
 async function loadUserProfile(){
   if(!userToken) return;
 
   try{
-    const res = await fetch(API + "/me", {
+    const res = await fetch(API + "/me",{
       headers:{
         Authorization:"Bearer " + userToken
       }
     });
 
     const data = await res.json();
-
-    setUserInfo(
-      data.email || "Guest",
-      data.credits ?? 0
-    );
+    setUserInfo(data.email || "Guest", data.credits || 0);
 
   }catch{
     setUserInfo("Guest",0);
@@ -92,11 +83,7 @@ async function loadUserProfile(){
 ========================= */
 window.emailRegister = async function(){
   try{
-    await createUserWithEmailAndPassword(
-      auth,
-      val("email"),
-      val("password")
-    );
+    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
     alert("Account created");
   }catch(err){
     alert(err.message);
@@ -105,11 +92,7 @@ window.emailRegister = async function(){
 
 window.emailLogin = async function(){
   try{
-    await signInWithEmailAndPassword(
-      auth,
-      val("email"),
-      val("password")
-    );
+    await signInWithEmailAndPassword(auth,val("email"),val("password"));
   }catch(err){
     alert(err.message);
   }
@@ -117,7 +100,7 @@ window.emailLogin = async function(){
 
 window.googleLogin = async function(){
   try{
-    await signInWithPopup(auth, provider);
+    await signInWithPopup(auth,provider);
   }catch(err){
     alert(err.message);
   }
@@ -149,9 +132,7 @@ window.switchTab = function(tab){
   });
 
   const target = document.getElementById(tab);
-  if(target){
-    target.classList.add("active");
-  }
+  if(target) target.classList.add("active");
 };
 
 /* =========================
@@ -168,7 +149,7 @@ function typeWriter(text){
     if(i < text.length){
       typed.innerHTML += text.charAt(i);
       i++;
-      setTimeout(write, 8);
+      setTimeout(write,8);
     }
   }
 
@@ -176,13 +157,13 @@ function typeWriter(text){
 }
 
 /* =========================
-   VIDEO WAIT
+   VIDEO STATUS
 ========================= */
 async function waitForVideo(taskId){
   const result = document.getElementById("result");
 
   for(let i=0;i<30;i++){
-    await new Promise(resolve => setTimeout(resolve,5000));
+    await new Promise(r=>setTimeout(r,5000));
 
     const res = await fetch(API + "/video-status/" + taskId);
     const data = await res.json();
@@ -206,8 +187,6 @@ async function waitForVideo(taskId){
    GENERATE
 ========================= */
 document.getElementById("generate").onclick = async ()=>{
-  switchTab("create");
-
   const prompt = val("prompt").trim();
   const mode = val("mode");
   const language = val("language");
@@ -254,7 +233,7 @@ document.getElementById("generate").onclick = async ()=>{
     if(mode === "image"){
       result.innerHTML = `
         <div class="card">
-          <img src="${data?.data?.url}" alt="Generated image">
+          <img src="${data?.data?.url}">
         </div>
       `;
     }
@@ -263,7 +242,7 @@ document.getElementById("generate").onclick = async ()=>{
       if(data.preview){
         result.innerHTML = `
           <div class="card">
-            <video controls autoplay playsinline src="${data.preview}"></video>
+            <video controls autoplay src="${data.preview}"></video>
           </div>
         `;
       }else if(data.taskId){
@@ -289,7 +268,7 @@ function initCookieBanner(){
 
   if(!banner || !btn) return;
 
-  if(localStorage.getItem("reelmind_cookie_accept") === "yes"){
+  if(localStorage.getItem("reelmind_cookie_accept")==="yes"){
     banner.style.display = "none";
     return;
   }
@@ -303,15 +282,19 @@ function initCookieBanner(){
 /* =========================
    LOAD
 ========================= */
-window.addEventListener("load", ()=>{
+window.addEventListener("load",()=>{
   initCookieBanner();
 
+  try{
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  }catch{}
+
   setTimeout(()=>{
-    const card = document.getElementById("welcomeCard");
-    if(card){
-      card.style.opacity = "0";
+    const welcome = document.getElementById("welcomeCard");
+    if(welcome){
+      welcome.style.opacity = "0";
       setTimeout(()=>{
-        card.style.display = "none";
+        welcome.style.display = "none";
       },800);
     }
   },7000);
