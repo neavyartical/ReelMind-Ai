@@ -8,137 +8,101 @@
 </head>
 <body>
 
-  <!-- Startup Logo -->
-  <div id="startupLogo">
-    <img src="logo.png" alt="ReelMind AI">
+<div id="startupLogo">
+  <img src="logo.png" alt="ReelMind AI">
+</div>
+
+<div id="topbar">
+  <div onclick="switchTab('home')">🏠</div>
+  <div onclick="switchTab('create')">➕</div>
+  <div onclick="switchTab('profile')">👤</div>
+  <div onclick="switchTab('more')">ℹ️</div>
+</div>
+
+<div id="creditsBox">
+  💰 <span id="credits">∞</span>
+</div>
+
+<div id="home" class="section active">
+  <div id="welcomeCard" class="card">
+    <h2>✨ Welcome to ReelMind AI</h2>
+    <p>Create stories, images and cinematic ideas in seconds.</p>
+  </div>
+</div>
+
+<div id="create" class="section">
+  <select id="mode">
+    <option value="text">Story</option>
+    <option value="image">Image</option>
+    <option value="video">Video</option>
+  </select>
+
+  <select id="language">
+    <option value="English">English</option>
+    <option value="French">French</option>
+    <option value="Arabic">Arabic</option>
+    <option value="Spanish">Spanish</option>
+    <option value="Krio">Krio</option>
+  </select>
+
+  <div id="result"></div>
+</div>
+
+<div id="profile" class="section">
+  <div class="card">
+    <p id="userEmail">Guest Mode</p>
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="emailLogin()">Login</button>
+    <button onclick="emailRegister()">Register</button>
+    <button onclick="googleLogin()">Google Login</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div id="more" class="section">
+  <div class="card">
+    <h3>About</h3>
+    <p>ReelMind AI transforms simple ideas into cinematic digital experiences.</p>
   </div>
 
-  <!-- Top Navigation -->
-  <div id="topbar">
-    <div onclick="switchTab('home')">🏠</div>
-    <div onclick="switchTab('create')">➕</div>
-    <div onclick="switchTab('profile')">👤</div>
-    <div onclick="switchTab('more')">ℹ️</div>
+  <div class="card">
+    <h3>Privacy Policy</h3>
+    <p>Your prompts remain private and your creative ownership stays yours.</p>
   </div>
 
-  <!-- Credits -->
-  <div id="creditsBox">
-    💰 <span id="credits">∞</span>
+  <div class="card">
+    <h3>Terms of Service</h3>
+    <p>Use the platform responsibly while respecting safe creative standards.</p>
   </div>
 
-  <!-- Home -->
-  <div id="home" class="section active">
-    <div id="welcomeCard" class="card">
-      <h2>✨ Welcome to ReelMind AI</h2>
-      <p>
-        Turn your imagination into cinematic stories,
-        stunning visuals and premium videos in seconds.
-      </p>
-      <p>
-        Every idea deserves something unforgettable.
-      </p>
-    </div>
+  <div class="card">
+    <h3>Contact</h3>
+    <p>Email: support@reelmindai.com</p>
   </div>
+</div>
 
-  <!-- Create -->
-  <div id="create" class="section">
-    <select id="mode">
-      <option value="text">Story</option>
-      <option value="image">Image</option>
-      <option value="video">Video</option>
-    </select>
+<input id="prompt" placeholder="Describe what you want...">
+<input type="file" id="fileInput" hidden>
 
-    <select id="language">
-      <option value="English">English</option>
-      <option value="French">French</option>
-      <option value="Arabic">Arabic</option>
-      <option value="Spanish">Spanish</option>
-      <option value="Krio">Krio</option>
-    </select>
+<div id="controls">
+  <div class="btn" onclick="document.getElementById('fileInput').click()">📎</div>
+  <div class="btn" id="generate">⚡</div>
+  <div class="btn" onclick="startMic()">🎤</div>
+</div>
 
-    <div id="result"></div>
+<div id="cookieBanner">
+  <div class="cookieText">
+    We use cookies to improve your experience and personalize your content.
   </div>
+  <button id="acceptCookies">Accept</button>
+</div>
 
-  <!-- Profile -->
-  <div id="profile" class="section">
-    <div class="card">
-      <p id="userEmail">Guest Mode</p>
+<div id="footer">
+  Powered by Artical Neavy
+</div>
 
-      <input id="email" type="email" placeholder="Email">
-      <input id="password" type="password" placeholder="Password">
-
-      <button onclick="emailLogin()">Login</button>
-      <button onclick="emailRegister()">Register</button>
-      <button onclick="googleLogin()">Google Login</button>
-      <button onclick="logout()">Logout</button>
-    </div>
-  </div>
-
-  <!-- More -->
-  <div id="more" class="section">
-
-    <div class="card">
-      <h3>About</h3>
-      <p>
-        ReelMind AI helps creators turn imagination into powerful stories,
-        premium visuals and cinematic videos with speed and elegance.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Privacy Policy</h3>
-      <p>
-        Your information stays protected. ReelMind AI respects your privacy
-        and never sells your personal data to third parties.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Terms of Service</h3>
-      <p>
-        By using ReelMind AI, you agree to use the platform responsibly
-        while respecting safe and lawful creative standards.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Contact</h3>
-      <p>
-        Email: support@reelmindai.com
-      </p>
-    </div>
-
-  </div>
-
-  <!-- Prompt -->
-  <input id="prompt" placeholder="Describe what you want...">
-
-  <!-- Hidden Upload -->
-  <input type="file" id="fileInput" hidden>
-
-  <!-- Bottom Controls -->
-  <div id="controls">
-    <div class="btn" onclick="document.getElementById('fileInput').click()">📎</div>
-    <div class="btn" id="generate">⚡</div>
-    <div class="btn" onclick="startMic()">🎤</div>
-  </div>
-
-  <!-- Cookie Banner -->
-  <div id="cookieBanner">
-    <div class="cookieText">
-      We use cookies to improve your experience, protect your account,
-      and personalize ReelMind AI for better performance.
-    </div>
-    <button id="acceptCookies">Accept</button>
-  </div>
-
-  <!-- Footer -->
-  <div id="footer">
-    Powered by Artical Neavy
-  </div>
-
-  <!-- Script -->
-  <script src="script.js"></script>
-
+<script type="module" src="script.js"></script>
 </body>
 </html>
