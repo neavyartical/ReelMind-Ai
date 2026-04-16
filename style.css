@@ -9,7 +9,7 @@ body{
   background:linear-gradient(to bottom,#030712,#0f172a);
   color:#fff;
   min-height:100vh;
-  padding-bottom:120px;
+  padding-bottom:140px;
 }
 
 /* =======================
@@ -23,19 +23,23 @@ body{
   flex-direction:column;
   justify-content:center;
   align-items:center;
+  text-align:center;
+  padding:30px;
   z-index:9999;
   transition:0.7s;
 }
 
 .welcome-card h1{
-  font-size:38px;
+  font-size:42px;
   color:#00d9ff;
-  margin-bottom:12px;
+  margin-bottom:14px;
 }
 
 .welcome-card p{
   color:#cbd5e1;
   font-size:16px;
+  max-width:420px;
+  line-height:1.7;
 }
 
 /* =======================
@@ -49,7 +53,7 @@ body{
   justify-content:space-between;
   align-items:center;
   padding:18px;
-  background:rgba(10,15,30,0.85);
+  background:rgba(10,15,30,0.88);
   backdrop-filter:blur(12px);
   border-bottom:1px solid rgba(255,255,255,0.06);
 }
@@ -214,7 +218,8 @@ select option{
 /* =======================
    BUTTONS
 ======================= */
-.action{
+.action,
+.download-btn{
   width:100%;
   padding:16px;
   border:none;
@@ -226,27 +231,53 @@ select option{
   cursor:pointer;
   margin-bottom:14px;
   transition:0.3s;
+  text-align:center;
+  text-decoration:none;
+  display:block;
 }
 
-.action:hover{
+.action:hover,
+.download-btn:hover{
   transform:translateY(-2px);
 }
 
 /* =======================
-   PAYMENT PLANS
+   FLOATING BUTTONS
 ======================= */
-.plan-grid{
-  display:grid;
-  gap:16px;
-  margin-top:20px;
+.floating-btn{
+  position:fixed;
+  bottom:90px;
+  width:56px;
+  height:56px;
+  border:none;
+  border-radius:50%;
+  background:linear-gradient(135deg,#00d9ff,#00aaff);
+  color:#000;
+  font-size:24px;
+  font-weight:bold;
+  box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  cursor:pointer;
+  z-index:500;
 }
 
+.upload-btn{
+  left:18px;
+}
+
+.mic-btn{
+  right:18px;
+}
+
+/* =======================
+   PLANS
+======================= */
 .plan-card{
   background:rgba(255,255,255,0.04);
   padding:20px;
   border-radius:20px;
   text-align:center;
   border:1px solid rgba(255,255,255,0.06);
+  margin-bottom:16px;
 }
 
 .plan-card h4{
@@ -264,21 +295,6 @@ select option{
   margin-bottom:14px;
   font-size:20px;
   color:#facc15;
-}
-
-/* =======================
-   TRANSACTION
-======================= */
-.transaction-item{
-  background:rgba(255,255,255,0.04);
-  padding:16px;
-  border-radius:16px;
-  margin-bottom:12px;
-  border:1px solid rgba(255,255,255,0.04);
-}
-
-.transaction-item small{
-  color:#94a3b8;
 }
 
 /* =======================
