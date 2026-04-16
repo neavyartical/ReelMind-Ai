@@ -5,24 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReelMind AI</title>
 
-  <meta name="description" content="Create stunning AI videos, cinematic images and viral stories instantly with ReelMind AI.">
-  <meta name="keywords" content="AI video, AI image, story generator, reels">
+  <meta name="description" content="Create cinematic AI videos, images and stories instantly with ReelMind AI.">
+  <meta name="keywords" content="AI video generator, AI image generator, AI stories, cinematic reels">
   <meta name="author" content="Artical Neavy">
 
+  <!-- Adsense -->
   <script async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
-    crossorigin="anonymous">
-  </script>
+    crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+  <!-- SPLASH -->
   <div id="welcomeCard" class="welcome-card">
     <h1>ReelMind AI</h1>
     <p>Create premium AI content instantly</p>
   </div>
 
+  <!-- HEADER -->
   <header class="topbar">
     <div class="brand">
       <h1>ReelMind AI</h1>
@@ -35,24 +37,28 @@
     </div>
   </header>
 
+  <!-- NAVIGATION -->
   <nav class="tabs">
     <button onclick="switchTab('home')">🏠</button>
     <button onclick="switchTab('create')">✨</button>
     <button onclick="switchTab('account')">👤</button>
   </nav>
 
+  <!-- HOME -->
   <section id="home" class="tab-section active container">
     <div class="hero-card">
       <h2>Create World-Class AI Content</h2>
-      <p>Generate videos, stories and images in seconds.</p>
+      <p>Generate videos, images and stories from anywhere in the world.</p>
     </div>
 
     <div class="card">🎬 AI Video Generator</div>
     <div class="card">🖼️ AI Image Generator</div>
     <div class="card">📖 Story Creator</div>
+    <div class="card">🌍 Location Based Scenes</div>
     <div class="card">⚡ Cloud Rendering</div>
   </section>
 
+  <!-- CREATE -->
   <section id="create" class="tab-section container">
     <textarea id="prompt" placeholder="Describe what you want to create..."></textarea>
 
@@ -62,6 +68,7 @@
       <option value="video">Video</option>
     </select>
 
+    <!-- LANGUAGE -->
     <select id="language">
       <option value="English">English</option>
       <option value="Mandarin Chinese">Mandarin Chinese</option>
@@ -69,9 +76,9 @@
       <option value="Spanish">Spanish</option>
       <option value="French">French</option>
       <option value="Arabic">Arabic</option>
-      <option value="Bengali">Bengali</option>
       <option value="Portuguese">Portuguese</option>
       <option value="Russian">Russian</option>
+      <option value="Bengali">Bengali</option>
       <option value="Urdu">Urdu</option>
       <option value="Indonesian">Indonesian</option>
       <option value="German">German</option>
@@ -87,11 +94,15 @@
       <option value="Limba">Limba</option>
     </select>
 
+    <!-- LOCATION -->
+    <input id="location" type="text" placeholder="Enter city or country (optional)">
+
     <button class="action" onclick="generateContent()">Generate</button>
 
     <div id="result"></div>
   </section>
 
+  <!-- ACCOUNT -->
   <section id="account" class="tab-section container">
     <input id="email" type="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
@@ -103,6 +114,7 @@
     <button class="action" onclick="buyCredits()">Buy Credits</button>
   </section>
 
+  <!-- SETTINGS -->
   <section id="settings" class="tab-section container">
 
     <div class="info-page">
@@ -129,7 +141,7 @@
 
       <div class="plan-card">
         <h4>Unlimited</h4>
-        <p>Monthly access</p>
+        <p>Unlimited Monthly Access</p>
         <strong>$25</strong>
         <button class="action" onclick="buyPlan('unlimited')">Go Unlimited</button>
       </div>
@@ -142,17 +154,17 @@
 
     <div class="info-page">
       <h3>About</h3>
-      <p>ReelMind AI helps creators produce premium AI content from mobile devices worldwide.</p>
+      <p>ReelMind AI helps creators generate professional AI content from mobile devices worldwide.</p>
     </div>
 
     <div class="info-page">
       <h3>Privacy Policy</h3>
-      <p>User data is securely handled with Firebase authentication and encrypted storage.</p>
+      <p>Your data is protected using Firebase secure authentication and encrypted cloud systems.</p>
     </div>
 
     <div class="info-page">
       <h3>Blog</h3>
-      <p>Creator tips and product updates will appear here soon.</p>
+      <p>Creator updates, tutorials and AI tips will appear here soon.</p>
     </div>
 
     <div class="info-page">
@@ -162,6 +174,7 @@
 
   </section>
 
+  <!-- ADS -->
   <div class="ad-box">
     <ins class="adsbygoogle"
       style="display:block"
@@ -172,11 +185,13 @@
     </ins>
   </div>
 
+  <!-- COOKIE -->
   <div id="cookieBanner" class="cookie-banner">
     <span>This website uses cookies to improve your experience.</span>
     <button onclick="acceptCookies()">Accept</button>
   </div>
 
+  <!-- FOOTER -->
   <footer class="footer">
     <p>© 2026 ReelMind AI — Powered by Artical Neavy</p>
   </footer>
@@ -188,4 +203,4 @@
   </script>
 
 </body>
-</html>
+                                                                            </html>
