@@ -164,10 +164,49 @@ footer a{
   <div id="stats"></div>
 </div>
 
-<div id="about" class="section"><div class="card"><h2>About</h2><p>ReelMind AI was created by Artical Neavy.</p></div></div>
-<div id="privacy" class="section"><div class="card"><h2>Privacy Policy</h2><p>Your data is securely protected.</p></div></div>
-<div id="blog" class="section"><div class="card"><h2>Blog</h2><p>Updates and AI insights coming soon.</p></div></div>
-<div id="contact" class="section"><div class="card"><h2>Contact</h2><p>articalneavy@gmail.com</p></div></div>
+<div id="about" class="section">
+  <div class="card">
+    <h2>About</h2>
+    <p>
+      ReelMind AI was created by Artical Neavy to turn imagination into stories,
+      visuals, and intelligent content. Built for speed, creativity, and simplicity,
+      it helps anyone create powerful ideas in seconds from anywhere in the world.
+    </p>
+  </div>
+</div>
+
+<div id="privacy" class="section">
+  <div class="card">
+    <h2>Privacy Policy</h2>
+    <p>
+      Your privacy matters. ReelMind AI protects your information and keeps your
+      conversations secure. Personal data is never sold, and your creative work
+      stays yours while using the platform.
+    </p>
+  </div>
+</div>
+
+<div id="blog" class="section">
+  <div class="card">
+    <h2>Blog</h2>
+    <p>
+      Discover fresh AI ideas, content strategies, creative tips, and product
+      updates. The ReelMind blog shares simple ways to create smarter and grow
+      faster with AI.
+    </p>
+  </div>
+</div>
+
+<div id="contact" class="section">
+  <div class="card">
+    <h2>Contact</h2>
+    <p>
+      Questions, ideas, or partnership requests are always welcome.
+      Reach out directly and connect with the vision behind ReelMind AI.
+      Email: articalneavy@gmail.com
+    </p>
+  </div>
+</div>
 
 <div id="promptBar">
   <button class="iconBtn" onclick="document.getElementById('fileInput').click()">📎</button>
@@ -264,13 +303,14 @@ const prompt=val("prompt").trim();
 const mode=val("mode");
 const language=val("language");
 const result=document.getElementById("result");
+
 if(!prompt)return;
 result.innerHTML="⚡ Generating...";
 
 try{
 let endpoint=mode==="text"?"/generate-text":mode==="image"?"/generate-image":"/generate-video";
 const headers={"Content-Type":"application/json"};
-if(token)headers.Authorization="Bearer "+token;
+if(token) headers.Authorization="Bearer "+token;
 
 const res=await fetch(API+endpoint,{
 method:"POST",
@@ -285,6 +325,7 @@ if(mode==="image") result.innerHTML=`<div class="card"><img src="${data?.data?.u
 if(mode==="video") result.innerHTML=`<div class="card"><video controls src="${data?.preview}"></video></div>`;
 
 loadUser();
+
 }catch{
 result.innerHTML=`<div class="card">❌ Connection failed</div>`;
 }
