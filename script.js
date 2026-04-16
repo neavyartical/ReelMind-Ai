@@ -1,28 +1,109 @@
 const API = "https://reelmindbackend-1.onrender.com";
 
+/* =========================
+   FIREBASE IMPORT
+========================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+/* =========================
+   FIREBASE CONFIG
+========================= */
+const firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const provider = new GoogleAuthProvider();
+
+let userToken = null;
+
+/* =========================
+   HELPERS
+========================= */
 function val(id){
   return document.getElementById(id).value;
 }
 
 /* =========================
-   TAB SWITCHING
+   AUTH FUNCTIONS
+========================= */
+window.emailRegister = async function(){
+  try{
+    await createUserWithEmailAndPassword(
+      auth,
+      val("email"),
+      val("password")
+    );
+    alert("Account created successfully");
+  }catch(err){
+    alert(err.message);
+  }
+};
+
+window.emailLogin = async function(){
+  try{
+    await signInWithEmailAndPassword(
+      auth,
+      val("email"),
+      val("password")
+    );
+    alert("Login successful");
+  }catch(err){
+    alert(err.message);
+  }
+};
+
+window.googleLogin = async function(){
+  try{
+    await signInWithPopup(auth, provider);
+  }catch(err){
+    alert(err.message);
+  }
+};
+
+window.logout = async function(){
+  await signOut(auth);
+};
+
+/* =========================
+   USER STATE
+========================= */
+onAuthStateChanged(auth, async user=>{
+  const label = document.getElementById("userEmail");
+
+  if(user){
+    userToken = await user.getIdToken();
+    if(label) label.innerText = user.email;
+  }else{
+    userToken = null;
+    if(label) label.innerText = "Guest Mode";
+  }
+});
+
+/* =========================
+   TAB SWITCH
 ========================= */
 window.switchTab = function(tab){
   document.querySelectorAll(".section").forEach(s=>{
     s.classList.remove("active");
   });
 
-  const selected = document.getElementById(tab);
-  if(selected) selected.classList.add("active");
+  const target = document.getElementById(tab);
+  if(target) target.classList.add("active");
 };
-
-/* =========================
-   AUTH PLACEHOLDERS
-========================= */
-window.emailLogin = ()=> alert("Login coming soon");
-window.emailRegister = ()=> alert("Register coming soon");
-window.googleLogin = ()=> alert("Google login coming soon");
-window.logout = ()=> alert("Logged out");
 
 /* =========================
    TYPEWRITER
@@ -46,7 +127,7 @@ function typeWriter(text){
 }
 
 /* =========================
-   WAIT FOR VIDEO
+   VIDEO POLLING
 ========================= */
 async function waitForVideo(taskId){
   const result = document.getElementById("result");
@@ -54,34 +135,20 @@ async function waitForVideo(taskId){
   for(let i=0;i<30;i++){
     await new Promise(r=>setTimeout(r,5000));
 
-    try{
-      const res = await fetch(API + "/video-status/" + taskId);
-      const data = await res.json();
+    const res = await fetch(API + "/video-status/" + taskId);
+    const data = await res.json();
 
-      const videoUrl =
-        data?.video ||
-        data?.url ||
-        data?.preview ||
-        data?.output?.[0] ||
-        "";
-
-      if(videoUrl){
-        result.innerHTML = `
-          <div class="card">
-            <video controls autoplay playsinline src="${videoUrl}"></video>
-          </div>
-        `;
-        return;
-      }
-
-    }catch(e){}
+    if(data?.video){
+      result.innerHTML = `
+        <div class="card">
+          <video controls autoplay playsinline src="${data.video}"></video>
+        </div>
+      `;
+      return;
+    }
   }
 
-  result.innerHTML = `
-    <div class="card">
-      Video is still processing. Please try again later.
-    </div>
-  `;
+  result.innerHTML = `<div class="card">Video still processing.</div>`;
 }
 
 /* =========================
@@ -98,108 +165,54 @@ document.getElementById("generate").onclick = async ()=>{
   result.innerHTML = `
     <div class="card">
       <div class="spinner"></div>
-      Generating your masterpiece...
+      Generating...
     </div>
   `;
 
-  try{
-    const res = await fetch(API + "/generate-" + mode,{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        prompt,
-        language
-      })
-    });
+  const headers = {
+    "Content-Type":"application/json"
+  };
 
-    const data = await res.json();
+  if(userToken){
+    headers.Authorization = "Bearer " + userToken;
+  }
 
-    if(mode==="text"){
-      const story =
-        data?.data?.content ||
-        data?.content ||
-        data?.story ||
-        data?.result ||
-        "No response";
-      typeWriter(story);
-    }
+  const res = await fetch(API + "/generate-" + mode,{
+    method:"POST",
+    headers,
+    body:JSON.stringify({
+      prompt,
+      language
+    })
+  });
 
-    if(mode==="image"){
-      const imageUrl =
-        data?.data?.url ||
-        data?.url ||
-        data?.image ||
-        "";
+  const data = await res.json();
 
-      result.innerHTML = imageUrl
-        ? `<div class="card"><img src="${imageUrl}"></div>`
-        : `<div class="card">No image returned.</div>`;
-    }
+  if(mode==="text"){
+    typeWriter(data?.data?.content || "No response");
+  }
 
-    if(mode==="video"){
-      const instantVideo =
-        data?.video ||
-        data?.url ||
-        data?.preview ||
-        "";
-
-      const taskId =
-        data?.taskId ||
-        data?.id ||
-        data?.task_id;
-
-      if(instantVideo){
-        result.innerHTML = `
-          <div class="card">
-            <video controls autoplay playsinline src="${instantVideo}"></video>
-          </div>
-        `;
-      } else if(taskId){
-        result.innerHTML = `
-          <div class="card">
-            <div class="spinner"></div>
-            Finalizing your cinematic video...
-          </div>
-        `;
-        waitForVideo(taskId);
-      } else {
-        result.innerHTML = `
-          <div class="card">
-            Video unavailable.
-          </div>
-        `;
-      }
-    }
-
-  }catch(error){
+  if(mode==="image"){
     result.innerHTML = `
       <div class="card">
-        ❌ Generation failed.
+        <img src="${data?.data?.url}">
       </div>
     `;
   }
-};
 
-/* =========================
-   VOICE INPUT
-========================= */
-window.startMic = function(){
-  if(!window.webkitSpeechRecognition){
-    alert("Voice not supported.");
-    return;
+  if(mode==="video"){
+    if(data?.preview){
+      result.innerHTML = `
+        <div class="card">
+          <video controls autoplay src="${data.preview}"></video>
+        </div>
+      `;
+    }else if(data?.taskId){
+      waitForVideo(data.taskId);
+    }else{
+      result.innerHTML = `<div class="card">Video unavailable.</div>`;
+    }
   }
-
-  const rec = new webkitSpeechRecognition();
-  rec.lang = "en-US";
-
-  rec.onresult = e=>{
-    document.getElementById("prompt").value =
-      e.results[0][0].transcript;
-  };
-
-  rec.start();
 };
 
 /* =========================
@@ -211,20 +224,14 @@ function initCookieBanner(){
 
   if(!banner || !btn) return;
 
-  const saved = localStorage.getItem("reelmind_cookie_accept");
-
-  if(saved==="yes"){
+  if(localStorage.getItem("reelmind_cookie_accept")==="yes"){
     banner.style.display="none";
     return;
   }
 
   btn.onclick = ()=>{
     localStorage.setItem("reelmind_cookie_accept","yes");
-    banner.style.opacity="0";
-
-    setTimeout(()=>{
-      banner.style.display="none";
-    },500);
+    banner.style.display="none";
   };
 }
 
@@ -236,13 +243,9 @@ window.addEventListener("load",()=>{
 
   setTimeout(()=>{
     const welcome = document.getElementById("welcomeCard");
-
     if(welcome){
       welcome.style.opacity="0";
-
-      setTimeout(()=>{
-        welcome.style.display="none";
-      },800);
+      setTimeout(()=>welcome.style.display="none",800);
     }
   },7000);
 });
