@@ -1,5 +1,30 @@
 const API = "https://reelmindbackend-1.onrender.com";
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+let token = null;
+
 function val(id){
   return document.getElementById(id).value;
 }
@@ -12,20 +37,33 @@ window.switchTab = function(tab){
 };
 
 window.emailLogin = function(){
-  alert("Login connected to Firebase later");
+  signInWithEmailAndPassword(auth,val("email"),val("password"))
+    .catch(err=>alert(err.message));
 };
 
 window.emailRegister = function(){
-  alert("Register connected to Firebase later");
+  createUserWithEmailAndPassword(auth,val("email"),val("password"))
+    .catch(err=>alert(err.message));
 };
 
 window.googleLogin = function(){
-  alert("Google login connected later");
+  signInWithPopup(auth,provider)
+    .catch(err=>alert(err.message));
 };
 
 window.logout = function(){
-  alert("Logged out");
+  signOut(auth);
 };
+
+onAuthStateChanged(auth, async(user)=>{
+  if(user){
+    token = await user.getIdToken();
+    document.getElementById("userEmail").innerText = user.email;
+  }else{
+    token = null;
+    document.getElementById("userEmail").innerText = "Guest Mode";
+  }
+});
 
 function typeWriter(text){
   const result = document.getElementById("result");
@@ -53,14 +91,25 @@ document.getElementById("generate").onclick = async ()=>{
 
   if(!prompt) return;
 
-  result.innerHTML = "<div class='card'>Generating...</div>";
+  result.innerHTML = `
+    <div class="card">
+      <div class="loader"></div>
+      <p style="text-align:center;">Creating your content...</p>
+    </div>
+  `;
 
   try{
+    const headers = {
+      "Content-Type":"application/json"
+    };
+
+    if(token){
+      headers.Authorization = "Bearer " + token;
+    }
+
     const res = await fetch(API + "/generate-" + mode,{
       method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
+      headers,
       body:JSON.stringify({
         prompt,
         language
@@ -81,11 +130,11 @@ document.getElementById("generate").onclick = async ()=>{
       if(data?.preview){
         result.innerHTML = `<div class="card"><video controls src="${data.preview}"></video></div>`;
       }else{
-        result.innerHTML = "<div class='card'>⚠️ Video generation unavailable</div>";
+        result.innerHTML = "<div class='card'>⚠️ Video unavailable</div>";
       }
     }
 
-  }catch(error){
+  }catch{
     result.innerHTML = "<div class='card'>❌ Generation failed</div>";
   }
 };
@@ -103,7 +152,7 @@ window.addEventListener("load", ()=>{
   setTimeout(()=>{
     const card = document.getElementById("welcomeCard");
     if(card) card.style.display = "none";
-  },8000);
+  },7000);
 
   const banner = document.getElementById("cookieBanner");
   const accepted = localStorage.getItem("cookiesAccepted");
