@@ -15,7 +15,23 @@ body{
     url("logo.png") center center / 55% no-repeat fixed;
 }
 
-/* top */
+#startupLogo{
+  position:fixed;
+  inset:0;
+  background:#020617;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:5000;
+  animation:startupFade 3s ease forwards;
+}
+#startupLogo img{
+  width:220px;
+  max-width:70%;
+  opacity:0;
+  animation:logoSoftFade 2s ease forwards;
+}
+
 #topbar{
   position:fixed;
   top:0;
@@ -26,29 +42,40 @@ body{
   display:flex;
   justify-content:space-around;
   z-index:1000;
+  box-sizing:border-box;
+}
+
+#creditsBox{
+  position:fixed;
+  top:60px;
+  right:10px;
+  background:rgba(17,17,17,0.95);
+  padding:8px 14px;
+  border-radius:12px;
+  z-index:1000;
 }
 
 .section{
   display:none;
-  margin-top:70px;
+  margin-top:75px;
   padding:20px;
-  padding-bottom:160px;
+  padding-bottom:170px;
+  animation:fadeIn .4s ease;
 }
-
 .active{display:block;}
 
 .card{
   background:rgba(30,41,59,0.85);
   backdrop-filter:blur(12px);
-  border-radius:15px;
+  border-radius:16px;
   padding:20px;
   margin-top:20px;
-  box-shadow:0 0 25px rgba(0,0,0,0.4);
+  box-shadow:0 0 25px rgba(0,0,0,0.35);
 }
 
 input,select{
   width:100%;
-  padding:12px;
+  padding:12px 14px;
   border:none;
   border-radius:12px;
   margin-top:10px;
@@ -67,10 +94,10 @@ button{
 
 #prompt{
   position:fixed;
-  bottom:80px;
+  bottom:82px;
   left:5%;
   width:90%;
-  padding:14px;
+  padding:14px 18px;
   border:none;
   border-radius:25px;
   z-index:999;
@@ -80,7 +107,7 @@ button{
   position:fixed;
   bottom:0;
   width:100%;
-  height:70px;
+  height:72px;
   display:flex;
   justify-content:space-around;
   align-items:center;
@@ -103,7 +130,7 @@ button{
 
 #generate{
   background:linear-gradient(135deg,#06b6d4,#3b82f6);
-  box-shadow:0 0 20px rgba(6,182,212,.5);
+  box-shadow:0 0 20px rgba(6,182,212,.45);
 }
 
 img,video{
@@ -111,25 +138,33 @@ img,video{
   border-radius:14px;
 }
 
-#creditsBox{
-  position:fixed;
-  top:60px;
-  right:10px;
-  background:#111;
-  padding:8px 12px;
-  border-radius:12px;
-  z-index:1000;
-}
-
 #footer{
   text-align:center;
   font-size:12px;
   color:#aaa;
   margin-bottom:120px;
+  padding:10px;
+}
+
+@keyframes logoSoftFade{
+  from{opacity:0;transform:scale(.95);}
+  to{opacity:1;transform:scale(1);}
+}
+@keyframes startupFade{
+  0%,70%{opacity:1;}
+  100%{opacity:0;visibility:hidden;}
+}
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
 }
 </style>
 </head>
 <body>
+
+<div id="startupLogo">
+  <img src="logo.png" alt="ReelMind AI">
+</div>
 
 <div id="topbar">
   <div onclick="switchTab('home')">🏠</div>
@@ -142,8 +177,8 @@ img,video{
 
 <div id="home" class="section active">
   <div class="card">
-    <h2>Welcome to ReelMind AI</h2>
-    <p>Create stories, images and videos instantly in any language.</p>
+    <h2>Welcome</h2>
+    <p>Your AI workspace is ready.</p>
   </div>
 </div>
 
@@ -157,12 +192,9 @@ img,video{
   <select id="language">
     <option>English</option>
     <option>Krio</option>
-    <option>Arabic</option>
     <option>French</option>
+    <option>Arabic</option>
     <option>Spanish</option>
-    <option>German</option>
-    <option>Chinese</option>
-    <option>Japanese</option>
   </select>
 
   <div id="result"></div>
@@ -203,28 +235,27 @@ const API="https://reelmindbackend-1.onrender.com";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
- getAuth,GoogleAuthProvider,signInWithPopup,
- signInWithEmailAndPassword,
- createUserWithEmailAndPassword,
- onAuthStateChanged,signOut
+getAuth,GoogleAuthProvider,signInWithPopup,
+signInWithEmailAndPassword,
+createUserWithEmailAndPassword,
+onAuthStateChanged,signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const firebaseConfig={
- apiKey:"YOUR_FIREBASE_KEY",
- authDomain:"YOUR_AUTH_DOMAIN",
- projectId:"YOUR_PROJECT_ID",
- appId:"YOUR_APP_ID"
-};
+const firebaseApp=initializeApp({
+apiKey:"YOUR_FIREBASE_KEY",
+authDomain:"YOUR_AUTH_DOMAIN",
+projectId:"YOUR_PROJECT_ID",
+appId:"YOUR_APP_ID"
+});
 
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
+const auth=getAuth(firebaseApp);
 const provider=new GoogleAuthProvider();
 let token=null;
 
 function val(id){return document.getElementById(id).value;}
 
 window.switchTab=(tab)=>{
- document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+ document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
  document.getElementById(tab).classList.add("active");
 };
 
@@ -233,7 +264,7 @@ window.emailLogin=()=>signInWithEmailAndPassword(auth,val("email"),val("password
 window.emailRegister=()=>createUserWithEmailAndPassword(auth,val("email"),val("password"));
 window.logout=()=>signOut(auth);
 
-onAuthStateChanged(auth,async(user)=>{
+onAuthStateChanged(auth,async user=>{
  if(user){
    token=await user.getIdToken();
    document.getElementById("userEmail").innerText=user.email;
@@ -259,28 +290,42 @@ function typeWriter(text){
 }
 
 document.getElementById("generate").onclick=async()=>{
- const prompt=val("prompt");
+ const prompt=val("prompt").trim();
  const mode=val("mode");
  const language=val("language");
  const result=document.getElementById("result");
 
+ if(!prompt) return;
  result.innerHTML="<div class='card'>Generating...</div>";
 
  try{
-   const res=await fetch(API+"/generate-"+mode,{
+   const endpoint="/generate-"+mode;
+   const headers={"Content-Type":"application/json"};
+   if(token) headers.Authorization="Bearer "+token;
+
+   const res=await fetch(API+endpoint,{
      method:"POST",
-     headers:{
-       "Content-Type":"application/json",
-       ...(token?{Authorization:"Bearer "+token}:{})
-     },
+     headers,
      body:JSON.stringify({prompt,language})
    });
 
    const data=await res.json();
 
-   if(mode==="text") typeWriter(data?.data?.content||"No response");
-   if(mode==="image") result.innerHTML=`<div class="card"><img src="${data?.data?.url}"></div>`;
-   if(mode==="video") result.innerHTML=`<div class="card"><video controls src="${data?.preview}"></video></div>`;
+   if(mode==="text"){
+     typeWriter(data?.data?.content||"No response");
+   }
+
+   if(mode==="image"){
+     result.innerHTML=`<div class="card"><img src="${data?.data?.url}"></div>`;
+   }
+
+   if(mode==="video"){
+     if(data?.preview){
+       result.innerHTML=`<div class="card"><video controls src="${data.preview}"></video></div>`;
+     }else{
+       result.innerHTML=`<div class="card">⚠️ Video generation unavailable</div>`;
+     }
+   }
 
  }catch{
    result.innerHTML="<div class='card'>❌ Generation failed</div>";
@@ -295,7 +340,14 @@ window.startMic=()=>{
  };
  rec.start();
 };
+
+window.addEventListener("load",()=>{
+ setTimeout(()=>{
+   const splash=document.getElementById("startupLogo");
+   if(splash) splash.style.display="none";
+ },3000);
+});
 </script>
 
 </body>
-      </html>
+</html>
