@@ -28,373 +28,188 @@ const firebaseConfig = {
   measurementId: "G-F23DP2G9MW"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
 const provider = new GoogleAuthProvider();
 
 let userToken = null;
-let creditTimer = null;
 
-/* =========================
-   HELPERS
-========================= */
-function el(id) {
-  return document.getElementById(id);
-}
+function el(id){ return document.getElementById(id); }
+function val(id){ return el(id)?.value?.trim() || ""; }
 
-function val(id) {
-  return el(id)?.value?.trim() || "";
-}
-
-function showMessage(msg) {
+function showMessage(msg){
   alert(msg);
 }
 
-function setUserInfo(email, credits, location = "Unknown") {
-  const admin = email === ADMIN_EMAIL;
-
-  if (el("userEmail")) el("userEmail").innerText = email;
-  if (el("credits")) el("credits").innerText = admin ? "∞" : credits;
-  if (el("userLocation")) el("userLocation").innerText = location;
-}
-
-/* =========================
-   PAYMENT
-========================= */
-window.buyCredits = function () {
-  window.open("https://ko-fi.com/articalneavy", "_blank");
+window.buyCredits = function(){
+  window.open("https://ko-fi.com/articalneavy","_blank");
 };
 
-window.buyPlan = function (plan) {
-  window.open("https://ko-fi.com/articalneavy", "_blank");
+window.buyPlan = function(plan){
+  const plans = {
+    starter:"https://ko-fi.com/articalneavy",
+    pro:"https://ko-fi.com/articalneavy",
+    unlimited:"https://ko-fi.com/articalneavy"
+  };
+  window.open(plans[plan],"_blank");
 };
 
-/* =========================
-   SAVE LOCATION
-========================= */
-async function detectAndSaveLocation() {
-  if (!userToken) return;
-
-  try {
-    const res = await fetch("https://ipapi.co/json/");
-    const data = await res.json();
-
-    await fetch(`${API}/save-location`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userToken}`
-      },
-      body: JSON.stringify({
-        city: data.city || "Unknown",
-        country: data.country_name || "Unknown"
-      })
-    });
-  } catch {}
-}
-
-/* =========================
-   PROFILE
-========================= */
-async function loadUserProfile() {
-  if (!userToken) return;
-
-  try {
-    const res = await fetch(`${API}/me`, {
-      headers: {
-        Authorization: `Bearer ${userToken}`
-      }
-    });
-
-    const data = await res.json();
-
-    setUserInfo(
-      data.email || "Guest",
-      data.credits ?? 0,
-      `${data.city || "Unknown"}, ${data.country || "Unknown"}`
-    );
-  } catch {
-    setUserInfo("Guest", 0, "Unknown");
-  }
-}
-
-/* =========================
-   TRANSACTIONS
-========================= */
-async function loadTransactions() {
-  if (!userToken || !el("transactionList")) return;
-
-  try {
-    const res = await fetch(`${API}/transactions`, {
-      headers: {
-        Authorization: `Bearer ${userToken}`
-      }
-    });
-
-    const data = await res.json();
-
-    if (!Array.isArray(data)) {
-      el("transactionList").innerHTML = `<div class="card">No history available</div>`;
-      return;
-    }
-
-    el("transactionList").innerHTML = data.map(item => `
-      <div class="card">
-        <strong>${item.type}</strong><br>
-        Credits: ${item.amount}<br>
-        <small>${new Date(item.date).toLocaleString()}</small>
-      </div>
-    `).join("");
-  } catch {
-    el("transactionList").innerHTML = `<div class="card">Unable to load history</div>`;
-  }
-}
-
-/* =========================
-   REFRESH CREDITS
-========================= */
-function startCreditRefresh() {
-  if (creditTimer) clearInterval(creditTimer);
-
-  creditTimer = setInterval(() => {
-    if (userToken) loadUserProfile();
-  }, 20000);
-}
-
-/* =========================
-   AUTH
-========================= */
-window.emailRegister = async function () {
-  try {
-    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-    showMessage("Account created successfully");
-  } catch (err) {
+window.emailRegister = async ()=>{
+  try{
+    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
+  }catch(err){
     showMessage(err.message);
   }
 };
 
-window.emailLogin = async function () {
-  try {
-    await signInWithEmailAndPassword(auth, val("email"), val("password"));
-  } catch (err) {
+window.emailLogin = async ()=>{
+  try{
+    await signInWithEmailAndPassword(auth,val("email"),val("password"));
+  }catch(err){
     showMessage(err.message);
   }
 };
 
-window.googleLogin = async function () {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (err) {
+window.googleLogin = async ()=>{
+  try{
+    await signInWithPopup(auth,provider);
+  }catch(err){
     showMessage(err.message);
   }
 };
 
-window.logout = async function () {
+window.logout = async ()=>{
   await signOut(auth);
 };
 
-/* =========================
-   AUTH STATE
-========================= */
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
+onAuthStateChanged(auth, async(user)=>{
+  if(user){
     userToken = await user.getIdToken();
-
-    await detectAndSaveLocation();
-    await loadUserProfile();
-    await loadTransactions();
-
-    startCreditRefresh();
-  } else {
+    el("userEmail").innerText = user.email;
+  }else{
     userToken = null;
-    setUserInfo("Guest Mode", "∞");
+    el("userEmail").innerText = "Guest Mode";
   }
 });
-
-/* =========================
-   TABS
-========================= */
-window.switchTab = function (tab) {
-  document.querySelectorAll(".tab-section").forEach(section => {
-    section.classList.remove("active");
-  });
-
-  el(tab)?.classList.add("active");
-
-  if (tab === "settings") {
-    loadTransactions();
-  }
-};
-
-/* =========================
-   LOADING
-========================= */
-function showLoading() {
-  el("result").innerHTML = `
-    <div class="card">
-      <div class="spinner"></div>
-      Generating...
-    </div>
-  `;
-}
-
-/* =========================
-   DOWNLOAD BUTTON
-========================= */
-function addDownloadButton(url) {
-  return `
-    <button class="action" onclick="window.open('${url}','_blank')">
-      Download
-    </button>
-  `;
-}
-
-/* =========================
-   TYPEWRITER
-========================= */
-function typeWriter(text) {
-  el("result").innerHTML = `<div class="card" id="typedText"></div>`;
-  let i = 0;
-
-  function write() {
-    if (i < text.length) {
-      el("typedText").innerHTML += text.charAt(i);
-      i++;
-      setTimeout(write, 4);
-    }
-  }
-
-  write();
-}
-
-/* =========================
-   GENERATE
-========================= */
-window.generateContent = async function () {
-  const prompt = val("prompt");
-  const mode = val("mode");
-  const language = val("language");
-  const location = val("location");
-
-  if (!prompt) return showMessage("Please enter a prompt");
-
-  showLoading();
-
-  try {
-    const headers = {
-      "Content-Type": "application/json"
-    };
-
-    if (userToken) {
-      headers.Authorization = `Bearer ${userToken}`;
-    }
-
-    const res = await fetch(`${API}/generate-${mode}`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        prompt,
-        language,
-        location
-      })
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      el("result").innerHTML = `<div class="card">${data.error}</div>`;
-      return;
-    }
-
-    if (mode === "text") {
-      typeWriter(data?.data?.content || "No content");
-    }
-
-    if (mode === "image") {
-      const url = data?.data?.url;
-      el("result").innerHTML = `
-        <div class="card">
-          <img src="${url}" alt="Generated image">
-          ${addDownloadButton(url)}
-        </div>
-      `;
-    }
-
-    if (mode === "video") {
-      const url = data.preview || data.video || data?.data?.url;
-      el("result").innerHTML = `
-        <div class="card">
-          <video controls autoplay playsinline src="${url}"></video>
-          ${addDownloadButton(url)}
-        </div>
-      `;
-    }
-
-    loadUserProfile();
-    loadTransactions();
-
-  } catch {
-    el("result").innerHTML = `<div class="card">Generation failed</div>`;
-  }
-};
 
 /* =========================
    VOICE INPUT
 ========================= */
-window.startVoiceInput = function () {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+window.startVoiceInput = function(){
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if (!SpeechRecognition) {
-    return showMessage("Voice not supported on this device");
+  if(!SpeechRecognition){
+    return alert("Voice recognition not supported");
   }
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";
-
-  recognition.onresult = function (event) {
-    el("prompt").value += " " + event.results[0][0].transcript;
-  };
-
   recognition.start();
+
+  recognition.onresult = function(event){
+    el("prompt").value = event.results[0][0].transcript;
+  };
 };
 
 /* =========================
-   UPLOAD IMAGE
+   FILE UPLOAD
 ========================= */
-window.handleUpload = function (input) {
-  const file = input.files[0];
-  if (!file) return;
+window.triggerUpload = function(){
+  el("fileInput").click();
+};
 
-  showMessage("Upload ready: " + file.name);
+window.handleUpload = function(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    el("result").innerHTML = `
+      <div class="card">
+        <img src="${e.target.result}">
+        <button class="download-btn" onclick="downloadResult()">Download</button>
+      </div>
+    `;
+  };
+  reader.readAsDataURL(file);
 };
 
 /* =========================
-   COOKIE
+   DOWNLOAD
 ========================= */
-window.acceptCookies = function () {
-  localStorage.setItem("cookieAccepted", "yes");
-  if (el("cookieBanner")) {
-    el("cookieBanner").style.display = "none";
+window.downloadResult = function(){
+  const img = document.querySelector("#result img");
+  const video = document.querySelector("#result video");
+
+  const url = img?.src || video?.src;
+  if(!url) return alert("Nothing to download");
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "reelmind-content";
+  a.click();
+};
+
+/* =========================
+   GENERATE
+========================= */
+window.generateContent = async ()=>{
+  const prompt = val("prompt");
+  const mode = val("mode");
+  const language = val("language");
+
+  if(!prompt) return showMessage("Enter prompt");
+
+  el("result").innerHTML = `<div class="card"><div class="spinner"></div>Generating...</div>`;
+
+  try{
+    const res = await fetch(`${API}/generate-${mode}`,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        Authorization:userToken ? `Bearer ${userToken}` : ""
+      },
+      body:JSON.stringify({prompt,language})
+    });
+
+    const data = await res.json();
+
+    if(mode==="text"){
+      el("result").innerHTML = `
+        <div class="card">
+          ${data?.data?.content || "No response"}
+          <button class="download-btn" onclick="downloadResult()">Download</button>
+        </div>`;
+    }
+
+    if(mode==="image"){
+      el("result").innerHTML = `
+        <div class="card">
+          <img src="${data?.data?.url}">
+          <button class="download-btn" onclick="downloadResult()">Download</button>
+        </div>`;
+    }
+
+    if(mode==="video"){
+      el("result").innerHTML = `
+        <div class="card">
+          <video controls src="${data?.preview || data?.video}"></video>
+          <button class="download-btn" onclick="downloadResult()">Download</button>
+        </div>`;
+    }
+
+  }catch{
+    el("result").innerHTML = `<div class="card">Generation failed</div>`;
   }
 };
 
-/* =========================
-   ON LOAD
-========================= */
-window.addEventListener("load", () => {
-  if (localStorage.getItem("cookieAccepted") === "yes") {
-    if (el("cookieBanner")) {
-      el("cookieBanner").style.display = "none";
-    }
-  }
+window.switchTab = function(tab){
+  document.querySelectorAll(".tab-section").forEach(s=>s.classList.remove("active"));
+  el(tab)?.classList.add("active");
+};
 
-  setTimeout(() => {
-    const splash = el("welcomeCard");
-    if (splash) {
-      splash.style.opacity = "0";
-      setTimeout(() => {
-        splash.style.display = "none";
-      }, 700);
-    }
-  }, 3000);
-});
+window.acceptCookies = function(){
+  localStorage.setItem("cookieAccepted","yes");
+  el("cookieBanner").style.display="none";
+};
