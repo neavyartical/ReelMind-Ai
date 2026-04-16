@@ -32,6 +32,7 @@ const auth = getAuth(firebaseApp);
 const provider = new GoogleAuthProvider();
 
 let userToken = null;
+let creditRefreshTimer = null;
 
 /* =========================
    HELPERS
@@ -71,7 +72,7 @@ window.buyPlan = function(plan){
 };
 
 /* =========================
-   LOAD PROFILE
+   LIVE CREDIT REFRESH
 ========================= */
 async function loadUserProfile(){
   if(!userToken) return;
@@ -87,7 +88,7 @@ async function loadUserProfile(){
 
     setUserInfo(
       data.email || "Guest",
-      data.credits || 0
+      data.credits ?? 0
     );
 
   }catch{
@@ -95,8 +96,20 @@ async function loadUserProfile(){
   }
 }
 
+function startCreditRefresh(){
+  if(creditRefreshTimer){
+    clearInterval(creditRefreshTimer);
+  }
+
+  creditRefreshTimer = setInterval(()=>{
+    if(userToken){
+      loadUserProfile();
+    }
+  }, 20000);
+}
+
 /* =========================
-   AUTH FUNCTIONS
+   AUTH
 ========================= */
 window.emailRegister = async ()=>{
   const email = val("email");
@@ -111,7 +124,6 @@ window.emailRegister = async ()=>{
     showMessage("Account created");
 
   }catch(err){
-
     if(err.code === "auth/email-already-in-use"){
       showMessage("Email already exists. Please login.");
     }else{
@@ -127,7 +139,6 @@ window.emailLogin = async ()=>{
       val("email"),
       val("password")
     );
-
   }catch(err){
     showMessage(err.message);
   }
@@ -145,16 +156,18 @@ window.logout = async ()=>{
   await signOut(auth);
 };
 
-/* =========================
-   AUTH STATE
-========================= */
 onAuthStateChanged(auth, async user=>{
   if(user){
     userToken = await user.getIdToken();
-    loadUserProfile();
+    await loadUserProfile();
+    startCreditRefresh();
   }else{
     userToken = null;
     setUserInfo("Guest Mode","∞");
+
+    if(creditRefreshTimer){
+      clearInterval(creditRefreshTimer);
+    }
   }
 });
 
@@ -183,7 +196,7 @@ function typeWriter(text){
     if(i < text.length){
       target.innerHTML += text.charAt(i);
       i++;
-      setTimeout(write,5);
+      setTimeout(write,4);
     }
   }
 
@@ -203,7 +216,7 @@ function showLoading(){
 }
 
 /* =========================
-   VIDEO POLLING
+   VIDEO WAIT
 ========================= */
 async function waitForVideo(taskId){
   for(let i=0;i<25;i++){
@@ -219,6 +232,7 @@ async function waitForVideo(taskId){
           <video controls autoplay playsinline src="${data.video}"></video>
         </div>
       `;
+
       loadUserProfile();
       return;
     }
@@ -270,11 +284,11 @@ window.generateContent = async ()=>{
       return;
     }
 
-    if(mode==="text"){
+    if(mode === "text"){
       typeWriter(data?.data?.content || "No response");
     }
 
-    if(mode==="image"){
+    if(mode === "image"){
       el("result").innerHTML = `
         <div class="card">
           <img src="${data?.data?.url}" alt="Generated image">
@@ -282,7 +296,7 @@ window.generateContent = async ()=>{
       `;
     }
 
-    if(mode==="video"){
+    if(mode === "video"){
       if(data.preview){
         el("result").innerHTML = `
           <div class="card">
@@ -312,6 +326,7 @@ window.generateContent = async ()=>{
 ========================= */
 window.acceptCookies = function(){
   localStorage.setItem("cookieAccepted","yes");
+
   if(el("cookieBanner")){
     el("cookieBanner").style.display = "none";
   }
@@ -336,5 +351,5 @@ window.addEventListener("load",()=>{
         splash.style.display = "none";
       },700);
     }
-  },3500);
+  },3000);
 });
