@@ -24,7 +24,7 @@
     <h1>ReelMind AI</h1>
     <p>
       Every invention begins as a thought.<br>
-      ReelMind AI was created to turn imagination into moving reality.
+      ReelMind AI was created to transform imagination into moving reality.
     </p>
   </div>
 
@@ -42,7 +42,7 @@
     </div>
   </header>
 
-  <!-- NAVIGATION -->
+  <!-- NAV -->
   <nav class="tabs">
     <button onclick="switchTab('home')">🏠 Home</button>
     <button onclick="switchTab('create')">✨ Create</button>
@@ -53,7 +53,7 @@
   <section id="home" class="tab-section active container">
     <div class="hero-card">
       <h2>Create World-Class AI Content</h2>
-      <p>Generate videos, images and stories from anywhere in the world.</p>
+      <p>Generate cinematic videos, images and stories from anywhere in the world.</p>
     </div>
 
     <div class="card">🎬 AI Video Generator</div>
@@ -75,22 +75,13 @@
 
     <select id="language">
       <option value="English">English</option>
-      <option value="Mandarin Chinese">Mandarin Chinese</option>
-      <option value="Hindi">Hindi</option>
       <option value="Spanish">Spanish</option>
       <option value="French">French</option>
       <option value="Arabic">Arabic</option>
       <option value="Portuguese">Portuguese</option>
-      <option value="Russian">Russian</option>
-      <option value="Bengali">Bengali</option>
-      <option value="Urdu">Urdu</option>
-      <option value="Indonesian">Indonesian</option>
       <option value="German">German</option>
       <option value="Japanese">Japanese</option>
       <option value="Korean">Korean</option>
-      <option value="Turkish">Turkish</option>
-      <option value="Italian">Italian</option>
-      <option value="Dutch">Dutch</option>
       <option value="Swahili">Swahili</option>
     </select>
 
@@ -115,40 +106,61 @@
 
   <!-- SETTINGS -->
   <section id="settings" class="tab-section container">
-
     <div class="info-page">
       <h3>About</h3>
-      <p>ReelMind AI helps creators turn ideas into cinematic videos, images and stories from any device worldwide.</p>
+      <p>ReelMind AI helps creators turn imagination into cinematic content from any mobile device worldwide.</p>
     </div>
 
     <div class="info-page">
       <h3>Privacy Policy</h3>
-      <p>Your data is protected with secure authentication and encrypted cloud systems. We never sell personal information.</p>
+      <p>Your data stays protected through secure authentication and encrypted cloud systems.</p>
     </div>
 
     <div class="info-page">
       <h3>Terms of Service</h3>
-      <p>Users must not create harmful or illegal content. Abuse may lead to account restrictions without notice.</p>
+      <p>Users must not create harmful or unlawful content using the platform.</p>
     </div>
 
     <div class="info-page">
       <h3>Contact</h3>
-      <p>Email: neavyartical@gmail.com<br>Average response within 24 hours.</p>
+      <p>Email: neavyartical@gmail.com</p>
+    </div>
+
+    <div class="info-page">
+      <h3>Payment Plans</h3>
+
+      <div class="plan-card">
+        <h4>Starter</h4>
+        <p>50 Credits</p>
+        <strong>$5</strong>
+        <button class="action" onclick="buyPlan('starter')">Buy Starter</button>
+      </div>
+
+      <div class="plan-card">
+        <h4>Pro</h4>
+        <p>150 Credits</p>
+        <strong>$12</strong>
+        <button class="action" onclick="buyPlan('pro')">Buy Pro</button>
+      </div>
+
+      <div class="plan-card">
+        <h4>Unlimited</h4>
+        <p>Unlimited Monthly Access</p>
+        <strong>$25</strong>
+        <button class="action" onclick="buyPlan('unlimited')">Go Unlimited</button>
+      </div>
     </div>
 
     <div class="info-page">
       <h3>Transaction History</h3>
       <div id="transactionList"></div>
     </div>
-
   </section>
 
-  <!-- HIDDEN FILE INPUT -->
-  <input type="file" id="fileInput" hidden onchange="handleUpload(event)">
-
   <!-- FLOATING BUTTONS -->
-  <button class="floating-btn upload-btn" onclick="triggerUpload()">📤</button>
+  <button class="floating-btn upload-btn" onclick="uploadMedia()">📤</button>
   <button class="floating-btn mic-btn" onclick="startVoiceInput()">🎤</button>
+  <button class="download-btn" onclick="downloadResult()">⬇ Download</button>
 
   <!-- COOKIE -->
   <div id="cookieBanner" class="cookie-banner">
@@ -163,4 +175,4 @@
 
   <script type="module" src="script.js"></script>
 </body>
-</html>
+    </html>
