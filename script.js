@@ -18,10 +18,13 @@ import {
    FIREBASE CONFIG
 ========================= */
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
+  authDomain: "reelmind-ai-f07cb.firebaseapp.com",
+  projectId: "reelmind-ai-f07cb",
+  storageBucket: "reelmind-ai-f07cb.firebasestorage.app",
+  messagingSenderId: "731354245603",
+  appId: "1:731354245603:web:7861b1c97e70b19982d8d6",
+  measurementId: "G-WGL2F08WC7"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
@@ -38,7 +41,7 @@ function el(id){
 }
 
 function val(id){
-  return el(id)?.value || "";
+  return el(id)?.value?.trim() || "";
 }
 
 function setUserInfo(email, credits){
@@ -67,20 +70,24 @@ async function loadUserProfile(){
     });
 
     const data = await res.json();
-    setUserInfo(data.email || "Guest", data.credits || 0);
+
+    setUserInfo(
+      data.email || "Guest",
+      data.credits ?? 0
+    );
 
   }catch{
-    setUserInfo("Guest", 0);
+    setUserInfo("Guest",0);
   }
 }
 
 /* =========================
-   AUTH
+   AUTH FUNCTIONS
 ========================= */
 window.emailRegister = async ()=>{
   try{
-    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-    alert("Account created successfully");
+    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
+    alert("Account created");
   }catch(err){
     alert(err.message);
   }
@@ -88,7 +95,7 @@ window.emailRegister = async ()=>{
 
 window.emailLogin = async ()=>{
   try{
-    await signInWithEmailAndPassword(auth, val("email"), val("password"));
+    await signInWithEmailAndPassword(auth,val("email"),val("password"));
   }catch(err){
     alert(err.message);
   }
@@ -96,7 +103,7 @@ window.emailLogin = async ()=>{
 
 window.googleLogin = async ()=>{
   try{
-    await signInWithPopup(auth, provider);
+    await signInWithPopup(auth,provider);
   }catch(err){
     alert(err.message);
   }
@@ -106,22 +113,25 @@ window.logout = async ()=>{
   await signOut(auth);
 };
 
+/* =========================
+   AUTH STATE
+========================= */
 onAuthStateChanged(auth, async user=>{
   if(user){
     userToken = await user.getIdToken();
-    loadUserProfile();
+    await loadUserProfile();
   }else{
     userToken = null;
-    setUserInfo("Guest Mode", "∞");
+    setUserInfo("Guest Mode","∞");
   }
 });
 
 /* =========================
-   TABS
+   TAB SWITCH
 ========================= */
 window.switchTab = function(tab){
-  document.querySelectorAll(".section").forEach(section=>{
-    section.classList.remove("active");
+  document.querySelectorAll(".section").forEach(sec=>{
+    sec.classList.remove("active");
   });
 
   const target = el(tab);
@@ -137,14 +147,14 @@ function typeWriter(text){
   const result = el("result");
   result.innerHTML = `<div class="card" id="typedText"></div>`;
 
-  let i = 0;
   const target = el("typedText");
+  let i = 0;
 
   function write(){
     if(i < text.length){
       target.innerHTML += text.charAt(i);
       i++;
-      setTimeout(write, 6);
+      setTimeout(write,5);
     }
   }
 
@@ -152,7 +162,7 @@ function typeWriter(text){
 }
 
 /* =========================
-   LOADING UI
+   LOADING
 ========================= */
 function showLoading(mode){
   const result = el("result");
@@ -160,37 +170,36 @@ function showLoading(mode){
   result.innerHTML = `
     <div class="card">
       <div class="spinner"></div>
-      <p id="loadingText">Preparing ${mode}...</p>
+      <div id="loadingText">Preparing ${mode}...</div>
     </div>
   `;
 
-  const texts = [
+  const steps = [
     "Analyzing prompt...",
-    "Generating cinematic quality...",
-    "Optimizing output...",
-    "Almost done..."
+    "Building output...",
+    "Optimizing quality...",
+    "Almost ready..."
   ];
 
   let i = 0;
-  const interval = setInterval(()=>{
+
+  return setInterval(()=>{
     const txt = el("loadingText");
     if(txt){
-      txt.innerText = texts[i % texts.length];
+      txt.innerText = steps[i % steps.length];
       i++;
     }
-  }, 1800);
-
-  return interval;
+  },1500);
 }
 
 /* =========================
-   VIDEO WAIT
+   VIDEO STATUS
 ========================= */
 async function waitForVideo(taskId){
   const result = el("result");
 
-  for(let i=0;i<25;i++){
-    await new Promise(r=>setTimeout(r,4000));
+  for(let i=0;i<20;i++){
+    await new Promise(r=>setTimeout(r,3000));
 
     const res = await fetch(`${API}/video-status/${taskId}`);
     const data = await res.json();
@@ -206,18 +215,14 @@ async function waitForVideo(taskId){
     }
   }
 
-  result.innerHTML = `
-    <div class="card">
-      Video still processing...
-    </div>
-  `;
+  result.innerHTML = `<div class="card">Video still processing...</div>`;
 }
 
 /* =========================
    GENERATE
 ========================= */
 el("generate").onclick = async ()=>{
-  const prompt = val("prompt").trim();
+  const prompt = val("prompt");
   const mode = val("mode");
   const language = val("language");
   const result = el("result");
@@ -227,7 +232,7 @@ el("generate").onclick = async ()=>{
     return;
   }
 
-  const loadingInterval = showLoading(mode);
+  const loading = showLoading(mode);
 
   try{
     const headers = {
@@ -241,13 +246,13 @@ el("generate").onclick = async ()=>{
     const res = await fetch(`${API}/generate-${mode}`,{
       method:"POST",
       headers,
-      body: JSON.stringify({
+      body:JSON.stringify({
         prompt,
         language
       })
     });
 
-    clearInterval(loadingInterval);
+    clearInterval(loading);
 
     const data = await res.json();
 
@@ -256,19 +261,19 @@ el("generate").onclick = async ()=>{
       return;
     }
 
-    if(mode === "text"){
+    if(mode==="text"){
       typeWriter(data?.data?.content || "No response");
     }
 
-    if(mode === "image"){
+    if(mode==="image"){
       result.innerHTML = `
         <div class="card">
-          <img src="${data?.data?.url}" alt="Generated image">
+          <img src="${data?.data?.url}" alt="Generated">
         </div>
       `;
     }
 
-    if(mode === "video"){
+    if(mode==="video"){
       if(data.preview){
         result.innerHTML = `
           <div class="card">
@@ -284,12 +289,9 @@ el("generate").onclick = async ()=>{
 
     loadUserProfile();
 
-  }catch(err){
-    result.innerHTML = `
-      <div class="card">
-        Generation failed
-      </div>
-    `;
+  }catch{
+    clearInterval(loading);
+    result.innerHTML = `<div class="card">Generation failed</div>`;
   }
 };
 
@@ -318,14 +320,4 @@ function initCookieBanner(){
 ========================= */
 window.addEventListener("load",()=>{
   initCookieBanner();
-
-  setTimeout(()=>{
-    const welcome = el("welcomeCard");
-    if(welcome){
-      welcome.style.opacity = "0";
-      setTimeout(()=>{
-        welcome.style.display = "none";
-      },700);
-    }
-  },5000);
 });
