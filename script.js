@@ -62,24 +62,17 @@ window.buyCredits = function(){
 };
 
 window.buyPlan = function(plan){
-  const links = {
-    starter: "https://ko-fi.com/articalneavy",
-    pro: "https://ko-fi.com/articalneavy",
-    unlimited: "https://ko-fi.com/articalneavy"
-  };
-
-  localStorage.setItem("pendingPlan", plan);
-  window.open(links[plan], "_blank");
+  window.open("https://ko-fi.com/articalneavy", "_blank");
 };
 
 /* =========================
-   LOAD USER PROFILE
+   USER PROFILE
 ========================= */
 async function loadUserProfile(){
   if(!userToken) return;
 
   try{
-    const res = await fetch(`${API}/me`,{
+    const res = await fetch(`${API}/me`, {
       headers:{
         Authorization:`Bearer ${userToken}`
       }
@@ -101,25 +94,23 @@ async function loadUserProfile(){
    LIVE CREDIT REFRESH
 ========================= */
 function startCreditRefresh(){
-  if(creditTimer){
-    clearInterval(creditTimer);
-  }
+  if(creditTimer) clearInterval(creditTimer);
 
   creditTimer = setInterval(()=>{
     if(userToken){
       loadUserProfile();
     }
-  }, 20000);
+  }, 15000);
 }
 
 /* =========================
-   TRANSACTION HISTORY
+   TRANSACTIONS
 ========================= */
 async function loadTransactions(){
   if(!userToken || !el("transactionList")) return;
 
   try{
-    const res = await fetch(`${API}/transactions`,{
+    const res = await fetch(`${API}/transactions`, {
       headers:{
         Authorization:`Bearer ${userToken}`
       }
@@ -127,17 +118,18 @@ async function loadTransactions(){
 
     const data = await res.json();
 
-    if(!Array.isArray(data)){
+    if(!Array.isArray(data) || !data.length){
       el("transactionList").innerHTML = `
-        <div class="card">No history yet</div>
+        <div class="card">No transaction history</div>
       `;
       return;
     }
 
     el("transactionList").innerHTML = data.map(item => `
       <div class="card">
-        <strong>${item.type || "Activity"}</strong><br>
-        Credits: ${item.amount || 0}<br>
+        <strong>${item.type}</strong><br>
+        ${item.description || ""}<br>
+        Credits: ${item.amount}<br>
         <small>${new Date(item.date).toLocaleString()}</small>
       </div>
     `).join("");
@@ -150,18 +142,54 @@ async function loadTransactions(){
 }
 
 /* =========================
+   ADMIN DASHBOARD
+========================= */
+window.loadAdminDashboard = async function(){
+  if(!userToken || !el("adminDashboard")) return;
+
+  el("adminDashboard").innerHTML = `
+    <div class="card">Loading dashboard...</div>
+  `;
+
+  try{
+    const res = await fetch(`${API}/admin-dashboard`,{
+      headers:{
+        Authorization:`Bearer ${userToken}`
+      }
+    });
+
+    const data = await res.json();
+
+    if(data.error){
+      el("adminDashboard").innerHTML = `
+        <div class="card">${data.error}</div>
+      `;
+      return;
+    }
+
+    el("adminDashboard").innerHTML = `
+      <div class="card">
+        <h3>Admin Dashboard</h3>
+        <p>Total Users: ${data.totalUsers}</p>
+        <p>Total Revenue: $${data.totalRevenue}</p>
+        <p>Total Generations: ${data.totalGenerations}</p>
+        <p>Total Transactions: ${data.totalTransactions}</p>
+      </div>
+    `;
+
+  }catch{
+    el("adminDashboard").innerHTML = `
+      <div class="card">Dashboard unavailable</div>
+    `;
+  }
+};
+
+/* =========================
    AUTH
 ========================= */
 window.emailRegister = async ()=>{
-  const email = val("email");
-  const password = val("password");
-
-  if(!email || !password){
-    return showMessage("Please enter email and password");
-  }
-
   try{
-    await createUserWithEmailAndPassword(auth,email,password);
+    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
     showMessage("Account created");
   }catch(err){
     showMessage(err.message);
@@ -170,11 +198,7 @@ window.emailRegister = async ()=>{
 
 window.emailLogin = async ()=>{
   try{
-    await signInWithEmailAndPassword(
-      auth,
-      val("email"),
-      val("password")
-    );
+    await signInWithEmailAndPassword(auth, val("email"), val("password"));
   }catch(err){
     showMessage(err.message);
   }
@@ -182,7 +206,7 @@ window.emailLogin = async ()=>{
 
 window.googleLogin = async ()=>{
   try{
-    await signInWithPopup(auth,provider);
+    await signInWithPopup(auth, provider);
   }catch(err){
     showMessage(err.message);
   }
@@ -204,29 +228,12 @@ onAuthStateChanged(auth, async user=>{
   }else{
     userToken = null;
     setUserInfo("Guest Mode","∞");
-
-    if(el("transactionList")){
-      el("transactionList").innerHTML = "";
-    }
-
-    if(creditTimer){
-      clearInterval(creditTimer);
-    }
+    if(creditTimer) clearInterval(creditTimer);
   }
 });
 
 /* =========================
-   PAYMENT RETURN REFRESH
-========================= */
-window.addEventListener("focus", ()=>{
-  if(userToken){
-    loadUserProfile();
-    loadTransactions();
-  }
-});
-
-/* =========================
-   TABS
+   TAB SWITCH
 ========================= */
 window.switchTab = function(tab){
   document.querySelectorAll(".tab-section").forEach(section=>{
@@ -241,26 +248,6 @@ window.switchTab = function(tab){
 };
 
 /* =========================
-   TYPEWRITER
-========================= */
-function typeWriter(text){
-  el("result").innerHTML = `<div class="card" id="typedText"></div>`;
-
-  let i = 0;
-  const target = el("typedText");
-
-  function write(){
-    if(i < text.length){
-      target.innerHTML += text.charAt(i);
-      i++;
-      setTimeout(write,4);
-    }
-  }
-
-  write();
-}
-
-/* =========================
    LOADING
 ========================= */
 function showLoading(){
@@ -270,6 +257,24 @@ function showLoading(){
       Generating...
     </div>
   `;
+}
+
+/* =========================
+   TYPEWRITER
+========================= */
+function typeWriter(text){
+  el("result").innerHTML = `<div class="card" id="typedText"></div>`;
+  let i = 0;
+
+  function write(){
+    if(i < text.length){
+      el("typedText").innerHTML += text.charAt(i);
+      i++;
+      setTimeout(write, 4);
+    }
+  }
+
+  write();
 }
 
 /* =========================
@@ -288,15 +293,14 @@ async function waitForVideo(taskId){
           <video controls autoplay playsinline src="${data.video}"></video>
         </div>
       `;
+
       loadUserProfile();
       loadTransactions();
       return;
     }
   }
 
-  el("result").innerHTML = `
-    <div class="card">Video still processing...</div>
-  `;
+  el("result").innerHTML = `<div class="card">Video still processing...</div>`;
 }
 
 /* =========================
@@ -325,10 +329,7 @@ window.generateContent = async ()=>{
     const res = await fetch(`${API}/generate-${mode}`,{
       method:"POST",
       headers,
-      body:JSON.stringify({
-        prompt,
-        language
-      })
+      body:JSON.stringify({ prompt, language })
     });
 
     const data = await res.json();
@@ -385,7 +386,7 @@ window.acceptCookies = function(){
 /* =========================
    LOAD
 ========================= */
-window.addEventListener("load",()=>{
+window.addEventListener("load", ()=>{
   if(localStorage.getItem("cookieAccepted")==="yes"){
     if(el("cookieBanner")){
       el("cookieBanner").style.display = "none";
@@ -393,12 +394,21 @@ window.addEventListener("load",()=>{
   }
 
   setTimeout(()=>{
-    const splash = el("welcomeCard");
-    if(splash){
-      splash.style.opacity = "0";
+    if(el("welcomeCard")){
+      el("welcomeCard").style.opacity = "0";
       setTimeout(()=>{
-        splash.style.display = "none";
+        el("welcomeCard").style.display = "none";
       },700);
     }
   },3000);
+});
+
+/* =========================
+   PAYMENT RETURN REFRESH
+========================= */
+window.addEventListener("focus", ()=>{
+  if(userToken){
+    loadUserProfile();
+    loadTransactions();
+  }
 });
