@@ -27,8 +27,8 @@ const firebaseConfig = {
   measurementId: "G-F23DP2G9MW"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
-const auth = getAuth(firebaseApp);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 let userToken = null;
@@ -44,21 +44,14 @@ function val(id){
   return el(id)?.value.trim() || "";
 }
 
-function showMessage(message){
-  alert(message);
+function showMessage(msg){
+  alert(msg);
 }
 
 function setUserInfo(email, credits){
   if(el("userEmail")) el("userEmail").innerText = email;
   if(el("credits")) el("credits").innerText = credits;
 }
-
-/* =========================
-   BUY CREDITS
-========================= */
-window.buyCredits = function(){
-  window.open("https://ko-fi.com/articalneavy","_blank");
-};
 
 /* =========================
    LOAD PROFILE
@@ -86,7 +79,7 @@ async function loadUserProfile(){
 }
 
 /* =========================
-   REGISTER
+   AUTH
 ========================= */
 window.emailRegister = async ()=>{
   const email = val("email");
@@ -102,24 +95,14 @@ window.emailRegister = async ()=>{
     showMessage("Account created successfully");
 
   }catch(err){
-
     if(err.code === "auth/email-already-in-use"){
-      try{
-        await signInWithEmailAndPassword(auth,email,password);
-        showMessage("Logged into existing account");
-      }catch{
-        showMessage("This email already exists. Please login instead.");
-      }
-
+      showMessage("Email already exists. Please login instead.");
     }else{
       showMessage(err.message);
     }
   }
 };
 
-/* =========================
-   LOGIN
-========================= */
 window.emailLogin = async ()=>{
   try{
     await signInWithEmailAndPassword(
@@ -127,39 +110,25 @@ window.emailLogin = async ()=>{
       val("email"),
       val("password")
     );
-
     showMessage("Login successful");
-
-  }catch(err){
-    showMessage("Login failed: " + err.message);
-  }
-};
-
-/* =========================
-   GOOGLE LOGIN
-========================= */
-window.googleLogin = async ()=>{
-  try{
-    await signInWithPopup(auth, provider);
-    showMessage("Google login successful");
-
   }catch(err){
     showMessage(err.message);
   }
 };
 
-/* =========================
-   LOGOUT
-========================= */
-window.logout = async ()=>{
-  await signOut(auth);
-  showMessage("Logged out");
+window.googleLogin = async ()=>{
+  try{
+    await signInWithPopup(auth, provider);
+  }catch(err){
+    showMessage(err.message);
+  }
 };
 
-/* =========================
-   AUTH STATE
-========================= */
-onAuthStateChanged(auth, async user=>{
+window.logout = async ()=>{
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, async(user)=>{
   if(user){
     userToken = await user.getIdToken();
     loadUserProfile();
@@ -170,14 +139,31 @@ onAuthStateChanged(auth, async user=>{
 });
 
 /* =========================
+   BUY CREDITS
+========================= */
+window.buyCredits = ()=>{
+  window.open("https://ko-fi.com/articalneavy","_blank");
+};
+
+/* =========================
    TABS
 ========================= */
 window.switchTab = function(tab){
-  document.querySelectorAll(".section").forEach(section=>{
+  document.querySelectorAll(".tab-section").forEach(section=>{
     section.classList.remove("active");
   });
 
   el(tab)?.classList.add("active");
+};
+
+/* =========================
+   COOKIE
+========================= */
+window.acceptCookies = function(){
+  localStorage.setItem("cookieAccepted","yes");
+  if(el("cookieBanner")){
+    el("cookieBanner").style.display = "none";
+  }
 };
 
 /* =========================
@@ -194,7 +180,7 @@ function typeWriter(text){
     if(i < text.length){
       target.innerHTML += text.charAt(i);
       i++;
-      setTimeout(write,5);
+      setTimeout(write, 5);
     }
   }
 
@@ -204,17 +190,17 @@ function typeWriter(text){
 /* =========================
    GENERATE
 ========================= */
-el("generate").onclick = async ()=>{
+window.generateContent = async ()=>{
   const prompt = val("prompt");
   const mode = val("mode");
-  const language = val("language");
+  const result = el("result");
 
   if(!prompt){
-    showMessage("Enter a prompt first");
+    showMessage("Enter a prompt");
     return;
   }
 
-  el("result").innerHTML = `
+  result.innerHTML = `
     <div class="card">
       <div class="spinner"></div>
       Generating...
@@ -233,35 +219,32 @@ el("generate").onclick = async ()=>{
     const res = await fetch(`${API}/generate-${mode}`,{
       method:"POST",
       headers,
-      body:JSON.stringify({
-        prompt,
-        language
-      })
+      body: JSON.stringify({ prompt })
     });
 
     const data = await res.json();
 
     if(data.error){
-      el("result").innerHTML = `<div class="card">${data.error}</div>`;
+      result.innerHTML = `<div class="card">${data.error}</div>`;
       return;
     }
 
-    if(mode==="text"){
-      typeWriter(data?.data?.content || "No response");
+    if(mode === "text"){
+      typeWriter(data?.data?.content || "No output");
     }
 
-    if(mode==="image"){
-      el("result").innerHTML = `
+    if(mode === "image"){
+      result.innerHTML = `
         <div class="card">
-          <img src="${data?.data?.url}">
+          <img src="${data?.data?.url}" alt="Generated image">
         </div>
       `;
     }
 
-    if(mode==="video"){
-      el("result").innerHTML = `
+    if(mode === "video"){
+      result.innerHTML = `
         <div class="card">
-          <video controls autoplay playsinline src="${data.preview}"></video>
+          <video controls autoplay playsinline src="${data?.preview}"></video>
         </div>
       `;
     }
@@ -269,7 +252,7 @@ el("generate").onclick = async ()=>{
     loadUserProfile();
 
   }catch{
-    el("result").innerHTML = `
+    result.innerHTML = `
       <div class="card">
         Generation failed
       </div>
@@ -278,20 +261,12 @@ el("generate").onclick = async ()=>{
 };
 
 /* =========================
-   COOKIE
+   ON LOAD
 ========================= */
 window.addEventListener("load",()=>{
-  const banner = el("cookieBanner");
-  const btn = el("acceptCookies");
-
   if(localStorage.getItem("cookieAccepted")==="yes"){
-    if(banner) banner.style.display = "none";
-  }
-
-  if(btn){
-    btn.onclick = ()=>{
-      localStorage.setItem("cookieAccepted","yes");
-      banner.style.display = "none";
-    };
+    if(el("cookieBanner")){
+      el("cookieBanner").style.display = "none";
+    }
   }
 });
