@@ -76,6 +76,35 @@ body{
 }
 
 /* =========================
+   HOME CARDS
+========================= */
+.hero-card{
+  text-align:center;
+}
+
+.hero-card h2{
+  font-size:26px;
+  margin-bottom:12px;
+}
+
+.hero-card p{
+  font-size:16px;
+  opacity:0.9;
+}
+
+.feature-card h3,
+.trust-card h3{
+  margin-bottom:10px;
+  font-size:20px;
+}
+
+.feature-card p,
+.trust-card p{
+  opacity:0.88;
+  line-height:1.6;
+}
+
+/* =========================
    FORM ELEMENTS
 ========================= */
 select,
@@ -122,6 +151,11 @@ button:hover{
 .buy-btn{
   background:#ff5f5f;
   display:none;
+}
+
+#buyCreditsBtn{
+  width:min(92%,700px);
+  margin:20px auto;
 }
 
 /* =========================
@@ -190,12 +224,8 @@ button:hover{
 }
 
 @keyframes spin{
-  from{
-    transform:rotate(0deg);
-  }
-  to{
-    transform:rotate(360deg);
-  }
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
 }
 
 /* =========================
@@ -240,7 +270,7 @@ button:hover{
 }
 
 /* =========================
-   SMALL PHONES
+   MOBILE
 ========================= */
 @media(max-width:480px){
 
@@ -269,6 +299,15 @@ button:hover{
     font-size:15px;
   }
 
+  .hero-card h2{
+    font-size:22px;
+  }
+
+  .feature-card h3,
+  .trust-card h3{
+    font-size:18px;
+  }
+
   #cookieBanner{
     flex-direction:column;
     text-align:center;
@@ -283,10 +322,6 @@ button:hover{
    TABLETS
 ========================= */
 @media(min-width:768px){
-  body{
-    font-size:17px;
-  }
-
   .card{
     padding:22px;
   }
