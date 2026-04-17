@@ -1,5 +1,4 @@
 const API = "https://reelmindbackend-1.onrender.com";
-const ADMIN_EMAIL = "neavyartical@gmail.com";
 
 /* =========================
    FIREBASE IMPORT
@@ -19,13 +18,12 @@ import {
    FIREBASE CONFIG
 ========================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
-  authDomain: "reelmind-ai-f07cb.firebaseapp.com",
-  projectId: "reelmind-ai-f07cb",
-  storageBucket: "reelmind-ai-f07cb.firebasestorage.app",
-  messagingSenderId: "731354245603",
-  appId: "1:731354245603:web:1db1952458a8473082d8d6",
-  measurementId: "G-F23DP2G9MW"
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -48,8 +46,8 @@ function val(id) {
   return el(id)?.value?.trim() || "";
 }
 
-function showMessage(message) {
-  alert(message);
+function showMessage(msg) {
+  alert(msg);
 }
 
 function setLoading() {
@@ -61,21 +59,18 @@ function setLoading() {
   `;
 }
 
-function extractRequestedText(prompt) {
-  const match = prompt.match(/"(.*?)"/);
-  return match?.[1] || "";
+function renderText(text) {
+  latestDownloadUrl = "";
+  el("result").innerHTML = `
+    <div class="card">${text || "No response"}</div>
+  `;
 }
 
 function renderImage(url) {
   latestDownloadUrl = url || "";
-
-  const promptText = val("prompt");
-  const overlayText = extractRequestedText(promptText);
-
   el("result").innerHTML = `
-    <div class="card image-wrap">
+    <div class="card">
       <img src="${latestDownloadUrl}" alt="Generated image">
-      ${overlayText ? `<div class="dynamic-text">${overlayText}</div>` : ""}
     </div>
   `;
 }
@@ -89,15 +84,6 @@ function renderVideo(url) {
   `;
 }
 
-function renderText(text) {
-  latestDownloadUrl = "";
-  el("result").innerHTML = `
-    <div class="card">
-      ${text || "No response"}
-    </div>
-  `;
-}
-
 /* =========================
    PROMPT ENHANCER
 ========================= */
@@ -105,15 +91,15 @@ function enhancePrompt(prompt, mode) {
   let clean = prompt.trim();
 
   if (mode === "image") {
-    clean += ", ultra detailed, premium design, sharp focus, realistic lighting, do not generate text inside image";
+    clean += ", ultra detailed, accurate text, sharp focus, realistic lighting, premium quality";
   }
 
   if (mode === "video") {
-    clean += ", cinematic motion, smooth camera movement, realistic lighting, professional film quality";
+    clean += ", cinematic motion, smooth movement, realistic lighting, professional quality";
   }
 
   if (mode === "text") {
-    clean += ". Write professionally with correct spelling.";
+    clean += ". Write clearly with correct spelling and immersive detail.";
   }
 
   return clean;
@@ -124,9 +110,7 @@ function enhancePrompt(prompt, mode) {
 ========================= */
 window.addEventListener("load", () => {
   if (localStorage.getItem("cookieAccepted") === "yes") {
-    if (el("cookieBanner")) {
-      el("cookieBanner").style.display = "none";
-    }
+    if (el("cookieBanner")) el("cookieBanner").style.display = "none";
   }
 
   const pendingTask = localStorage.getItem("pendingVideoTask");
@@ -208,15 +192,13 @@ window.startVoiceInput = () => {
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";
+  recognition.start();
 
   recognition.onresult = (event) => {
-    const speech = event.results[0][0].transcript;
-    if (el("prompt")) el("prompt").value = speech;
+    if (el("prompt")) {
+      el("prompt").value = event.results[0][0].transcript;
+    }
   };
-
-  recognition.onerror = () => console.log("Voice unavailable");
-
-  recognition.start();
 };
 
 /* =========================
@@ -227,15 +209,15 @@ window.uploadMedia = () => {
   input.type = "file";
   input.accept = "image/*,video/*";
 
-  input.onchange = (event) => {
-    const file = event.target.files[0];
+  input.onchange = (e) => {
+    const file = e.target.files[0];
     if (!file) return;
 
     uploadedFile = file;
-    const reader = new FileReader();
 
-    reader.onload = (e) => {
-      latestDownloadUrl = e.target.result;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      latestDownloadUrl = event.target.result;
 
       if (file.type.startsWith("video")) {
         renderVideo(latestDownloadUrl);
@@ -261,9 +243,7 @@ window.uploadMedia = () => {
    DOWNLOAD
 ========================= */
 window.downloadResult = () => {
-  if (!latestDownloadUrl) {
-    return showMessage("Nothing to download");
-  }
+  if (!latestDownloadUrl) return showMessage("Nothing to download");
 
   const a = document.createElement("a");
   a.href = latestDownloadUrl;
@@ -295,9 +275,7 @@ async function checkVideoStatus(taskId) {
         renderText("Video generation failed.");
         generating = false;
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch {}
   }, 8000);
 }
 
@@ -305,7 +283,7 @@ async function checkVideoStatus(taskId) {
    GENERATE
 ========================= */
 window.generateContent = async () => {
-  if (generating) return showMessage("Please wait for current generation.");
+  if (generating) return showMessage("Please wait...");
 
   let prompt = val("prompt");
   const mode = val("mode");
@@ -359,10 +337,9 @@ window.generateContent = async () => {
     }
 
     if (mode === "video") {
-      const taskId = data?.taskId;
-      if (taskId) {
-        localStorage.setItem("pendingVideoTask", taskId);
-        checkVideoStatus(taskId);
+      if (data?.taskId) {
+        localStorage.setItem("pendingVideoTask", data.taskId);
+        checkVideoStatus(data.taskId);
       } else {
         renderVideo(data?.preview || data?.video);
         generating = false;
@@ -370,8 +347,7 @@ window.generateContent = async () => {
     }
 
     uploadedFile = null;
-  } catch (error) {
-    console.error(error);
+  } catch {
     renderText("Generation failed. Please try again.");
     generating = false;
   }
@@ -393,7 +369,5 @@ window.switchTab = (tab) => {
 ========================= */
 window.acceptCookies = () => {
   localStorage.setItem("cookieAccepted", "yes");
-  if (el("cookieBanner")) {
-    el("cookieBanner").style.display = "none";
-  }
+  if (el("cookieBanner")) el("cookieBanner").style.display = "none";
 };
