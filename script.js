@@ -33,62 +33,107 @@ const auth = getAuth(firebaseApp);
 const provider = new GoogleAuthProvider();
 
 let userToken = null;
+let latestDownloadUrl = "";
 
-function el(id){ return document.getElementById(id); }
-function val(id){ return el(id)?.value?.trim() || ""; }
+/* =========================
+   HELPERS
+========================= */
+function el(id){
+  return document.getElementById(id);
+}
+
+function val(id){
+  return el(id)?.value?.trim() || "";
+}
 
 function showMessage(msg){
   alert(msg);
 }
 
+/* =========================
+   SPLASH FIX
+========================= */
+window.addEventListener("load", () => {
+  if(localStorage.getItem("cookieAccepted") === "yes" && el("cookieBanner")){
+    el("cookieBanner").style.display = "none";
+  }
+
+  setTimeout(() => {
+    const splash = el("welcomeCard");
+
+    if(splash){
+      splash.style.opacity = "0";
+      splash.style.pointerEvents = "none";
+
+      setTimeout(() => {
+        splash.remove();
+      }, 700);
+    }
+  }, 2500);
+});
+
+/* =========================
+   PAYMENT
+========================= */
 window.buyCredits = function(){
-  window.open("https://ko-fi.com/articalneavy","_blank");
+  window.open("https://ko-fi.com/articalneavy", "_blank");
 };
 
 window.buyPlan = function(plan){
   const plans = {
-    starter:"https://ko-fi.com/articalneavy",
-    pro:"https://ko-fi.com/articalneavy",
-    unlimited:"https://ko-fi.com/articalneavy"
+    starter: "https://ko-fi.com/articalneavy",
+    pro: "https://ko-fi.com/articalneavy",
+    unlimited: "https://ko-fi.com/articalneavy"
   };
-  window.open(plans[plan],"_blank");
+
+  window.open(plans[plan], "_blank");
 };
 
-window.emailRegister = async ()=>{
+/* =========================
+   AUTH
+========================= */
+window.emailRegister = async () => {
   try{
-    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
+    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
+    showMessage("Account created");
   }catch(err){
     showMessage(err.message);
   }
 };
 
-window.emailLogin = async ()=>{
+window.emailLogin = async () => {
   try{
-    await signInWithEmailAndPassword(auth,val("email"),val("password"));
+    await signInWithEmailAndPassword(auth, val("email"), val("password"));
   }catch(err){
     showMessage(err.message);
   }
 };
 
-window.googleLogin = async ()=>{
+window.googleLogin = async () => {
   try{
-    await signInWithPopup(auth,provider);
+    await signInWithPopup(auth, provider);
   }catch(err){
     showMessage(err.message);
   }
 };
 
-window.logout = async ()=>{
+window.logout = async () => {
   await signOut(auth);
 };
 
-onAuthStateChanged(auth, async(user)=>{
+onAuthStateChanged(auth, async(user) => {
   if(user){
     userToken = await user.getIdToken();
-    el("userEmail").innerText = user.email;
+
+    if(el("userEmail")){
+      el("userEmail").innerText = user.email;
+    }
   }else{
     userToken = null;
-    el("userEmail").innerText = "Guest Mode";
+
+    if(el("userEmail")){
+      el("userEmail").innerText = "Guest Mode";
+    }
   }
 });
 
@@ -100,7 +145,7 @@ window.startVoiceInput = function(){
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if(!SpeechRecognition){
-    return alert("Voice recognition not supported");
+    return showMessage("Voice recognition not supported");
   }
 
   const recognition = new SpeechRecognition();
@@ -113,103 +158,149 @@ window.startVoiceInput = function(){
 };
 
 /* =========================
-   FILE UPLOAD
+   UPLOAD
 ========================= */
-window.triggerUpload = function(){
-  el("fileInput").click();
-};
+window.uploadMedia = function(){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*,video/*";
 
-window.handleUpload = function(event){
-  const file = event.target.files[0];
-  if(!file) return;
+  input.onchange = function(event){
+    const file = event.target.files[0];
+    if(!file) return;
 
-  const reader = new FileReader();
-  reader.onload = function(e){
-    el("result").innerHTML = `
-      <div class="card">
-        <img src="${e.target.result}">
-        <button class="download-btn" onclick="downloadResult()">Download</button>
-      </div>
-    `;
+    const reader = new FileReader();
+
+    reader.onload = function(e){
+      latestDownloadUrl = e.target.result;
+
+      if(file.type.startsWith("video")){
+        el("result").innerHTML = `
+          <div class="card">
+            <video controls src="${latestDownloadUrl}"></video>
+          </div>
+        `;
+      }else{
+        el("result").innerHTML = `
+          <div class="card">
+            <img src="${latestDownloadUrl}">
+          </div>
+        `;
+      }
+    };
+
+    reader.readAsDataURL(file);
   };
-  reader.readAsDataURL(file);
+
+  input.click();
 };
 
 /* =========================
    DOWNLOAD
 ========================= */
 window.downloadResult = function(){
-  const img = document.querySelector("#result img");
-  const video = document.querySelector("#result video");
-
-  const url = img?.src || video?.src;
-  if(!url) return alert("Nothing to download");
+  if(!latestDownloadUrl){
+    return showMessage("Nothing to download");
+  }
 
   const a = document.createElement("a");
-  a.href = url;
+  a.href = latestDownloadUrl;
   a.download = "reelmind-content";
+  document.body.appendChild(a);
   a.click();
+  a.remove();
 };
 
 /* =========================
    GENERATE
 ========================= */
-window.generateContent = async ()=>{
+window.generateContent = async () => {
   const prompt = val("prompt");
   const mode = val("mode");
   const language = val("language");
+  const location = val("location");
 
-  if(!prompt) return showMessage("Enter prompt");
+  if(!prompt){
+    return showMessage("Enter prompt");
+  }
 
-  el("result").innerHTML = `<div class="card"><div class="spinner"></div>Generating...</div>`;
+  el("result").innerHTML = `
+    <div class="card">
+      <div class="spinner"></div>
+      Generating...
+    </div>
+  `;
 
   try{
-    const res = await fetch(`${API}/generate-${mode}`,{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        Authorization:userToken ? `Bearer ${userToken}` : ""
+    const res = await fetch(`${API}/generate-${mode}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: userToken ? `Bearer ${userToken}` : ""
       },
-      body:JSON.stringify({prompt,language})
+      body: JSON.stringify({
+        prompt,
+        language,
+        location
+      })
     });
 
     const data = await res.json();
 
-    if(mode==="text"){
+    if(mode === "text"){
+      latestDownloadUrl = "";
       el("result").innerHTML = `
         <div class="card">
           ${data?.data?.content || "No response"}
-          <button class="download-btn" onclick="downloadResult()">Download</button>
-        </div>`;
+        </div>
+      `;
     }
 
-    if(mode==="image"){
+    if(mode === "image"){
+      latestDownloadUrl = data?.data?.url || "";
       el("result").innerHTML = `
         <div class="card">
-          <img src="${data?.data?.url}">
-          <button class="download-btn" onclick="downloadResult()">Download</button>
-        </div>`;
+          <img src="${latestDownloadUrl}">
+        </div>
+      `;
     }
 
-    if(mode==="video"){
+    if(mode === "video"){
+      latestDownloadUrl = data?.preview || data?.video || "";
       el("result").innerHTML = `
         <div class="card">
-          <video controls src="${data?.preview || data?.video}"></video>
-          <button class="download-btn" onclick="downloadResult()">Download</button>
-        </div>`;
+          <video controls src="${latestDownloadUrl}"></video>
+        </div>
+      `;
     }
 
   }catch{
-    el("result").innerHTML = `<div class="card">Generation failed</div>`;
+    el("result").innerHTML = `
+      <div class="card">
+        Generation failed
+      </div>
+    `;
   }
 };
 
+/* =========================
+   TABS
+========================= */
 window.switchTab = function(tab){
-  document.querySelectorAll(".tab-section").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".tab-section").forEach(section=>{
+    section.classList.remove("active");
+  });
+
   el(tab)?.classList.add("active");
 };
 
+/* =========================
+   COOKIE
+========================= */
 window.acceptCookies = function(){
-  localStorage.setItem("cookieAccepted","yes");
-  el("cookieBanner").style.display="none";
+  localStorage.setItem("cookieAccepted", "yes");
+
+  if(el("cookieBanner")){
+    el("cookieBanner").style.display = "none";
+  }
 };
