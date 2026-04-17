@@ -61,11 +61,21 @@ function setLoading() {
   `;
 }
 
+function extractRequestedText(prompt) {
+  const match = prompt.match(/"(.*?)"/);
+  return match?.[1] || "";
+}
+
 function renderImage(url) {
   latestDownloadUrl = url || "";
+
+  const promptText = val("prompt");
+  const overlayText = extractRequestedText(promptText);
+
   el("result").innerHTML = `
-    <div class="card">
+    <div class="card image-wrap">
       <img src="${latestDownloadUrl}" alt="Generated image">
+      ${overlayText ? `<div class="dynamic-text">${overlayText}</div>` : ""}
     </div>
   `;
 }
@@ -94,18 +104,16 @@ function renderText(text) {
 function enhancePrompt(prompt, mode) {
   let clean = prompt.trim();
 
-  clean = clean.replace(/reelmind/gi, "ReelMind");
-
   if (mode === "image") {
-    clean += ", ultra detailed, premium design, sharp focus, realistic lighting, accurate text spelling, professional branding";
+    clean += ", ultra detailed, premium design, sharp focus, realistic lighting, do not generate text inside image";
   }
 
   if (mode === "video") {
-    clean += ", cinematic motion, smooth camera movement, professional film lighting, ultra realistic";
+    clean += ", cinematic motion, smooth camera movement, realistic lighting, professional film quality";
   }
 
   if (mode === "text") {
-    clean += ". Write with correct spelling and immersive detail.";
+    clean += ". Write professionally with correct spelling.";
   }
 
   return clean;
@@ -128,14 +136,10 @@ window.addEventListener("load", () => {
 
   setTimeout(() => {
     const splash = el("welcomeCard");
-
     if (splash) {
       splash.style.opacity = "0";
       splash.style.pointerEvents = "none";
-
-      setTimeout(() => {
-        splash.remove();
-      }, 700);
+      setTimeout(() => splash.remove(), 700);
     }
   }, 1800);
 });
@@ -200,25 +204,17 @@ window.startVoiceInput = () => {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if (!SpeechRecognition) {
-    return;
-  }
+  if (!SpeechRecognition) return;
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
 
   recognition.onresult = (event) => {
     const speech = event.results[0][0].transcript;
-    if (el("prompt")) {
-      el("prompt").value = speech;
-    }
+    if (el("prompt")) el("prompt").value = speech;
   };
 
-  recognition.onerror = () => {
-    console.log("Voice input unavailable");
-  };
+  recognition.onerror = () => console.log("Voice unavailable");
 
   recognition.start();
 };
@@ -236,7 +232,6 @@ window.uploadMedia = () => {
     if (!file) return;
 
     uploadedFile = file;
-
     const reader = new FileReader();
 
     reader.onload = (e) => {
@@ -249,7 +244,7 @@ window.uploadMedia = () => {
           <div class="card">
             <img src="${latestDownloadUrl}">
             <p style="margin-top:12px;color:#00d9ff;">
-              Image uploaded — describe your edit then tap Generate
+              Image uploaded — describe the edit then tap Generate
             </p>
           </div>
         `;
@@ -300,7 +295,6 @@ async function checkVideoStatus(taskId) {
         renderText("Video generation failed.");
         generating = false;
       }
-
     } catch (error) {
       console.log(error);
     }
@@ -311,18 +305,14 @@ async function checkVideoStatus(taskId) {
    GENERATE
 ========================= */
 window.generateContent = async () => {
-  if (generating) {
-    return showMessage("Please wait for current generation.");
-  }
+  if (generating) return showMessage("Please wait for current generation.");
 
   let prompt = val("prompt");
   const mode = val("mode");
   const language = val("language");
   const location = val("location");
 
-  if (!prompt) {
-    return showMessage("Enter a prompt first");
-  }
+  if (!prompt) return showMessage("Enter a prompt first");
 
   generating = true;
   prompt = enhancePrompt(prompt, mode);
@@ -352,11 +342,7 @@ window.generateContent = async () => {
           "Content-Type": "application/json",
           Authorization: userToken ? `Bearer ${userToken}` : ""
         },
-        body: JSON.stringify({
-          prompt,
-          language,
-          location
-        })
+        body: JSON.stringify({ prompt, language, location })
       });
     }
 
@@ -374,7 +360,6 @@ window.generateContent = async () => {
 
     if (mode === "video") {
       const taskId = data?.taskId;
-
       if (taskId) {
         localStorage.setItem("pendingVideoTask", taskId);
         checkVideoStatus(taskId);
@@ -385,16 +370,9 @@ window.generateContent = async () => {
     }
 
     uploadedFile = null;
-
   } catch (error) {
     console.error(error);
-
-    el("result").innerHTML = `
-      <div class="card">
-        Generation failed. Please try again.
-      </div>
-    `;
-
+    renderText("Generation failed. Please try again.");
     generating = false;
   }
 };
@@ -415,7 +393,6 @@ window.switchTab = (tab) => {
 ========================= */
 window.acceptCookies = () => {
   localStorage.setItem("cookieAccepted", "yes");
-
   if (el("cookieBanner")) {
     el("cookieBanner").style.display = "none";
   }
