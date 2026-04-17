@@ -52,113 +52,128 @@ function showMessage(msg){
 }
 
 /* =========================
-   SPLASH
+   SPLASH SCREEN
 ========================= */
-window.addEventListener("load", ()=>{
-  setTimeout(()=>{
+window.addEventListener("load", () => {
+  if(localStorage.getItem("cookieAccepted") === "yes"){
+    if(el("cookieBanner")){
+      el("cookieBanner").style.display = "none";
+    }
+  }
+
+  setTimeout(() => {
     const splash = el("welcomeCard");
     if(splash){
       splash.style.opacity = "0";
       splash.style.pointerEvents = "none";
-      setTimeout(()=> splash.remove(),700);
-    }
-  },2200);
 
-  if(localStorage.getItem("cookieAccepted")==="yes"){
-    if(el("cookieBanner")){
-      el("cookieBanner").style.display="none";
+      setTimeout(() => {
+        splash.remove();
+      }, 700);
     }
-  }
+  }, 2200);
 });
 
 /* =========================
    AUTH
 ========================= */
-window.emailRegister = async ()=>{
+window.emailRegister = async () => {
   try{
-    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
+    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
     showMessage("Account created successfully");
   }catch(err){
     showMessage(err.message);
   }
 };
 
-window.emailLogin = async ()=>{
+window.emailLogin = async () => {
   try{
-    await signInWithEmailAndPassword(auth,val("email"),val("password"));
+    await signInWithEmailAndPassword(auth, val("email"), val("password"));
   }catch(err){
     showMessage(err.message);
   }
 };
 
-window.googleLogin = async ()=>{
+window.googleLogin = async () => {
   try{
-    await signInWithPopup(auth,provider);
+    await signInWithPopup(auth, provider);
   }catch(err){
     showMessage(err.message);
   }
 };
 
-window.logout = async ()=>{
+window.logout = async () => {
   await signOut(auth);
 };
 
-onAuthStateChanged(auth, async(user)=>{
+onAuthStateChanged(auth, async (user) => {
   if(user){
     userToken = await user.getIdToken();
-    if(el("userEmail")) el("userEmail").innerText = user.email;
+
+    if(el("userEmail")){
+      el("userEmail").innerText = user.email;
+    }
   }else{
     userToken = null;
-    if(el("userEmail")) el("userEmail").innerText = "Guest Mode";
+
+    if(el("userEmail")){
+      el("userEmail").innerText = "Guest Mode";
+    }
   }
 });
 
 /* =========================
-   PAYMENT
+   PAYMENTS
 ========================= */
-window.buyCredits = ()=>{
-  window.open("https://ko-fi.com/articalneavy","_blank");
+window.buyCredits = () => {
+  window.open("https://ko-fi.com/articalneavy", "_blank");
 };
 
-window.buyPlan = ()=>{
-  window.open("https://ko-fi.com/articalneavy","_blank");
+window.buyPlan = (plan) => {
+  window.open("https://ko-fi.com/articalneavy", "_blank");
 };
 
 /* =========================
    VOICE INPUT
 ========================= */
-window.startVoiceInput = ()=>{
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+window.startVoiceInput = () => {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if(!SpeechRecognition){
-    return showMessage("Voice recognition not supported");
+    return showMessage("Voice recognition not supported on this device");
   }
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";
   recognition.start();
 
-  recognition.onresult = (event)=>{
+  recognition.onresult = (event) => {
     el("prompt").value = event.results[0][0].transcript;
+  };
+
+  recognition.onerror = () => {
+    showMessage("Voice input failed");
   };
 };
 
 /* =========================
-   IMAGE / VIDEO UPLOAD
+   MEDIA UPLOAD
 ========================= */
-window.uploadMedia = ()=>{
+window.uploadMedia = () => {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,video/*";
 
-  input.onchange = (event)=>{
+  input.onchange = (event) => {
     const file = event.target.files[0];
     if(!file) return;
 
     uploadedFile = file;
 
     const reader = new FileReader();
-    reader.onload = (e)=>{
+
+    reader.onload = (e) => {
       latestDownloadUrl = e.target.result;
 
       if(file.type.startsWith("video")){
@@ -171,7 +186,9 @@ window.uploadMedia = ()=>{
         el("result").innerHTML = `
           <div class="card">
             <img src="${latestDownloadUrl}">
-            <p style="margin-top:10px;color:#00d9ff;">Image ready for AI editing</p>
+            <p style="margin-top:12px;color:#00d9ff;">
+              Image uploaded — describe how you want it edited.
+            </p>
           </div>
         `;
       }
@@ -186,7 +203,7 @@ window.uploadMedia = ()=>{
 /* =========================
    DOWNLOAD
 ========================= */
-window.downloadResult = ()=>{
+window.downloadResult = () => {
   if(!latestDownloadUrl){
     return showMessage("Nothing to download");
   }
@@ -202,14 +219,14 @@ window.downloadResult = ()=>{
 /* =========================
    GENERATE
 ========================= */
-window.generateContent = async ()=>{
+window.generateContent = async () => {
   const prompt = val("prompt");
   const mode = val("mode");
   const language = val("language");
   const location = val("location");
 
   if(!prompt){
-    return showMessage("Enter a prompt");
+    return showMessage("Enter a prompt first");
   }
 
   el("result").innerHTML = `
@@ -229,19 +246,19 @@ window.generateContent = async ()=>{
       formData.append("language", language);
       formData.append("location", location);
 
-      response = await fetch(`${API}/edit-image`,{
-        method:"POST",
-        headers:{
+      response = await fetch(`${API}/edit-image`, {
+        method: "POST",
+        headers: {
           Authorization: userToken ? `Bearer ${userToken}` : ""
         },
         body: formData
       });
 
     }else{
-      response = await fetch(`${API}/generate-${mode}`,{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
+      response = await fetch(`${API}/generate-${mode}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
           Authorization: userToken ? `Bearer ${userToken}` : ""
         },
         body: JSON.stringify({
@@ -257,7 +274,9 @@ window.generateContent = async ()=>{
     if(mode === "text"){
       latestDownloadUrl = "";
       el("result").innerHTML = `
-        <div class="card">${data?.data?.content || "No response"}</div>
+        <div class="card">
+          ${data?.data?.content || "No response"}
+        </div>
       `;
     }
 
@@ -279,10 +298,15 @@ window.generateContent = async ()=>{
       `;
     }
 
+    uploadedFile = null;
+
   }catch(error){
     console.error(error);
+
     el("result").innerHTML = `
-      <div class="card">Generation failed</div>
+      <div class="card">
+        Generation failed. Please try again.
+      </div>
     `;
   }
 };
@@ -290,8 +314,8 @@ window.generateContent = async ()=>{
 /* =========================
    TABS
 ========================= */
-window.switchTab = (tab)=>{
-  document.querySelectorAll(".tab-section").forEach(section=>{
+window.switchTab = (tab) => {
+  document.querySelectorAll(".tab-section").forEach(section => {
     section.classList.remove("active");
   });
 
@@ -301,9 +325,10 @@ window.switchTab = (tab)=>{
 /* =========================
    COOKIE
 ========================= */
-window.acceptCookies = ()=>{
-  localStorage.setItem("cookieAccepted","yes");
+window.acceptCookies = () => {
+  localStorage.setItem("cookieAccepted", "yes");
+
   if(el("cookieBanner")){
-    el("cookieBanner").style.display="none";
+    el("cookieBanner").style.display = "none";
   }
 };
