@@ -35,6 +35,7 @@ const provider = new GoogleAuthProvider();
 let userToken = null;
 let latestDownloadUrl = "";
 let uploadedFile = null;
+let generating = false;
 
 /* =========================
    HELPERS
@@ -51,17 +52,11 @@ function showMessage(message) {
   alert(message);
 }
 
-function safeText(text) {
-  return String(text || "")
-    .replace(/Reelmind/gi, "ReelMind")
-    .replace(/reelmind/gi, "ReelMind");
-}
-
 function setLoading() {
   el("result").innerHTML = `
     <div class="card">
       <div class="spinner"></div>
-      Generating your content...
+      Generating...
     </div>
   `;
 }
@@ -70,7 +65,7 @@ function renderImage(url) {
   latestDownloadUrl = url || "";
   el("result").innerHTML = `
     <div class="card">
-      <img src="${latestDownloadUrl}" alt="Generated Image">
+      <img src="${latestDownloadUrl}" alt="Generated image">
     </div>
   `;
 }
@@ -88,9 +83,32 @@ function renderText(text) {
   latestDownloadUrl = "";
   el("result").innerHTML = `
     <div class="card">
-      ${safeText(text || "No response")}
+      ${text || "No response"}
     </div>
   `;
+}
+
+/* =========================
+   SMART PROMPT FIX
+========================= */
+function enhancePrompt(prompt, mode) {
+  let clean = prompt.trim();
+
+  clean = clean.replace(/reelmind/gi, "ReelMind");
+
+  if (mode === "image") {
+    clean += ", ultra detailed, professional composition, accurate text spelling, sharp typography, realistic lighting, premium design";
+  }
+
+  if (mode === "video") {
+    clean += ", cinematic motion, realistic camera movement, ultra realistic, professional film quality";
+  }
+
+  if (mode === "text") {
+    clean += ". Write professionally with correct spelling and immersive detail.";
+  }
+
+  return clean;
 }
 
 /* =========================
@@ -103,14 +121,16 @@ window.addEventListener("load", () => {
     }
   }
 
-  getLocation();
-
   setTimeout(() => {
     const splash = el("welcomeCard");
+
     if (splash) {
       splash.style.opacity = "0";
       splash.style.pointerEvents = "none";
-      setTimeout(() => splash.remove(), 700);
+
+      setTimeout(() => {
+        splash.remove();
+      }, 700);
     }
   }, 1800);
 });
@@ -150,88 +170,12 @@ window.logout = async () => {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     userToken = await user.getIdToken();
-
-    if (el("userEmail")) {
-      el("userEmail").innerText = user.email;
-    }
-
-    loadProfile();
-    loadTransactions();
+    if (el("userEmail")) el("userEmail").innerText = user.email;
   } else {
     userToken = null;
-
-    if (el("userEmail")) {
-      el("userEmail").innerText = "Guest Mode";
-    }
-
-    if (el("credits")) {
-      el("credits").innerText = "∞";
-    }
+    if (el("userEmail")) el("userEmail").innerText = "Guest Mode";
   }
 });
-
-/* =========================
-   PROFILE
-========================= */
-async function loadProfile() {
-  try {
-    const response = await fetch(`${API}/me`, {
-      headers: {
-        Authorization: userToken ? `Bearer ${userToken}` : ""
-      }
-    });
-
-    const data = await response.json();
-
-    if (el("credits")) {
-      el("credits").innerText = data.credits ?? "∞";
-    }
-
-    if (el("userLocation")) {
-      el("userLocation").innerText = `${data.city || ""} ${data.country || ""}`;
-    }
-  } catch {}
-}
-
-/* =========================
-   TRANSACTIONS
-========================= */
-async function loadTransactions() {
-  try {
-    const response = await fetch(`${API}/transactions`, {
-      headers: {
-        Authorization: userToken ? `Bearer ${userToken}` : ""
-      }
-    });
-
-    const data = await response.json();
-
-    if (!el("transactionList")) return;
-
-    el("transactionList").innerHTML = data.map(item => `
-      <div class="card">
-        <strong>${item.type}</strong><br>
-        ${item.description}<br>
-        ${item.amount} credits
-      </div>
-    `).join("");
-  } catch {}
-}
-
-/* =========================
-   LOCATION
-========================= */
-function getLocation() {
-  if (!navigator.geolocation) return;
-
-  navigator.geolocation.getCurrentPosition((position) => {
-    const coords = `${position.coords.latitude}, ${position.coords.longitude}`;
-
-    if (el("location") && !el("location").value) {
-      el("location").value = coords;
-    }
-  });
-}
 
 /* =========================
    PAYMENTS
@@ -262,10 +206,6 @@ window.startVoiceInput = () => {
   recognition.onresult = (event) => {
     el("prompt").value = event.results[0][0].transcript;
   };
-
-  recognition.onerror = () => {
-    showMessage("Voice input failed");
-  };
 };
 
 /* =========================
@@ -294,7 +234,7 @@ window.uploadMedia = () => {
           <div class="card">
             <img src="${latestDownloadUrl}">
             <p style="margin-top:12px;color:#00d9ff;">
-              Image uploaded — describe exactly how you want ReelMind AI to transform it.
+              Image uploaded — now describe the edit and tap Generate
             </p>
           </div>
         `;
@@ -327,6 +267,10 @@ window.downloadResult = () => {
    GENERATE
 ========================= */
 window.generateContent = async () => {
+  if (generating) {
+    return showMessage("Please wait for current generation to finish.");
+  }
+
   let prompt = val("prompt");
   const mode = val("mode");
   const language = val("language");
@@ -336,7 +280,8 @@ window.generateContent = async () => {
     return showMessage("Enter a prompt first");
   }
 
-  prompt = `Create a highly detailed professional ${mode} exactly matching this request for ReelMind AI: ${prompt}. Keep all spelling correct and preserve the name ReelMind exactly.`;
+  generating = true;
+  prompt = enhancePrompt(prompt, mode);
 
   setLoading();
 
@@ -374,30 +319,22 @@ window.generateContent = async () => {
 
     const data = await response.json();
 
-    if (mode === "text") {
-      renderText(data?.data?.content);
-    }
-
-    if (mode === "image") {
-      renderImage(data?.data?.url || data?.url);
-    }
-
-    if (mode === "video") {
-      renderVideo(data?.preview || data?.video);
-    }
+    if (mode === "text") renderText(data?.data?.content);
+    if (mode === "image") renderImage(data?.data?.url || data?.url);
+    if (mode === "video") renderVideo(data?.preview || data?.video);
 
     uploadedFile = null;
-    loadProfile();
 
   } catch (error) {
     console.error(error);
-
     el("result").innerHTML = `
       <div class="card">
         Generation failed. Please try again.
       </div>
     `;
   }
+
+  generating = false;
 };
 
 /* =========================
