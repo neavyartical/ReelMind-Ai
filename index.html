@@ -24,7 +24,7 @@
     <h1>ReelMind AI</h1>
     <p>
       Every invention begins as a thought.<br>
-      ReelMind AI was created to transform imagination into moving reality.
+      ReelMind AI transforms imagination into reality.
     </p>
   </div>
 
@@ -53,19 +53,19 @@
   <section id="home" class="tab-section active container">
     <div class="hero-card">
       <h2>Create World-Class AI Content</h2>
-      <p>Generate cinematic videos, images and stories from anywhere in the world.</p>
+      <p>Generate cinematic videos, images and stories from pure imagination.</p>
     </div>
 
     <div class="card">🎬 AI Video Generator</div>
     <div class="card">🖼️ AI Image Generator</div>
     <div class="card">📖 Story Creator</div>
-    <div class="card">🌍 Location Based Scenes</div>
+    <div class="card">🌍 Global Scene Creation</div>
     <div class="card">⚡ Cloud Rendering</div>
   </section>
 
   <!-- CREATE -->
   <section id="create" class="tab-section container">
-    <textarea id="prompt" placeholder="Describe what you want to create..."></textarea>
+    <textarea id="prompt" placeholder="Describe exactly what you want to create..."></textarea>
 
     <select id="mode">
       <option value="text">Story</option>
@@ -73,19 +73,29 @@
       <option value="video">Video</option>
     </select>
 
+    <select id="style">
+      <option value="cinematic">Cinematic</option>
+      <option value="realistic">Realistic</option>
+      <option value="anime">Anime</option>
+      <option value="fantasy">Fantasy</option>
+      <option value="3d">3D Render</option>
+    </select>
+
+    <select id="quality">
+      <option value="standard">Standard</option>
+      <option value="high">High Quality</option>
+      <option value="ultra">Ultra Quality</option>
+    </select>
+
     <select id="language">
       <option value="English">English</option>
       <option value="Spanish">Spanish</option>
       <option value="French">French</option>
       <option value="Arabic">Arabic</option>
-      <option value="Portuguese">Portuguese</option>
       <option value="German">German</option>
-      <option value="Japanese">Japanese</option>
-      <option value="Korean">Korean</option>
-      <option value="Swahili">Swahili</option>
     </select>
 
-    <input id="location" type="text" placeholder="Enter city or country (optional)">
+    <input id="location" type="text" placeholder="City or country (optional)">
 
     <button class="action" onclick="generateContent()">Generate</button>
 
@@ -108,47 +118,22 @@
   <section id="settings" class="tab-section container">
     <div class="info-page">
       <h3>About</h3>
-      <p>ReelMind AI helps creators turn imagination into cinematic content from any mobile device worldwide.</p>
+      <p>ReelMind AI creates professional AI content from simple prompts.</p>
     </div>
 
     <div class="info-page">
       <h3>Privacy Policy</h3>
-      <p>Your data stays protected through secure authentication and encrypted cloud systems.</p>
+      <p>Your data stays protected through secure authentication.</p>
     </div>
 
     <div class="info-page">
       <h3>Terms of Service</h3>
-      <p>Users must not create harmful or unlawful content using the platform.</p>
+      <p>Users must not generate unlawful or harmful content.</p>
     </div>
 
     <div class="info-page">
       <h3>Contact</h3>
       <p>Email: neavyartical@gmail.com</p>
-    </div>
-
-    <div class="info-page">
-      <h3>Payment Plans</h3>
-
-      <div class="plan-card">
-        <h4>Starter</h4>
-        <p>50 Credits</p>
-        <strong>$5</strong>
-        <button class="action" onclick="buyPlan('starter')">Buy Starter</button>
-      </div>
-
-      <div class="plan-card">
-        <h4>Pro</h4>
-        <p>150 Credits</p>
-        <strong>$12</strong>
-        <button class="action" onclick="buyPlan('pro')">Buy Pro</button>
-      </div>
-
-      <div class="plan-card">
-        <h4>Unlimited</h4>
-        <p>Unlimited Monthly Access</p>
-        <strong>$25</strong>
-        <button class="action" onclick="buyPlan('unlimited')">Go Unlimited</button>
-      </div>
     </div>
 
     <div class="info-page">
@@ -164,7 +149,7 @@
 
   <!-- COOKIE -->
   <div id="cookieBanner" class="cookie-banner">
-    <span>ReelMind AI uses cookies to improve security and user experience.</span>
+    <span>ReelMind AI uses cookies to improve your experience.</span>
     <button onclick="acceptCookies()">Accept</button>
   </div>
 
@@ -175,4 +160,4 @@
 
   <script type="module" src="script.js"></script>
 </body>
-    </html>
+</html>
