@@ -28,12 +28,13 @@ const firebaseConfig = {
   measurementId: "G-F23DP2G9MW"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
-const auth = getAuth(firebaseApp);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 let userToken = null;
 let latestDownloadUrl = "";
+let uploadedFile = null;
 
 /* =========================
    HELPERS
@@ -51,98 +52,83 @@ function showMessage(msg){
 }
 
 /* =========================
-   SPLASH FIX
+   SPLASH
 ========================= */
-window.addEventListener("load", () => {
-  if(localStorage.getItem("cookieAccepted") === "yes" && el("cookieBanner")){
-    el("cookieBanner").style.display = "none";
-  }
-
-  setTimeout(() => {
+window.addEventListener("load", ()=>{
+  setTimeout(()=>{
     const splash = el("welcomeCard");
-
     if(splash){
       splash.style.opacity = "0";
       splash.style.pointerEvents = "none";
-
-      setTimeout(() => {
-        splash.remove();
-      }, 700);
+      setTimeout(()=> splash.remove(),700);
     }
-  }, 2500);
+  },2200);
+
+  if(localStorage.getItem("cookieAccepted")==="yes"){
+    if(el("cookieBanner")){
+      el("cookieBanner").style.display="none";
+    }
+  }
+});
+
+/* =========================
+   AUTH
+========================= */
+window.emailRegister = async ()=>{
+  try{
+    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
+    showMessage("Account created successfully");
+  }catch(err){
+    showMessage(err.message);
+  }
+};
+
+window.emailLogin = async ()=>{
+  try{
+    await signInWithEmailAndPassword(auth,val("email"),val("password"));
+  }catch(err){
+    showMessage(err.message);
+  }
+};
+
+window.googleLogin = async ()=>{
+  try{
+    await signInWithPopup(auth,provider);
+  }catch(err){
+    showMessage(err.message);
+  }
+};
+
+window.logout = async ()=>{
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, async(user)=>{
+  if(user){
+    userToken = await user.getIdToken();
+    if(el("userEmail")) el("userEmail").innerText = user.email;
+  }else{
+    userToken = null;
+    if(el("userEmail")) el("userEmail").innerText = "Guest Mode";
+  }
 });
 
 /* =========================
    PAYMENT
 ========================= */
-window.buyCredits = function(){
-  window.open("https://ko-fi.com/articalneavy", "_blank");
+window.buyCredits = ()=>{
+  window.open("https://ko-fi.com/articalneavy","_blank");
 };
 
-window.buyPlan = function(plan){
-  const plans = {
-    starter: "https://ko-fi.com/articalneavy",
-    pro: "https://ko-fi.com/articalneavy",
-    unlimited: "https://ko-fi.com/articalneavy"
-  };
-
-  window.open(plans[plan], "_blank");
+window.buyPlan = ()=>{
+  window.open("https://ko-fi.com/articalneavy","_blank");
 };
-
-/* =========================
-   AUTH
-========================= */
-window.emailRegister = async () => {
-  try{
-    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-    showMessage("Account created");
-  }catch(err){
-    showMessage(err.message);
-  }
-};
-
-window.emailLogin = async () => {
-  try{
-    await signInWithEmailAndPassword(auth, val("email"), val("password"));
-  }catch(err){
-    showMessage(err.message);
-  }
-};
-
-window.googleLogin = async () => {
-  try{
-    await signInWithPopup(auth, provider);
-  }catch(err){
-    showMessage(err.message);
-  }
-};
-
-window.logout = async () => {
-  await signOut(auth);
-};
-
-onAuthStateChanged(auth, async(user) => {
-  if(user){
-    userToken = await user.getIdToken();
-
-    if(el("userEmail")){
-      el("userEmail").innerText = user.email;
-    }
-  }else{
-    userToken = null;
-
-    if(el("userEmail")){
-      el("userEmail").innerText = "Guest Mode";
-    }
-  }
-});
 
 /* =========================
    VOICE INPUT
 ========================= */
-window.startVoiceInput = function(){
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+window.startVoiceInput = ()=>{
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if(!SpeechRecognition){
     return showMessage("Voice recognition not supported");
@@ -152,26 +138,27 @@ window.startVoiceInput = function(){
   recognition.lang = "en-US";
   recognition.start();
 
-  recognition.onresult = function(event){
+  recognition.onresult = (event)=>{
     el("prompt").value = event.results[0][0].transcript;
   };
 };
 
 /* =========================
-   UPLOAD
+   IMAGE / VIDEO UPLOAD
 ========================= */
-window.uploadMedia = function(){
+window.uploadMedia = ()=>{
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,video/*";
 
-  input.onchange = function(event){
+  input.onchange = (event)=>{
     const file = event.target.files[0];
     if(!file) return;
 
-    const reader = new FileReader();
+    uploadedFile = file;
 
-    reader.onload = function(e){
+    const reader = new FileReader();
+    reader.onload = (e)=>{
       latestDownloadUrl = e.target.result;
 
       if(file.type.startsWith("video")){
@@ -184,6 +171,7 @@ window.uploadMedia = function(){
         el("result").innerHTML = `
           <div class="card">
             <img src="${latestDownloadUrl}">
+            <p style="margin-top:10px;color:#00d9ff;">Image ready for AI editing</p>
           </div>
         `;
       }
@@ -198,14 +186,14 @@ window.uploadMedia = function(){
 /* =========================
    DOWNLOAD
 ========================= */
-window.downloadResult = function(){
+window.downloadResult = ()=>{
   if(!latestDownloadUrl){
     return showMessage("Nothing to download");
   }
 
   const a = document.createElement("a");
   a.href = latestDownloadUrl;
-  a.download = "reelmind-content";
+  a.download = "reelmind-result";
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -214,14 +202,14 @@ window.downloadResult = function(){
 /* =========================
    GENERATE
 ========================= */
-window.generateContent = async () => {
+window.generateContent = async ()=>{
   const prompt = val("prompt");
   const mode = val("mode");
   const language = val("language");
   const location = val("location");
 
   if(!prompt){
-    return showMessage("Enter prompt");
+    return showMessage("Enter a prompt");
   }
 
   el("result").innerHTML = `
@@ -232,32 +220,49 @@ window.generateContent = async () => {
   `;
 
   try{
-    const res = await fetch(`${API}/generate-${mode}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: userToken ? `Bearer ${userToken}` : ""
-      },
-      body: JSON.stringify({
-        prompt,
-        language,
-        location
-      })
-    });
+    let response;
 
-    const data = await res.json();
+    if(uploadedFile && mode === "image"){
+      const formData = new FormData();
+      formData.append("image", uploadedFile);
+      formData.append("prompt", prompt);
+      formData.append("language", language);
+      formData.append("location", location);
+
+      response = await fetch(`${API}/edit-image`,{
+        method:"POST",
+        headers:{
+          Authorization: userToken ? `Bearer ${userToken}` : ""
+        },
+        body: formData
+      });
+
+    }else{
+      response = await fetch(`${API}/generate-${mode}`,{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          Authorization: userToken ? `Bearer ${userToken}` : ""
+        },
+        body: JSON.stringify({
+          prompt,
+          language,
+          location
+        })
+      });
+    }
+
+    const data = await response.json();
 
     if(mode === "text"){
       latestDownloadUrl = "";
       el("result").innerHTML = `
-        <div class="card">
-          ${data?.data?.content || "No response"}
-        </div>
+        <div class="card">${data?.data?.content || "No response"}</div>
       `;
     }
 
     if(mode === "image"){
-      latestDownloadUrl = data?.data?.url || "";
+      latestDownloadUrl = data?.data?.url || data?.url || "";
       el("result").innerHTML = `
         <div class="card">
           <img src="${latestDownloadUrl}">
@@ -274,11 +279,10 @@ window.generateContent = async () => {
       `;
     }
 
-  }catch{
+  }catch(error){
+    console.error(error);
     el("result").innerHTML = `
-      <div class="card">
-        Generation failed
-      </div>
+      <div class="card">Generation failed</div>
     `;
   }
 };
@@ -286,7 +290,7 @@ window.generateContent = async () => {
 /* =========================
    TABS
 ========================= */
-window.switchTab = function(tab){
+window.switchTab = (tab)=>{
   document.querySelectorAll(".tab-section").forEach(section=>{
     section.classList.remove("active");
   });
@@ -297,10 +301,9 @@ window.switchTab = function(tab){
 /* =========================
    COOKIE
 ========================= */
-window.acceptCookies = function(){
-  localStorage.setItem("cookieAccepted", "yes");
-
+window.acceptCookies = ()=>{
+  localStorage.setItem("cookieAccepted","yes");
   if(el("cookieBanner")){
-    el("cookieBanner").style.display = "none";
+    el("cookieBanner").style.display="none";
   }
 };
