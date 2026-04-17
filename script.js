@@ -40,19 +40,19 @@ let generating = false;
 /* =========================
    HELPERS
 ========================= */
-function el(id){
+function el(id) {
   return document.getElementById(id);
 }
 
-function val(id){
+function val(id) {
   return el(id)?.value?.trim() || "";
 }
 
-function showMessage(message){
+function showMessage(message) {
   alert(message);
 }
 
-function setLoading(){
+function setLoading() {
   el("result").innerHTML = `
     <div class="card">
       <div class="spinner"></div>
@@ -61,7 +61,7 @@ function setLoading(){
   `;
 }
 
-function renderImage(url){
+function renderImage(url) {
   latestDownloadUrl = url || "";
   el("result").innerHTML = `
     <div class="card">
@@ -70,7 +70,7 @@ function renderImage(url){
   `;
 }
 
-function renderVideo(url){
+function renderVideo(url) {
   latestDownloadUrl = url || "";
   el("result").innerHTML = `
     <div class="card">
@@ -79,7 +79,7 @@ function renderVideo(url){
   `;
 }
 
-function renderText(text){
+function renderText(text) {
   latestDownloadUrl = "";
   el("result").innerHTML = `
     <div class="card">
@@ -91,21 +91,21 @@ function renderText(text){
 /* =========================
    PROMPT ENHANCER
 ========================= */
-function enhancePrompt(prompt, mode){
+function enhancePrompt(prompt, mode) {
   let clean = prompt.trim();
 
   clean = clean.replace(/reelmind/gi, "ReelMind");
 
-  if(mode === "image"){
-    clean += ", ultra detailed, premium design, sharp focus, realistic lighting, accurate text spelling, professional branding, world-class logo design";
+  if (mode === "image") {
+    clean += ", ultra detailed, premium design, sharp focus, realistic lighting, accurate text spelling, professional branding";
   }
 
-  if(mode === "video"){
+  if (mode === "video") {
     clean += ", cinematic motion, smooth camera movement, professional film lighting, ultra realistic";
   }
 
-  if(mode === "text"){
-    clean += ". Write with correct spelling, professionalism and immersive detail.";
+  if (mode === "text") {
+    clean += ". Write with correct spelling and immersive detail.";
   }
 
   return clean;
@@ -114,131 +114,142 @@ function enhancePrompt(prompt, mode){
 /* =========================
    SPLASH
 ========================= */
-window.addEventListener("load", ()=>{
-  if(localStorage.getItem("cookieAccepted") === "yes"){
-    if(el("cookieBanner")){
+window.addEventListener("load", () => {
+  if (localStorage.getItem("cookieAccepted") === "yes") {
+    if (el("cookieBanner")) {
       el("cookieBanner").style.display = "none";
     }
   }
 
-  setTimeout(()=>{
+  const pendingTask = localStorage.getItem("pendingVideoTask");
+  if (pendingTask) {
+    checkVideoStatus(pendingTask);
+  }
+
+  setTimeout(() => {
     const splash = el("welcomeCard");
 
-    if(splash){
+    if (splash) {
       splash.style.opacity = "0";
       splash.style.pointerEvents = "none";
 
-      setTimeout(()=>{
+      setTimeout(() => {
         splash.remove();
-      },700);
+      }, 700);
     }
-  },1800);
+  }, 1800);
 });
 
 /* =========================
    AUTH
 ========================= */
-window.emailRegister = async ()=>{
-  try{
+window.emailRegister = async () => {
+  try {
     await createUserWithEmailAndPassword(auth, val("email"), val("password"));
     showMessage("Account created successfully");
-  }catch(error){
+  } catch (error) {
     showMessage(error.message);
   }
 };
 
-window.emailLogin = async ()=>{
-  try{
+window.emailLogin = async () => {
+  try {
     await signInWithEmailAndPassword(auth, val("email"), val("password"));
-  }catch(error){
+  } catch (error) {
     showMessage(error.message);
   }
 };
 
-window.googleLogin = async ()=>{
-  try{
+window.googleLogin = async () => {
+  try {
     await signInWithPopup(auth, provider);
-  }catch(error){
+  } catch (error) {
     showMessage(error.message);
   }
 };
 
-window.logout = async ()=>{
+window.logout = async () => {
   await signOut(auth);
 };
 
-onAuthStateChanged(auth, async(user)=>{
-  if(user){
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
     userToken = await user.getIdToken();
-    if(el("userEmail")) el("userEmail").innerText = user.email;
-  }else{
+    if (el("userEmail")) el("userEmail").innerText = user.email;
+  } else {
     userToken = null;
-    if(el("userEmail")) el("userEmail").innerText = "";
+    if (el("userEmail")) el("userEmail").innerText = "";
   }
 });
 
 /* =========================
    PAYMENTS
 ========================= */
-window.buyCredits = ()=>{
-  window.open("https://ko-fi.com/articalneavy","_blank");
+window.buyCredits = () => {
+  window.open("https://ko-fi.com/articalneavy", "_blank");
 };
 
-window.buyPlan = ()=>{
-  window.open("https://ko-fi.com/articalneavy","_blank");
+window.buyPlan = () => {
+  window.open("https://ko-fi.com/articalneavy", "_blank");
 };
 
 /* =========================
    VOICE INPUT
 ========================= */
-window.startVoiceInput = ()=>{
+window.startVoiceInput = () => {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if(!SpeechRecognition){
-    return showMessage("Voice recognition not supported");
+  if (!SpeechRecognition) {
+    return;
   }
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (event) => {
+    const speech = event.results[0][0].transcript;
+    if (el("prompt")) {
+      el("prompt").value = speech;
+    }
+  };
+
+  recognition.onerror = () => {
+    console.log("Voice input unavailable");
+  };
+
   recognition.start();
-
-  recognition.onresult = (event)=>{
-    el("prompt").value = event.results[0][0].transcript;
-  };
-
-  recognition.onerror = ()=>{
-    showMessage("Voice input failed");
-  };
 };
 
 /* =========================
    MEDIA UPLOAD
 ========================= */
-window.uploadMedia = ()=>{
+window.uploadMedia = () => {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,video/*";
 
-  input.onchange = (event)=>{
+  input.onchange = (event) => {
     const file = event.target.files[0];
-    if(!file) return;
+    if (!file) return;
 
     uploadedFile = file;
 
     const reader = new FileReader();
 
-    reader.onload = (e)=>{
+    reader.onload = (e) => {
       latestDownloadUrl = e.target.result;
 
-      if(file.type.startsWith("video")){
+      if (file.type.startsWith("video")) {
         renderVideo(latestDownloadUrl);
-      }else{
+      } else {
         el("result").innerHTML = `
           <div class="card">
             <img src="${latestDownloadUrl}">
             <p style="margin-top:12px;color:#00d9ff;">
-              Image uploaded — describe your edit and tap Generate
+              Image uploaded — describe your edit then tap Generate
             </p>
           </div>
         `;
@@ -254,8 +265,8 @@ window.uploadMedia = ()=>{
 /* =========================
    DOWNLOAD
 ========================= */
-window.downloadResult = ()=>{
-  if(!latestDownloadUrl){
+window.downloadResult = () => {
+  if (!latestDownloadUrl) {
     return showMessage("Nothing to download");
   }
 
@@ -268,11 +279,40 @@ window.downloadResult = ()=>{
 };
 
 /* =========================
+   VIDEO STATUS
+========================= */
+async function checkVideoStatus(taskId) {
+  const interval = setInterval(async () => {
+    try {
+      const response = await fetch(`${API}/video-status/${taskId}`);
+      const data = await response.json();
+
+      if (data.status === "completed" && data.video) {
+        clearInterval(interval);
+        localStorage.removeItem("pendingVideoTask");
+        renderVideo(data.video);
+        generating = false;
+      }
+
+      if (data.status === "failed") {
+        clearInterval(interval);
+        localStorage.removeItem("pendingVideoTask");
+        renderText("Video generation failed.");
+        generating = false;
+      }
+
+    } catch (error) {
+      console.log(error);
+    }
+  }, 8000);
+}
+
+/* =========================
    GENERATE
 ========================= */
-window.generateContent = async ()=>{
-  if(generating){
-    return showMessage("Please wait for current generation to finish.");
+window.generateContent = async () => {
+  if (generating) {
+    return showMessage("Please wait for current generation.");
   }
 
   let prompt = val("prompt");
@@ -280,7 +320,7 @@ window.generateContent = async ()=>{
   const language = val("language");
   const location = val("location");
 
-  if(!prompt){
+  if (!prompt) {
     return showMessage("Enter a prompt first");
   }
 
@@ -288,10 +328,10 @@ window.generateContent = async ()=>{
   prompt = enhancePrompt(prompt, mode);
   setLoading();
 
-  try{
+  try {
     let response;
 
-    if(uploadedFile && mode === "image"){
+    if (uploadedFile && mode === "image") {
       const formData = new FormData();
       formData.append("image", uploadedFile);
       formData.append("prompt", prompt);
@@ -305,12 +345,11 @@ window.generateContent = async ()=>{
         },
         body: formData
       });
-
-    }else{
+    } else {
       response = await fetch(`${API}/generate-${mode}`, {
         method: "POST",
         headers: {
-          "Content-Type":"application/json",
+          "Content-Type": "application/json",
           Authorization: userToken ? `Bearer ${userToken}` : ""
         },
         body: JSON.stringify({
@@ -323,21 +362,31 @@ window.generateContent = async ()=>{
 
     const data = await response.json();
 
-    if(mode === "text"){
+    if (mode === "text") {
       renderText(data?.data?.content);
+      generating = false;
     }
 
-    if(mode === "image"){
+    if (mode === "image") {
       renderImage(data?.data?.url || data?.url);
+      generating = false;
     }
 
-    if(mode === "video"){
-      renderVideo(data?.preview || data?.video);
+    if (mode === "video") {
+      const taskId = data?.taskId;
+
+      if (taskId) {
+        localStorage.setItem("pendingVideoTask", taskId);
+        checkVideoStatus(taskId);
+      } else {
+        renderVideo(data?.preview || data?.video);
+        generating = false;
+      }
     }
 
     uploadedFile = null;
 
-  }catch(error){
+  } catch (error) {
     console.error(error);
 
     el("result").innerHTML = `
@@ -345,16 +394,16 @@ window.generateContent = async ()=>{
         Generation failed. Please try again.
       </div>
     `;
-  }
 
-  generating = false;
+    generating = false;
+  }
 };
 
 /* =========================
    TABS
 ========================= */
-window.switchTab = (tab)=>{
-  document.querySelectorAll(".tab-section").forEach(section=>{
+window.switchTab = (tab) => {
+  document.querySelectorAll(".tab-section").forEach(section => {
     section.classList.remove("active");
   });
 
@@ -364,10 +413,10 @@ window.switchTab = (tab)=>{
 /* =========================
    COOKIE
 ========================= */
-window.acceptCookies = ()=>{
-  localStorage.setItem("cookieAccepted","yes");
+window.acceptCookies = () => {
+  localStorage.setItem("cookieAccepted", "yes");
 
-  if(el("cookieBanner")){
+  if (el("cookieBanner")) {
     el("cookieBanner").style.display = "none";
   }
 };
