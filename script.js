@@ -47,112 +47,143 @@ function val(id){
   return el(id)?.value?.trim() || "";
 }
 
-function showMessage(msg){
-  alert(msg);
+function showMessage(message){
+  alert(message);
+}
+
+function setLoading(){
+  el("result").innerHTML = `
+    <div class="card">
+      <div class="spinner"></div>
+      Generating...
+    </div>
+  `;
+}
+
+function renderImage(url){
+  latestDownloadUrl = url || "";
+  el("result").innerHTML = `
+    <div class="card">
+      <img src="${latestDownloadUrl}" alt="Generated image">
+    </div>
+  `;
+}
+
+function renderVideo(url){
+  latestDownloadUrl = url || "";
+  el("result").innerHTML = `
+    <div class="card">
+      <video controls src="${latestDownloadUrl}"></video>
+    </div>
+  `;
+}
+
+function renderText(text){
+  latestDownloadUrl = "";
+  el("result").innerHTML = `
+    <div class="card">
+      ${text || "No response"}
+    </div>
+  `;
 }
 
 /* =========================
-   SPLASH SCREEN
+   SPLASH
 ========================= */
-window.addEventListener("load", () => {
-  if(localStorage.getItem("cookieAccepted") === "yes"){
+window.addEventListener("load", ()=>{
+  if(localStorage.getItem("cookieAccepted")==="yes"){
     if(el("cookieBanner")){
-      el("cookieBanner").style.display = "none";
+      el("cookieBanner").style.display="none";
     }
   }
 
-  setTimeout(() => {
+  setTimeout(()=>{
     const splash = el("welcomeCard");
+
     if(splash){
       splash.style.opacity = "0";
       splash.style.pointerEvents = "none";
 
-      setTimeout(() => {
+      setTimeout(()=>{
         splash.remove();
-      }, 700);
+      },700);
     }
-  }, 2200);
+  },1800);
 });
 
 /* =========================
    AUTH
 ========================= */
-window.emailRegister = async () => {
+window.emailRegister = async ()=>{
   try{
-    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
+    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
     showMessage("Account created successfully");
-  }catch(err){
-    showMessage(err.message);
+  }catch(error){
+    showMessage(error.message);
   }
 };
 
-window.emailLogin = async () => {
+window.emailLogin = async ()=>{
   try{
-    await signInWithEmailAndPassword(auth, val("email"), val("password"));
-  }catch(err){
-    showMessage(err.message);
+    await signInWithEmailAndPassword(auth,val("email"),val("password"));
+  }catch(error){
+    showMessage(error.message);
   }
 };
 
-window.googleLogin = async () => {
+window.googleLogin = async ()=>{
   try{
-    await signInWithPopup(auth, provider);
-  }catch(err){
-    showMessage(err.message);
+    await signInWithPopup(auth,provider);
+  }catch(error){
+    showMessage(error.message);
   }
 };
 
-window.logout = async () => {
+window.logout = async ()=>{
   await signOut(auth);
 };
 
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async(user)=>{
   if(user){
     userToken = await user.getIdToken();
-
-    if(el("userEmail")){
-      el("userEmail").innerText = user.email;
-    }
+    if(el("userEmail")) el("userEmail").innerText = user.email;
   }else{
     userToken = null;
-
-    if(el("userEmail")){
-      el("userEmail").innerText = "Guest Mode";
-    }
+    if(el("userEmail")) el("userEmail").innerText = "Guest Mode";
   }
 });
 
 /* =========================
    PAYMENTS
 ========================= */
-window.buyCredits = () => {
-  window.open("https://ko-fi.com/articalneavy", "_blank");
+window.buyCredits = ()=>{
+  window.open("https://ko-fi.com/articalneavy","_blank");
 };
 
-window.buyPlan = (plan) => {
-  window.open("https://ko-fi.com/articalneavy", "_blank");
+window.buyPlan = ()=>{
+  window.open("https://ko-fi.com/articalneavy","_blank");
 };
 
 /* =========================
    VOICE INPUT
 ========================= */
-window.startVoiceInput = () => {
+window.startVoiceInput = ()=>{
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if(!SpeechRecognition){
-    return showMessage("Voice recognition not supported on this device");
+    return showMessage("Voice recognition not supported");
   }
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";
   recognition.start();
 
-  recognition.onresult = (event) => {
+  recognition.onresult = (event)=>{
     el("prompt").value = event.results[0][0].transcript;
   };
 
-  recognition.onerror = () => {
+  recognition.onerror = ()=>{
     showMessage("Voice input failed");
   };
 };
@@ -160,12 +191,12 @@ window.startVoiceInput = () => {
 /* =========================
    MEDIA UPLOAD
 ========================= */
-window.uploadMedia = () => {
+window.uploadMedia = ()=>{
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,video/*";
 
-  input.onchange = (event) => {
+  input.onchange = (event)=>{
     const file = event.target.files[0];
     if(!file) return;
 
@@ -173,21 +204,17 @@ window.uploadMedia = () => {
 
     const reader = new FileReader();
 
-    reader.onload = (e) => {
+    reader.onload = (e)=>{
       latestDownloadUrl = e.target.result;
 
       if(file.type.startsWith("video")){
-        el("result").innerHTML = `
-          <div class="card">
-            <video controls src="${latestDownloadUrl}"></video>
-          </div>
-        `;
+        renderVideo(latestDownloadUrl);
       }else{
         el("result").innerHTML = `
           <div class="card">
             <img src="${latestDownloadUrl}">
             <p style="margin-top:12px;color:#00d9ff;">
-              Image uploaded — describe how you want it edited.
+              Image uploaded — enter editing instructions then tap Generate
             </p>
           </div>
         `;
@@ -203,7 +230,7 @@ window.uploadMedia = () => {
 /* =========================
    DOWNLOAD
 ========================= */
-window.downloadResult = () => {
+window.downloadResult = ()=>{
   if(!latestDownloadUrl){
     return showMessage("Nothing to download");
   }
@@ -219,7 +246,7 @@ window.downloadResult = () => {
 /* =========================
    GENERATE
 ========================= */
-window.generateContent = async () => {
+window.generateContent = async ()=>{
   const prompt = val("prompt");
   const mode = val("mode");
   const language = val("language");
@@ -229,12 +256,7 @@ window.generateContent = async () => {
     return showMessage("Enter a prompt first");
   }
 
-  el("result").innerHTML = `
-    <div class="card">
-      <div class="spinner"></div>
-      Generating...
-    </div>
-  `;
+  setLoading();
 
   try{
     let response;
@@ -253,12 +275,11 @@ window.generateContent = async () => {
         },
         body: formData
       });
-
     }else{
       response = await fetch(`${API}/generate-${mode}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type":"application/json",
           Authorization: userToken ? `Bearer ${userToken}` : ""
         },
         body: JSON.stringify({
@@ -272,30 +293,15 @@ window.generateContent = async () => {
     const data = await response.json();
 
     if(mode === "text"){
-      latestDownloadUrl = "";
-      el("result").innerHTML = `
-        <div class="card">
-          ${data?.data?.content || "No response"}
-        </div>
-      `;
+      renderText(data?.data?.content);
     }
 
     if(mode === "image"){
-      latestDownloadUrl = data?.data?.url || data?.url || "";
-      el("result").innerHTML = `
-        <div class="card">
-          <img src="${latestDownloadUrl}">
-        </div>
-      `;
+      renderImage(data?.data?.url || data?.url);
     }
 
     if(mode === "video"){
-      latestDownloadUrl = data?.preview || data?.video || "";
-      el("result").innerHTML = `
-        <div class="card">
-          <video controls src="${latestDownloadUrl}"></video>
-        </div>
-      `;
+      renderVideo(data?.preview || data?.video);
     }
 
     uploadedFile = null;
@@ -314,8 +320,8 @@ window.generateContent = async () => {
 /* =========================
    TABS
 ========================= */
-window.switchTab = (tab) => {
-  document.querySelectorAll(".tab-section").forEach(section => {
+window.switchTab = (tab)=>{
+  document.querySelectorAll(".tab-section").forEach(section=>{
     section.classList.remove("active");
   });
 
@@ -325,10 +331,10 @@ window.switchTab = (tab) => {
 /* =========================
    COOKIE
 ========================= */
-window.acceptCookies = () => {
-  localStorage.setItem("cookieAccepted", "yes");
+window.acceptCookies = ()=>{
+  localStorage.setItem("cookieAccepted","yes");
 
   if(el("cookieBanner")){
-    el("cookieBanner").style.display = "none";
+    el("cookieBanner").style.display="none";
   }
 };
