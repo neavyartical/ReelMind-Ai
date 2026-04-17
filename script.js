@@ -39,37 +39,43 @@ let uploadedFile = null;
 /* =========================
    HELPERS
 ========================= */
-function el(id){
+function el(id) {
   return document.getElementById(id);
 }
 
-function val(id){
+function val(id) {
   return el(id)?.value?.trim() || "";
 }
 
-function showMessage(message){
+function showMessage(message) {
   alert(message);
 }
 
-function setLoading(){
+function safeText(text) {
+  return String(text || "")
+    .replace(/Reelmind/gi, "ReelMind")
+    .replace(/reelmind/gi, "ReelMind");
+}
+
+function setLoading() {
   el("result").innerHTML = `
     <div class="card">
       <div class="spinner"></div>
-      Generating...
+      Generating your content...
     </div>
   `;
 }
 
-function renderImage(url){
+function renderImage(url) {
   latestDownloadUrl = url || "";
   el("result").innerHTML = `
     <div class="card">
-      <img src="${latestDownloadUrl}" alt="Generated image">
+      <img src="${latestDownloadUrl}" alt="Generated Image">
     </div>
   `;
 }
 
-function renderVideo(url){
+function renderVideo(url) {
   latestDownloadUrl = url || "";
   el("result").innerHTML = `
     <div class="card">
@@ -78,11 +84,11 @@ function renderVideo(url){
   `;
 }
 
-function renderText(text){
+function renderText(text) {
   latestDownloadUrl = "";
   el("result").innerHTML = `
     <div class="card">
-      ${text || "No response"}
+      ${safeText(text || "No response")}
     </div>
   `;
 }
@@ -90,88 +96,162 @@ function renderText(text){
 /* =========================
    SPLASH
 ========================= */
-window.addEventListener("load", ()=>{
-  if(localStorage.getItem("cookieAccepted")==="yes"){
-    if(el("cookieBanner")){
-      el("cookieBanner").style.display="none";
+window.addEventListener("load", () => {
+  if (localStorage.getItem("cookieAccepted") === "yes") {
+    if (el("cookieBanner")) {
+      el("cookieBanner").style.display = "none";
     }
   }
 
-  setTimeout(()=>{
-    const splash = el("welcomeCard");
+  getLocation();
 
-    if(splash){
+  setTimeout(() => {
+    const splash = el("welcomeCard");
+    if (splash) {
       splash.style.opacity = "0";
       splash.style.pointerEvents = "none";
-
-      setTimeout(()=>{
-        splash.remove();
-      },700);
+      setTimeout(() => splash.remove(), 700);
     }
-  },1800);
+  }, 1800);
 });
 
 /* =========================
    AUTH
 ========================= */
-window.emailRegister = async ()=>{
-  try{
-    await createUserWithEmailAndPassword(auth,val("email"),val("password"));
+window.emailRegister = async () => {
+  try {
+    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
     showMessage("Account created successfully");
-  }catch(error){
+  } catch (error) {
     showMessage(error.message);
   }
 };
 
-window.emailLogin = async ()=>{
-  try{
-    await signInWithEmailAndPassword(auth,val("email"),val("password"));
-  }catch(error){
+window.emailLogin = async () => {
+  try {
+    await signInWithEmailAndPassword(auth, val("email"), val("password"));
+  } catch (error) {
     showMessage(error.message);
   }
 };
 
-window.googleLogin = async ()=>{
-  try{
-    await signInWithPopup(auth,provider);
-  }catch(error){
+window.googleLogin = async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (error) {
     showMessage(error.message);
   }
 };
 
-window.logout = async ()=>{
+window.logout = async () => {
   await signOut(auth);
 };
 
-onAuthStateChanged(auth, async(user)=>{
-  if(user){
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
     userToken = await user.getIdToken();
-    if(el("userEmail")) el("userEmail").innerText = user.email;
-  }else{
+
+    if (el("userEmail")) {
+      el("userEmail").innerText = user.email;
+    }
+
+    loadProfile();
+    loadTransactions();
+  } else {
     userToken = null;
-    if(el("userEmail")) el("userEmail").innerText = "Guest Mode";
+
+    if (el("userEmail")) {
+      el("userEmail").innerText = "Guest Mode";
+    }
+
+    if (el("credits")) {
+      el("credits").innerText = "∞";
+    }
   }
 });
 
 /* =========================
+   PROFILE
+========================= */
+async function loadProfile() {
+  try {
+    const response = await fetch(`${API}/me`, {
+      headers: {
+        Authorization: userToken ? `Bearer ${userToken}` : ""
+      }
+    });
+
+    const data = await response.json();
+
+    if (el("credits")) {
+      el("credits").innerText = data.credits ?? "∞";
+    }
+
+    if (el("userLocation")) {
+      el("userLocation").innerText = `${data.city || ""} ${data.country || ""}`;
+    }
+  } catch {}
+}
+
+/* =========================
+   TRANSACTIONS
+========================= */
+async function loadTransactions() {
+  try {
+    const response = await fetch(`${API}/transactions`, {
+      headers: {
+        Authorization: userToken ? `Bearer ${userToken}` : ""
+      }
+    });
+
+    const data = await response.json();
+
+    if (!el("transactionList")) return;
+
+    el("transactionList").innerHTML = data.map(item => `
+      <div class="card">
+        <strong>${item.type}</strong><br>
+        ${item.description}<br>
+        ${item.amount} credits
+      </div>
+    `).join("");
+  } catch {}
+}
+
+/* =========================
+   LOCATION
+========================= */
+function getLocation() {
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition((position) => {
+    const coords = `${position.coords.latitude}, ${position.coords.longitude}`;
+
+    if (el("location") && !el("location").value) {
+      el("location").value = coords;
+    }
+  });
+}
+
+/* =========================
    PAYMENTS
 ========================= */
-window.buyCredits = ()=>{
-  window.open("https://ko-fi.com/articalneavy","_blank");
+window.buyCredits = () => {
+  window.open("https://ko-fi.com/articalneavy", "_blank");
 };
 
-window.buyPlan = ()=>{
-  window.open("https://ko-fi.com/articalneavy","_blank");
+window.buyPlan = () => {
+  window.open("https://ko-fi.com/articalneavy", "_blank");
 };
 
 /* =========================
    VOICE INPUT
 ========================= */
-window.startVoiceInput = ()=>{
+window.startVoiceInput = () => {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if(!SpeechRecognition){
+  if (!SpeechRecognition) {
     return showMessage("Voice recognition not supported");
   }
 
@@ -179,11 +259,11 @@ window.startVoiceInput = ()=>{
   recognition.lang = "en-US";
   recognition.start();
 
-  recognition.onresult = (event)=>{
+  recognition.onresult = (event) => {
     el("prompt").value = event.results[0][0].transcript;
   };
 
-  recognition.onerror = ()=>{
+  recognition.onerror = () => {
     showMessage("Voice input failed");
   };
 };
@@ -191,30 +271,30 @@ window.startVoiceInput = ()=>{
 /* =========================
    MEDIA UPLOAD
 ========================= */
-window.uploadMedia = ()=>{
+window.uploadMedia = () => {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,video/*";
 
-  input.onchange = (event)=>{
+  input.onchange = (event) => {
     const file = event.target.files[0];
-    if(!file) return;
+    if (!file) return;
 
     uploadedFile = file;
 
     const reader = new FileReader();
 
-    reader.onload = (e)=>{
+    reader.onload = (e) => {
       latestDownloadUrl = e.target.result;
 
-      if(file.type.startsWith("video")){
+      if (file.type.startsWith("video")) {
         renderVideo(latestDownloadUrl);
-      }else{
+      } else {
         el("result").innerHTML = `
           <div class="card">
             <img src="${latestDownloadUrl}">
             <p style="margin-top:12px;color:#00d9ff;">
-              Image uploaded — enter editing instructions then tap Generate
+              Image uploaded — describe exactly how you want ReelMind AI to transform it.
             </p>
           </div>
         `;
@@ -230,8 +310,8 @@ window.uploadMedia = ()=>{
 /* =========================
    DOWNLOAD
 ========================= */
-window.downloadResult = ()=>{
-  if(!latestDownloadUrl){
+window.downloadResult = () => {
+  if (!latestDownloadUrl) {
     return showMessage("Nothing to download");
   }
 
@@ -246,22 +326,24 @@ window.downloadResult = ()=>{
 /* =========================
    GENERATE
 ========================= */
-window.generateContent = async ()=>{
-  const prompt = val("prompt");
+window.generateContent = async () => {
+  let prompt = val("prompt");
   const mode = val("mode");
   const language = val("language");
   const location = val("location");
 
-  if(!prompt){
+  if (!prompt) {
     return showMessage("Enter a prompt first");
   }
 
+  prompt = `Create a highly detailed professional ${mode} exactly matching this request for ReelMind AI: ${prompt}. Keep all spelling correct and preserve the name ReelMind exactly.`;
+
   setLoading();
 
-  try{
+  try {
     let response;
 
-    if(uploadedFile && mode === "image"){
+    if (uploadedFile && mode === "image") {
       const formData = new FormData();
       formData.append("image", uploadedFile);
       formData.append("prompt", prompt);
@@ -275,11 +357,11 @@ window.generateContent = async ()=>{
         },
         body: formData
       });
-    }else{
+    } else {
       response = await fetch(`${API}/generate-${mode}`, {
         method: "POST",
         headers: {
-          "Content-Type":"application/json",
+          "Content-Type": "application/json",
           Authorization: userToken ? `Bearer ${userToken}` : ""
         },
         body: JSON.stringify({
@@ -292,21 +374,22 @@ window.generateContent = async ()=>{
 
     const data = await response.json();
 
-    if(mode === "text"){
+    if (mode === "text") {
       renderText(data?.data?.content);
     }
 
-    if(mode === "image"){
+    if (mode === "image") {
       renderImage(data?.data?.url || data?.url);
     }
 
-    if(mode === "video"){
+    if (mode === "video") {
       renderVideo(data?.preview || data?.video);
     }
 
     uploadedFile = null;
+    loadProfile();
 
-  }catch(error){
+  } catch (error) {
     console.error(error);
 
     el("result").innerHTML = `
@@ -320,8 +403,8 @@ window.generateContent = async ()=>{
 /* =========================
    TABS
 ========================= */
-window.switchTab = (tab)=>{
-  document.querySelectorAll(".tab-section").forEach(section=>{
+window.switchTab = (tab) => {
+  document.querySelectorAll(".tab-section").forEach(section => {
     section.classList.remove("active");
   });
 
@@ -331,10 +414,10 @@ window.switchTab = (tab)=>{
 /* =========================
    COOKIE
 ========================= */
-window.acceptCookies = ()=>{
-  localStorage.setItem("cookieAccepted","yes");
+window.acceptCookies = () => {
+  localStorage.setItem("cookieAccepted", "yes");
 
-  if(el("cookieBanner")){
-    el("cookieBanner").style.display="none";
+  if (el("cookieBanner")) {
+    el("cookieBanner").style.display = "none";
   }
 };
