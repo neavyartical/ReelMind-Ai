@@ -30,6 +30,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+/* =========================
+   GLOBALS
+========================= */
 let userToken = null;
 let latestDownloadUrl = "";
 let uploadedFile = null;
@@ -50,11 +53,11 @@ function showMessage(msg) {
   alert(msg);
 }
 
-function setLoading() {
+function setLoading(text = "Generating...") {
   el("result").innerHTML = `
     <div class="card">
       <div class="spinner"></div>
-      Generating...
+      ${text}
     </div>
   `;
 }
@@ -70,7 +73,7 @@ function renderImage(url) {
   latestDownloadUrl = url || "";
   el("result").innerHTML = `
     <div class="card">
-      <img src="${latestDownloadUrl}" alt="Generated image">
+      <img src="${latestDownloadUrl}" alt="Generated">
     </div>
   `;
 }
@@ -79,7 +82,7 @@ function renderVideo(url) {
   latestDownloadUrl = url || "";
   el("result").innerHTML = `
     <div class="card">
-      <video controls src="${latestDownloadUrl}"></video>
+      <video controls playsinline src="${latestDownloadUrl}"></video>
     </div>
   `;
 }
@@ -88,21 +91,38 @@ function renderVideo(url) {
    PROMPT ENHANCER
 ========================= */
 function enhancePrompt(prompt, mode) {
-  let clean = prompt.trim();
+  let clean = String(prompt || "").trim();
 
   if (mode === "image") {
-    clean += ", ultra detailed, accurate text, sharp focus, realistic lighting, premium quality";
+    clean += `,
+ultra detailed,
+cinematic lighting,
+sharp focus,
+natural skin,
+realistic proportions,
+clean composition,
+high quality,
+no distortion,
+no extra fingers,
+no extra eyes,
+no random text`;
   }
 
   if (mode === "video") {
-    clean += ", cinematic motion, smooth movement, realistic lighting, professional quality";
+    clean += `,
+cinematic motion,
+smooth camera movement,
+realistic lighting,
+high detail,
+professional quality`;
   }
 
   if (mode === "text") {
-    clean += ". Write clearly with correct spelling and immersive detail.";
+    clean += `
+Write clearly with proper grammar and immersive detail.`;
   }
 
-  return clean;
+  return clean.trim();
 }
 
 /* =========================
@@ -110,7 +130,9 @@ function enhancePrompt(prompt, mode) {
 ========================= */
 window.addEventListener("load", () => {
   if (localStorage.getItem("cookieAccepted") === "yes") {
-    if (el("cookieBanner")) el("cookieBanner").style.display = "none";
+    if (el("cookieBanner")) {
+      el("cookieBanner").style.display = "none";
+    }
   }
 
   const pendingTask = localStorage.getItem("pendingVideoTask");
@@ -134,25 +156,25 @@ window.addEventListener("load", () => {
 window.emailRegister = async () => {
   try {
     await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-    showMessage("Account created successfully");
-  } catch (error) {
-    showMessage(error.message);
+    showMessage("Account created");
+  } catch (err) {
+    showMessage(err.message);
   }
 };
 
 window.emailLogin = async () => {
   try {
     await signInWithEmailAndPassword(auth, val("email"), val("password"));
-  } catch (error) {
-    showMessage(error.message);
+  } catch (err) {
+    showMessage(err.message);
   }
 };
 
 window.googleLogin = async () => {
   try {
     await signInWithPopup(auth, provider);
-  } catch (error) {
-    showMessage(error.message);
+  } catch (err) {
+    showMessage(err.message);
   }
 };
 
@@ -192,13 +214,14 @@ window.startVoiceInput = () => {
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";
-  recognition.start();
 
   recognition.onresult = (event) => {
     if (el("prompt")) {
       el("prompt").value = event.results[0][0].transcript;
     }
   };
+
+  recognition.start();
 };
 
 /* =========================
@@ -226,7 +249,7 @@ window.uploadMedia = () => {
           <div class="card">
             <img src="${latestDownloadUrl}">
             <p style="margin-top:12px;color:#00d9ff;">
-              Image uploaded — describe the edit then tap Generate
+              Image uploaded — describe the edit and tap Generate
             </p>
           </div>
         `;
@@ -259,8 +282,8 @@ window.downloadResult = () => {
 async function checkVideoStatus(taskId) {
   const interval = setInterval(async () => {
     try {
-      const response = await fetch(`${API}/video-status/${taskId}`);
-      const data = await response.json();
+      const res = await fetch(`${API}/video-status/${taskId}`);
+      const data = await res.json();
 
       if (data.status === "completed" && data.video) {
         clearInterval(interval);
@@ -294,6 +317,7 @@ window.generateContent = async () => {
 
   generating = true;
   prompt = enhancePrompt(prompt, mode);
+
   setLoading();
 
   try {
@@ -339,6 +363,7 @@ window.generateContent = async () => {
     if (mode === "video") {
       if (data?.taskId) {
         localStorage.setItem("pendingVideoTask", data.taskId);
+        setLoading("Video is rendering...");
         checkVideoStatus(data.taskId);
       } else {
         renderVideo(data?.preview || data?.video);
