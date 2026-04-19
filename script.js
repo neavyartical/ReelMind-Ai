@@ -93,36 +93,79 @@ function renderVideo(url) {
 function enhancePrompt(prompt, mode) {
   let clean = String(prompt || "").trim();
 
+  if (!clean) return "";
+
   if (mode === "image") {
-    clean += `,
-ultra detailed,
-cinematic lighting,
+    clean = `
+${clean}
+
+Keep the exact subject from the user's request.
+Do not change the main character.
+Do not add unrelated objects.
+Improve quality only.
+
+STYLE:
+masterpiece,
+best quality,
+ultra realistic,
+photorealistic,
+highly detailed,
 sharp focus,
-natural skin,
-realistic proportions,
+cinematic lighting,
+professional photography,
+natural skin texture,
+realistic face,
+correct anatomy,
+realistic hands,
+depth of field,
 clean composition,
-high quality,
-no distortion,
-no extra fingers,
-no extra eyes,
-no random text`;
+8k detail
+
+NEGATIVE:
+blurry,
+low quality,
+deformed,
+extra fingers,
+extra arms,
+duplicate face,
+crooked eyes,
+watermark,
+logo,
+random text,
+distorted body
+`.trim();
   }
 
   if (mode === "video") {
-    clean += `,
+    clean = `
+${clean}
+
+Keep the exact original scene.
+Do not change the subject.
+
+STYLE:
 cinematic motion,
 smooth camera movement,
+natural movement,
 realistic lighting,
-high detail,
-professional quality`;
+professional film quality,
+high detail
+`.trim();
   }
 
   if (mode === "text") {
-    clean += `
-Write clearly with proper grammar and immersive detail.`;
+    clean = `
+${clean}
+
+Write professionally with:
+correct grammar,
+natural wording,
+immersive storytelling,
+clear structure
+`.trim();
   }
 
-  return clean.trim();
+  return clean;
 }
 
 /* =========================
