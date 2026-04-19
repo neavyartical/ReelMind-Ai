@@ -6,14 +6,9 @@
   <title>ReelMind AI</title>
 
   <meta name="description" content="Create cinematic AI videos, images and stories instantly with ReelMind AI.">
-  <meta name="keywords" content="AI video generator, AI image generator, AI stories, cinematic reels">
+  <meta name="keywords" content="AI video generator, AI image generator, AI stories, social video app">
   <meta name="author" content="Artical Neavy">
-  <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#020617">
-
-  <script async
-    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1714638410489429"
-    crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -22,10 +17,7 @@
   <!-- SPLASH -->
   <div id="welcomeCard" class="welcome-card">
     <h1>ReelMind AI</h1>
-    <p>
-      Every invention begins as a thought.<br>
-      ReelMind AI transforms imagination into reality.
-    </p>
+    <p>Transform imagination into social reality.</p>
   </div>
 
   <!-- HEADER -->
@@ -33,44 +25,35 @@
     <div class="brand">
       <h1>ReelMind AI</h1>
       <small id="userEmail">Guest Mode</small>
-      <small id="userLocation"></small>
     </div>
 
     <div class="top-actions">
       <span class="credits">💰 <span id="credits">∞</span></span>
-      <button class="settings-btn" onclick="switchTab('settings')">⚙️</button>
+      <button onclick="switchTab('settings')">⚙️</button>
     </div>
   </header>
 
-  <!-- NAV -->
+  <!-- NAVIGATION -->
   <nav class="tabs">
-    <button onclick="switchTab('home')">🏠 Home</button>
+    <button onclick="switchTab('feed')">🎬 Feed</button>
     <button onclick="switchTab('create')">✨ Create</button>
-    <button onclick="switchTab('account')">👤 Account</button>
+    <button onclick="switchTab('messages')">💬 Inbox</button>
+    <button onclick="switchTab('profile')">👤 Profile</button>
   </nav>
 
-  <!-- HOME -->
-  <section id="home" class="tab-section active container">
-    <div class="hero-card">
-      <h2>Create World-Class AI Content</h2>
-      <p>Generate cinematic videos, images and stories from pure imagination.</p>
-    </div>
-
-    <div class="card">🎬 AI Video Generator</div>
-    <div class="card">🖼️ AI Image Generator</div>
-    <div class="card">📖 Story Creator</div>
-    <div class="card">🌍 Global Scene Creation</div>
-    <div class="card">⚡ Cloud Rendering</div>
+  <!-- VIDEO FEED -->
+  <section id="feed" class="tab-section active container">
+    <div id="videoFeed"></div>
   </section>
 
   <!-- CREATE -->
   <section id="create" class="tab-section container">
-    <textarea id="prompt" placeholder="Describe exactly what you want to create..."></textarea>
+    <textarea id="prompt" placeholder="Describe what you want to create..."></textarea>
 
     <select id="mode">
-      <option value="text">Story</option>
-      <option value="image">Image</option>
       <option value="video">Video</option>
+      <option value="image">Image</option>
+      <option value="text">Story</option>
     </select>
 
     <select id="style">
@@ -78,39 +61,38 @@
       <option value="realistic">Realistic</option>
       <option value="anime">Anime</option>
       <option value="fantasy">Fantasy</option>
-      <option value="3d">3D Render</option>
     </select>
 
     <select id="quality">
       <option value="standard">Standard</option>
-      <option value="high">High Quality</option>
-      <option value="ultra">Ultra Quality</option>
+      <option value="high">High</option>
+      <option value="ultra">Ultra</option>
     </select>
-
-    <select id="language">
-      <option value="English">English</option>
-      <option value="Spanish">Spanish</option>
-      <option value="French">French</option>
-      <option value="Arabic">Arabic</option>
-      <option value="German">German</option>
-    </select>
-
-    <input id="location" type="text" placeholder="City or country (optional)">
 
     <button class="action" onclick="generateContent()">Generate</button>
 
     <div id="result"></div>
   </section>
 
-  <!-- ACCOUNT -->
-  <section id="account" class="tab-section container">
-    <input id="email" type="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
+  <!-- MESSAGES -->
+  <section id="messages" class="tab-section container">
+    <h3>Inbox</h3>
+    <div id="messageList"></div>
 
-    <button class="action" onclick="emailLogin()">Login</button>
-    <button class="action" onclick="emailRegister()">Register</button>
-    <button class="action" onclick="googleLogin()">Google Sign In</button>
-    <button class="action" onclick="logout()">Logout</button>
+    <input id="messageInput" type="text" placeholder="Write a message...">
+    <button class="action" onclick="sendMessage()">Send</button>
+  </section>
+
+  <!-- PROFILE -->
+  <section id="profile" class="tab-section container">
+    <div class="profile-card">
+      <h2 id="profileName">Your Profile</h2>
+      <p>Followers: <span id="followers">0</span></p>
+      <p>Following: <span id="following">0</span></p>
+      <p>Videos: <span id="videoCount">0</span></p>
+    </div>
+
+    <button class="action" onclick="startCall()">📞 Audio Call</button>
     <button class="action" onclick="buyCredits()">Buy Credits</button>
   </section>
 
@@ -118,38 +100,28 @@
   <section id="settings" class="tab-section container">
     <div class="info-page">
       <h3>About</h3>
-      <p>ReelMind AI creates professional AI content from simple prompts.</p>
+      <p>ReelMind AI combines AI creation with social entertainment.</p>
     </div>
 
     <div class="info-page">
-      <h3>Privacy Policy</h3>
-      <p>Your data stays protected through secure authentication.</p>
-    </div>
-
-    <div class="info-page">
-      <h3>Terms of Service</h3>
-      <p>Users must not generate unlawful or harmful content.</p>
+      <h3>Privacy</h3>
+      <p>Your content and messages remain protected.</p>
     </div>
 
     <div class="info-page">
       <h3>Contact</h3>
       <p>Email: neavyartical@gmail.com</p>
     </div>
-
-    <div class="info-page">
-      <h3>Transaction History</h3>
-      <div id="transactionList"></div>
-    </div>
   </section>
 
   <!-- FLOATING BUTTONS -->
   <button class="floating-btn upload-btn" onclick="uploadMedia()">📤</button>
   <button class="floating-btn mic-btn" onclick="startVoiceInput()">🎤</button>
-  <button class="download-btn" onclick="downloadResult()">⬇ Download</button>
+  <button class="download-btn" onclick="downloadResult()">⬇</button>
 
   <!-- COOKIE -->
   <div id="cookieBanner" class="cookie-banner">
-    <span>ReelMind AI uses cookies to improve your experience.</span>
+    <span>This app uses cookies to improve experience.</span>
     <button onclick="acceptCookies()">Accept</button>
   </div>
 
