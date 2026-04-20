@@ -12,7 +12,9 @@ body{
   padding-bottom:220px;
 }
 
-/* SPLASH */
+/* =========================
+   SPLASH
+========================= */
 .welcome-card{
   position:fixed;
   inset:0;
@@ -36,9 +38,12 @@ body{
 .welcome-card p{
   color:#cbd5e1;
   line-height:1.7;
+  max-width:420px;
 }
 
-/* HEADER */
+/* =========================
+   HEADER
+========================= */
 .topbar{
   position:sticky;
   top:0;
@@ -88,7 +93,7 @@ body{
   font-weight:bold;
 }
 
-.top-actions button{
+.settings-btn{
   width:42px;
   height:42px;
   border:none;
@@ -98,7 +103,9 @@ body{
   cursor:pointer;
 }
 
-/* NAV */
+/* =========================
+   NAVIGATION
+========================= */
 .tabs{
   display:flex;
   gap:10px;
@@ -114,9 +121,16 @@ body{
   color:#000;
   font-weight:bold;
   cursor:pointer;
+  transition:.25s;
 }
 
-/* SECTIONS */
+.tabs button:hover{
+  transform:translateY(-2px);
+}
+
+/* =========================
+   SECTIONS
+========================= */
 .tab-section{
   display:none;
 }
@@ -129,7 +143,9 @@ body{
   padding:20px;
 }
 
-/* CARDS */
+/* =========================
+   GLASS PANELS
+========================= */
 .card,
 .feed-card,
 .profile-card,
@@ -152,6 +168,9 @@ body{
   margin-bottom:18px;
 }
 
+/* =========================
+   MEDIA
+========================= */
 .card img,
 .card video,
 .feed-card video{
@@ -162,22 +181,40 @@ body{
   background:#000;
 }
 
-/* FEED */
+/* =========================
+   FEED
+========================= */
+.feed-card h4{
+  margin-top:12px;
+  font-size:18px;
+}
+
+.feed-card p{
+  margin-top:8px;
+  color:#cbd5e1;
+}
+
 .feed-actions{
   display:flex;
   justify-content:space-around;
-  margin-top:14px;
+  margin-top:16px;
 }
 
 .feed-actions button{
   background:none;
   border:none;
   color:#fff;
-  font-size:18px;
+  font-size:22px;
   cursor:pointer;
 }
 
-/* PROFILE */
+/* =========================
+   PROFILE
+========================= */
+.profile-card{
+  text-align:center;
+}
+
 .avatar{
   width:90px;
   height:90px;
@@ -187,16 +224,14 @@ body{
   border:3px solid #00d9ff;
 }
 
-.profile-card{
-  text-align:center;
-}
-
 #onlineStatus{
   color:#22c55e;
   font-weight:bold;
 }
 
-/* INPUTS */
+/* =========================
+   FORM ELEMENTS
+========================= */
 textarea,
 input,
 select{
@@ -225,10 +260,13 @@ select option{
   color:#000;
 }
 
-/* BUTTONS */
+/* =========================
+   BUTTONS
+========================= */
 .action,
 .download-btn,
-.chat-box button{
+.send-btn,
+.call-btn{
   width:100%;
   padding:16px;
   border:none;
@@ -238,9 +276,26 @@ select option{
   font-weight:bold;
   cursor:pointer;
   margin-top:10px;
+  transition:.25s;
 }
 
-/* CHAT */
+.action:hover,
+.send-btn:hover,
+.call-btn:hover{
+  transform:translateY(-2px);
+}
+
+.ai-generate-btn{
+  font-size:17px;
+}
+
+.call-btn{
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+}
+
+/* =========================
+   CHAT
+========================= */
 .message-list{
   min-height:260px;
   max-height:420px;
@@ -271,7 +326,9 @@ select option{
   padding:14px;
 }
 
-/* CALL STATUS */
+/* =========================
+   CALL STATUS
+========================= */
 .call-status{
   text-align:center;
   color:#22c55e;
@@ -279,7 +336,9 @@ select option{
   padding:12px;
 }
 
-/* FLOATING */
+/* =========================
+   FLOATING BUTTONS
+========================= */
 .floating-btn{
   position:fixed;
   width:58px;
@@ -313,7 +372,9 @@ select option{
   z-index:650;
 }
 
-/* COOKIE */
+/* =========================
+   COOKIE
+========================= */
 .cookie-banner{
   position:fixed;
   bottom:14px;
@@ -339,7 +400,9 @@ select option{
   font-weight:bold;
 }
 
-/* SPINNER */
+/* =========================
+   SPINNER
+========================= */
 .spinner{
   width:38px;
   height:38px;
@@ -355,7 +418,9 @@ select option{
   to{transform:rotate(360deg);}
 }
 
-/* FOOTER */
+/* =========================
+   FOOTER
+========================= */
 .footer{
   text-align:center;
   padding:24px;
@@ -363,7 +428,9 @@ select option{
   font-size:14px;
 }
 
-/* MOBILE */
+/* =========================
+   MOBILE
+========================= */
 @media(max-width:768px){
   .tabs button{
     font-size:13px;
