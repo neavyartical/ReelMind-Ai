@@ -54,41 +54,6 @@ function showMessage(msg) {
 }
 
 /* =========================
-   UI RENDERERS
-========================= */
-function setLoading(text = "Generating...") {
-  el("result").innerHTML = `
-    <div class="card">
-      <div class="spinner"></div>
-      ${text}
-    </div>
-  `;
-}
-
-function renderText(text) {
-  latestDownloadUrl = "";
-  el("result").innerHTML = `<div class="card">${text || "No response"}</div>`;
-}
-
-function renderImage(url) {
-  latestDownloadUrl = url || "";
-  el("result").innerHTML = `
-    <div class="card">
-      <img src="${latestDownloadUrl}" alt="Generated">
-    </div>
-  `;
-}
-
-function renderVideo(url) {
-  latestDownloadUrl = url || "";
-  el("result").innerHTML = `
-    <div class="card">
-      <video controls playsinline src="${latestDownloadUrl}"></video>
-    </div>
-  `;
-}
-
-/* =========================
    PROFILE
 ========================= */
 async function loadProfile() {
@@ -102,11 +67,10 @@ async function loadProfile() {
     const data = await res.json();
 
     if (el("credits")) el("credits").innerText = data.credits ?? 0;
+    if (el("profileName")) el("profileName").innerText = data.email || "Your Profile";
     if (el("userLocation")) {
-      el("userLocation").innerText = `${data.city || ""} ${data.country || ""}`.trim();
-    }
-    if (el("profileName")) {
-      el("profileName").innerText = data.email || "Your Profile";
+      el("userLocation").innerText =
+        `${data.city || ""} ${data.country || ""}`.trim();
     }
   } catch {}
 }
@@ -115,72 +79,118 @@ async function loadProfile() {
    FEED
 ========================= */
 async function loadFeed() {
-  if (!el("videoFeed")) return;
+  try {
+    const res = await fetch(`${API}/videos`);
+    const data = await res.json();
 
-  el("videoFeed").innerHTML = `
-    <div class="feed-card">
-      <video controls playsinline src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
-      <div class="feed-actions">
-        <button onclick="showMessage('Liked')">❤️</button>
-        <button onclick="switchTab('messages')">💬</button>
-        <button onclick="showMessage('Shared')">📤</button>
-      </div>
-    </div>
-  `;
+    const feed = el("videoFeed");
+    if (!feed) return;
+
+    feed.innerHTML = "";
+
+    (data.videos || []).forEach(video => {
+      feed.innerHTML += `
+        <div class="feed-card">
+          <video controls playsinline src="${video.videoUrl}"></video>
+          <h4>${video.user?.username || "User"}</h4>
+          <p>${video.caption || ""}</p>
+
+          <button class="action" onclick="likeVideo('${video._id}')">
+            ❤️ ${video.likes?.length || 0}
+          </button>
+        </div>
+      `;
+    });
+  } catch {
+    console.log("Feed failed");
+  }
 }
 
 /* =========================
-   CHAT
+   LIKE VIDEO
 ========================= */
-window.sendMessage = () => {
+window.likeVideo = async (videoId) => {
+  try {
+    await fetch(`${API}/videos/${videoId}/like`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userId: auth.currentUser?.uid || "guest"
+      })
+    });
+
+    loadFeed();
+  } catch {
+    showMessage("Unable to like video");
+  }
+};
+
+/* =========================
+   MESSAGES
+========================= */
+async function loadMessages() {
+  try {
+    const userId = auth.currentUser?.uid;
+    const targetId = "demo-user";
+
+    if (!userId) return;
+
+    const res = await fetch(`${API}/messages/${userId}/${targetId}`);
+    const data = await res.json();
+
+    const box = el("messageList");
+    if (!box) return;
+
+    box.innerHTML = "";
+
+    (data.messages || []).forEach(msg => {
+      const own = msg.sender === userId;
+
+      box.innerHTML += `
+        <div class="message ${own ? "sent" : "received"}">
+          ${msg.text}
+        </div>
+      `;
+    });
+  } catch {
+    console.log("Messages failed");
+  }
+}
+
+window.sendMessage = async () => {
   const text = val("messageInput");
-  if (!text || !el("messageList")) return;
+  const userId = auth.currentUser?.uid;
 
-  const msg = document.createElement("div");
-  msg.className = "message sent";
-  msg.innerText = text;
+  if (!text || !userId) return;
 
-  el("messageList").appendChild(msg);
-  el("messageInput").value = "";
+  try {
+    await fetch(`${API}/messages/send`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        sender: userId,
+        receiver: "demo-user",
+        text
+      })
+    });
+
+    el("messageInput").value = "";
+    loadMessages();
+  } catch {
+    showMessage("Message failed");
+  }
 };
 
 /* =========================
    CALLS
 ========================= */
 window.startCall = () => {
-  if (el("callStatus")) {
-    el("callStatus").innerText = "Audio call started...";
-  }
+  showMessage("Audio call feature started");
 };
-
-window.startVideoCall = () => {
-  if (el("callStatus")) {
-    el("callStatus").innerText = "Video call started...";
-  }
-};
-
-/* =========================
-   PROMPT ENHANCER
-========================= */
-function enhancePrompt(prompt, mode) {
-  let clean = String(prompt || "").trim();
-
-  if (!clean) return "";
-
-  if (mode === "image") {
-    clean += "\nmasterpiece, ultra realistic, cinematic lighting, highly detailed";
-  }
-
-  if (mode === "video") {
-    clean += "\ncinematic motion, smooth camera movement, professional quality";
-  }
-
-  if (mode === "text") {
-    clean += "\nWrite professionally with immersive storytelling.";
-  }
-
-  return clean;
-}
 
 /* =========================
    AUTH
@@ -188,7 +198,6 @@ function enhancePrompt(prompt, mode) {
 window.emailRegister = async () => {
   try {
     await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-    showMessage("Account created");
   } catch (err) {
     showMessage(err.message);
   }
@@ -226,85 +235,6 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 /* =========================
-   AI GENERATION
-========================= */
-window.generateContent = async () => {
-  if (generating) return;
-
-  let prompt = val("prompt");
-  const mode = val("mode");
-
-  if (!prompt) return showMessage("Enter prompt");
-
-  generating = true;
-  prompt = enhancePrompt(prompt, mode);
-
-  setLoading();
-
-  try {
-    const res = await fetch(`${API}/generate-${mode}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: userToken ? `Bearer ${userToken}` : ""
-      },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await res.json();
-
-    if (mode === "text") renderText(data?.data?.content);
-    if (mode === "image") renderImage(data?.data?.url || data?.url);
-    if (mode === "video") renderVideo(data?.video || data?.preview);
-
-  } catch {
-    renderText("Generation failed");
-  }
-
-  generating = false;
-};
-
-/* =========================
-   UPLOAD
-========================= */
-window.uploadMedia = () => {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*,video/*";
-  input.click();
-};
-
-/* =========================
-   VOICE
-========================= */
-window.startVoiceInput = () => {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) return;
-
-  const recognition = new SpeechRecognition();
-
-  recognition.onresult = (e) => {
-    if (el("prompt")) {
-      el("prompt").value = e.results[0][0].transcript;
-    }
-  };
-
-  recognition.start();
-};
-
-/* =========================
-   DOWNLOAD
-========================= */
-window.downloadResult = () => {
-  if (!latestDownloadUrl) return;
-
-  const a = document.createElement("a");
-  a.href = latestDownloadUrl;
-  a.download = "reelmind-result";
-  a.click();
-};
-
-/* =========================
    NAVIGATION
 ========================= */
 window.switchTab = (tab) => {
@@ -313,16 +243,9 @@ window.switchTab = (tab) => {
   });
 
   el(tab)?.classList.add("active");
-};
 
-/* =========================
-   COOKIE
-========================= */
-window.acceptCookies = () => {
-  localStorage.setItem("cookieAccepted", "yes");
-  if (el("cookieBanner")) {
-    el("cookieBanner").style.display = "none";
-  }
+  if (tab === "feed") loadFeed();
+  if (tab === "messages") loadMessages();
 };
 
 /* =========================
