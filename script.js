@@ -26,8 +26,8 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
 const provider = new GoogleAuthProvider();
 
 /* =========================
@@ -53,6 +53,9 @@ function showMessage(msg) {
   alert(msg);
 }
 
+/* =========================
+   UI RENDERERS
+========================= */
 function setLoading(text = "Generating...") {
   el("result").innerHTML = `
     <div class="card">
@@ -64,9 +67,7 @@ function setLoading(text = "Generating...") {
 
 function renderText(text) {
   latestDownloadUrl = "";
-  el("result").innerHTML = `
-    <div class="card">${text || "No response"}</div>
-  `;
+  el("result").innerHTML = `<div class="card">${text || "No response"}</div>`;
 }
 
 function renderImage(url) {
@@ -88,7 +89,7 @@ function renderVideo(url) {
 }
 
 /* =========================
-   PROFILE LOADER
+   PROFILE
 ========================= */
 async function loadProfile() {
   try {
@@ -100,18 +101,63 @@ async function loadProfile() {
 
     const data = await res.json();
 
-    if (el("credits")) {
-      el("credits").innerText = data.credits ?? 0;
-    }
-
+    if (el("credits")) el("credits").innerText = data.credits ?? 0;
     if (el("userLocation")) {
-      el("userLocation").innerText =
-        `${data.city || ""} ${data.country || ""}`.trim();
+      el("userLocation").innerText = `${data.city || ""} ${data.country || ""}`.trim();
     }
-  } catch {
-    console.log("Profile load failed");
-  }
+    if (el("profileName")) {
+      el("profileName").innerText = data.email || "Your Profile";
+    }
+  } catch {}
 }
+
+/* =========================
+   FEED
+========================= */
+async function loadFeed() {
+  if (!el("videoFeed")) return;
+
+  el("videoFeed").innerHTML = `
+    <div class="feed-card">
+      <video controls playsinline src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
+      <div class="feed-actions">
+        <button onclick="showMessage('Liked')">❤️</button>
+        <button onclick="switchTab('messages')">💬</button>
+        <button onclick="showMessage('Shared')">📤</button>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   CHAT
+========================= */
+window.sendMessage = () => {
+  const text = val("messageInput");
+  if (!text || !el("messageList")) return;
+
+  const msg = document.createElement("div");
+  msg.className = "message sent";
+  msg.innerText = text;
+
+  el("messageList").appendChild(msg);
+  el("messageInput").value = "";
+};
+
+/* =========================
+   CALLS
+========================= */
+window.startCall = () => {
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Audio call started...";
+  }
+};
+
+window.startVideoCall = () => {
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Video call started...";
+  }
+};
 
 /* =========================
    PROMPT ENHANCER
@@ -122,102 +168,19 @@ function enhancePrompt(prompt, mode) {
   if (!clean) return "";
 
   if (mode === "image") {
-    clean = `
-${clean}
-
-Keep the exact subject from the user's request.
-Do not change the main character.
-Do not add unrelated objects.
-Improve quality only.
-
-STYLE:
-masterpiece,
-best quality,
-ultra realistic,
-photorealistic,
-highly detailed,
-sharp focus,
-cinematic lighting,
-professional photography,
-natural skin texture,
-realistic face,
-correct anatomy,
-realistic hands,
-depth of field,
-clean composition,
-8k detail
-
-NEGATIVE:
-blurry,
-low quality,
-deformed,
-extra fingers,
-extra arms,
-duplicate face,
-crooked eyes,
-watermark,
-logo,
-random text,
-distorted body
-`.trim();
+    clean += "\nmasterpiece, ultra realistic, cinematic lighting, highly detailed";
   }
 
   if (mode === "video") {
-    clean = `
-${clean}
-
-Keep the exact original scene.
-Do not change the subject.
-
-STYLE:
-cinematic motion,
-smooth camera movement,
-natural movement,
-realistic lighting,
-professional film quality,
-high detail
-`.trim();
+    clean += "\ncinematic motion, smooth camera movement, professional quality";
   }
 
   if (mode === "text") {
-    clean = `
-${clean}
-
-Write professionally with:
-correct grammar,
-natural wording,
-immersive storytelling,
-clear structure
-`.trim();
+    clean += "\nWrite professionally with immersive storytelling.";
   }
 
   return clean;
 }
-
-/* =========================
-   SPLASH
-========================= */
-window.addEventListener("load", () => {
-  if (localStorage.getItem("cookieAccepted") === "yes") {
-    if (el("cookieBanner")) {
-      el("cookieBanner").style.display = "none";
-    }
-  }
-
-  const pendingTask = localStorage.getItem("pendingVideoTask");
-  if (pendingTask) {
-    checkVideoStatus(pendingTask);
-  }
-
-  setTimeout(() => {
-    const splash = el("welcomeCard");
-    if (splash) {
-      splash.style.opacity = "0";
-      splash.style.pointerEvents = "none";
-      setTimeout(() => splash.remove(), 700);
-    }
-  }, 1800);
-});
 
 /* =========================
    AUTH
@@ -254,151 +217,24 @@ window.logout = async () => {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     userToken = await user.getIdToken();
-
-    if (el("userEmail")) {
-      el("userEmail").innerText = user.email;
-    }
-
+    if (el("userEmail")) el("userEmail").innerText = user.email;
     await loadProfile();
   } else {
     userToken = null;
-
-    if (el("userEmail")) {
-      el("userEmail").innerText = "Guest Mode";
-    }
-
-    if (el("credits")) {
-      el("credits").innerText = "0";
-    }
-
-    if (el("userLocation")) {
-      el("userLocation").innerText = "";
-    }
+    if (el("userEmail")) el("userEmail").innerText = "Guest Mode";
   }
 });
 
 /* =========================
-   PAYMENTS
-========================= */
-window.buyCredits = () => {
-  window.open("https://ko-fi.com/articalneavy", "_blank");
-};
-
-window.buyPlan = () => {
-  window.open("https://ko-fi.com/articalneavy", "_blank");
-};
-
-/* =========================
-   VOICE INPUT
-========================= */
-window.startVoiceInput = () => {
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) return;
-
-  const recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
-
-  recognition.onresult = (event) => {
-    if (el("prompt")) {
-      el("prompt").value = event.results[0][0].transcript;
-    }
-  };
-
-  recognition.start();
-};
-
-/* =========================
-   MEDIA UPLOAD
-========================= */
-window.uploadMedia = () => {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*,video/*";
-
-  input.onchange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    uploadedFile = file;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      latestDownloadUrl = event.target.result;
-
-      if (file.type.startsWith("video")) {
-        renderVideo(latestDownloadUrl);
-      } else {
-        el("result").innerHTML = `
-          <div class="card">
-            <img src="${latestDownloadUrl}">
-            <p style="margin-top:12px;color:#00d9ff;">
-              Image uploaded — describe the edit and tap Generate
-            </p>
-          </div>
-        `;
-      }
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  input.click();
-};
-
-/* =========================
-   DOWNLOAD
-========================= */
-window.downloadResult = () => {
-  if (!latestDownloadUrl) return showMessage("Nothing to download");
-
-  const a = document.createElement("a");
-  a.href = latestDownloadUrl;
-  a.download = "reelmind-result";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-};
-
-/* =========================
-   VIDEO STATUS
-========================= */
-async function checkVideoStatus(taskId) {
-  const interval = setInterval(async () => {
-    try {
-      const res = await fetch(`${API}/video-status/${taskId}`);
-      const data = await res.json();
-
-      if (data.status === "completed" && data.video) {
-        clearInterval(interval);
-        localStorage.removeItem("pendingVideoTask");
-        renderVideo(data.video);
-        generating = false;
-      }
-
-      if (data.status === "failed") {
-        clearInterval(interval);
-        localStorage.removeItem("pendingVideoTask");
-        renderText("Video generation failed.");
-        generating = false;
-      }
-    } catch {}
-  }, 8000);
-}
-
-/* =========================
-   GENERATE
+   AI GENERATION
 ========================= */
 window.generateContent = async () => {
-  if (generating) return showMessage("Please wait...");
+  if (generating) return;
 
   let prompt = val("prompt");
   const mode = val("mode");
-  const language = val("language");
-  const location = val("location");
 
-  if (!prompt) return showMessage("Enter a prompt first");
+  if (!prompt) return showMessage("Enter prompt");
 
   generating = true;
   prompt = enhancePrompt(prompt, mode);
@@ -406,65 +242,70 @@ window.generateContent = async () => {
   setLoading();
 
   try {
-    let response;
+    const res = await fetch(`${API}/generate-${mode}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: userToken ? `Bearer ${userToken}` : ""
+      },
+      body: JSON.stringify({ prompt })
+    });
 
-    if (uploadedFile && mode === "image") {
-      const formData = new FormData();
-      formData.append("image", uploadedFile);
-      formData.append("prompt", prompt);
-      formData.append("language", language);
-      formData.append("location", location);
+    const data = await res.json();
 
-      response = await fetch(`${API}/edit-image`, {
-        method: "POST",
-        headers: {
-          Authorization: userToken ? `Bearer ${userToken}` : ""
-        },
-        body: formData
-      });
-    } else {
-      response = await fetch(`${API}/generate-${mode}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: userToken ? `Bearer ${userToken}` : ""
-        },
-        body: JSON.stringify({ prompt, language, location })
-      });
-    }
+    if (mode === "text") renderText(data?.data?.content);
+    if (mode === "image") renderImage(data?.data?.url || data?.url);
+    if (mode === "video") renderVideo(data?.video || data?.preview);
 
-    const data = await response.json();
-
-    if (mode === "text") {
-      renderText(data?.data?.content);
-      generating = false;
-    }
-
-    if (mode === "image") {
-      renderImage(data?.data?.url || data?.url);
-      generating = false;
-    }
-
-    if (mode === "video") {
-      if (data?.taskId) {
-        localStorage.setItem("pendingVideoTask", data.taskId);
-        setLoading("Video is rendering...");
-        checkVideoStatus(data.taskId);
-      } else {
-        renderVideo(data?.preview || data?.video);
-        generating = false;
-      }
-    }
-
-    uploadedFile = null;
   } catch {
-    renderText("Generation failed. Please try again.");
-    generating = false;
+    renderText("Generation failed");
   }
+
+  generating = false;
 };
 
 /* =========================
-   TABS
+   UPLOAD
+========================= */
+window.uploadMedia = () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*,video/*";
+  input.click();
+};
+
+/* =========================
+   VOICE
+========================= */
+window.startVoiceInput = () => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return;
+
+  const recognition = new SpeechRecognition();
+
+  recognition.onresult = (e) => {
+    if (el("prompt")) {
+      el("prompt").value = e.results[0][0].transcript;
+    }
+  };
+
+  recognition.start();
+};
+
+/* =========================
+   DOWNLOAD
+========================= */
+window.downloadResult = () => {
+  if (!latestDownloadUrl) return;
+
+  const a = document.createElement("a");
+  a.href = latestDownloadUrl;
+  a.download = "reelmind-result";
+  a.click();
+};
+
+/* =========================
+   NAVIGATION
 ========================= */
 window.switchTab = (tab) => {
   document.querySelectorAll(".tab-section").forEach(section => {
@@ -479,5 +320,19 @@ window.switchTab = (tab) => {
 ========================= */
 window.acceptCookies = () => {
   localStorage.setItem("cookieAccepted", "yes");
-  if (el("cookieBanner")) el("cookieBanner").style.display = "none";
+  if (el("cookieBanner")) {
+    el("cookieBanner").style.display = "none";
+  }
 };
+
+/* =========================
+   STARTUP
+========================= */
+window.addEventListener("load", () => {
+  loadFeed();
+
+  setTimeout(() => {
+    const splash = el("welcomeCard");
+    if (splash) splash.style.display = "none";
+  }, 1800);
+});
