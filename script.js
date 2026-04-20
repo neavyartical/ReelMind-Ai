@@ -38,22 +38,22 @@ let generating = false;
 /* =========================
    HELPERS
 ========================= */
-function el(id){
+function el(id) {
   return document.getElementById(id);
 }
 
-function val(id){
+function val(id) {
   return el(id)?.value?.trim() || "";
 }
 
-function showMessage(msg){
+function showMessage(msg) {
   alert(msg);
 }
 
 /* =========================
    UI RENDER
 ========================= */
-function setLoading(text = "Generating..."){
+function setLoading(text = "Generating...") {
   el("result").innerHTML = `
     <div class="card">
       <div class="spinner"></div>
@@ -62,12 +62,14 @@ function setLoading(text = "Generating..."){
   `;
 }
 
-function renderText(text){
+function renderText(text) {
   latestDownloadUrl = "";
-  el("result").innerHTML = `<div class="card">${text || "No response"}</div>`;
+  el("result").innerHTML = `
+    <div class="card">${text || "No response"}</div>
+  `;
 }
 
-function renderImage(url){
+function renderImage(url) {
   latestDownloadUrl = url || "";
   el("result").innerHTML = `
     <div class="card">
@@ -76,7 +78,7 @@ function renderImage(url){
   `;
 }
 
-function renderVideo(url){
+function renderVideo(url) {
   latestDownloadUrl = url || "";
   el("result").innerHTML = `
     <div class="card">
@@ -88,25 +90,25 @@ function renderVideo(url){
 /* =========================
    PROFILE
 ========================= */
-async function loadProfile(){
-  try{
+async function loadProfile() {
+  try {
     const res = await fetch(`${API}/me`, {
-      headers:{
+      headers: {
         Authorization: userToken ? `Bearer ${userToken}` : ""
       }
     });
 
     const data = await res.json();
 
-    if(el("credits")) el("credits").innerText = data.credits || 0;
-    if(el("userLocation")) {
+    if (el("credits")) el("credits").innerText = data.credits || 0;
+    if (el("userLocation")) {
       el("userLocation").innerText =
         `${data.city || ""} ${data.country || ""}`.trim();
     }
-    if(el("profileName")){
+    if (el("profileName")) {
       el("profileName").innerText = data.email || "Your Profile";
     }
-  }catch{
+  } catch {
     console.log("Profile failed");
   }
 }
@@ -115,25 +117,25 @@ async function loadProfile(){
    AUTH
 ========================= */
 window.googleLogin = async () => {
-  try{
+  try {
     await signInWithPopup(auth, provider);
-  }catch(err){
+  } catch (err) {
     showMessage(err.message);
   }
 };
 
 window.emailRegister = async () => {
-  try{
+  try {
     await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-  }catch(err){
+  } catch (err) {
     showMessage(err.message);
   }
 };
 
 window.emailLogin = async () => {
-  try{
+  try {
     await signInWithEmailAndPassword(auth, val("email"), val("password"));
-  }catch(err){
+  } catch (err) {
     showMessage(err.message);
   }
 };
@@ -142,39 +144,39 @@ window.logout = async () => {
   await signOut(auth);
 };
 
-onAuthStateChanged(auth, async (user)=>{
-  if(user){
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
     userToken = await user.getIdToken();
 
-    if(el("userEmail")){
+    if (el("userEmail")) {
       el("userEmail").innerText = user.email;
     }
 
     await loadProfile();
-  }else{
+  } else {
     userToken = null;
 
-    if(el("userEmail")){
+    if (el("userEmail")) {
       el("userEmail").innerText = "Guest Mode";
     }
   }
 });
 
 /* =========================
-   PROMPT BOOST
+   PROMPT ENHANCER
 ========================= */
-function enhancePrompt(prompt, mode){
+function enhancePrompt(prompt, mode) {
   let text = String(prompt || "").trim();
 
-  if(mode === "image"){
+  if (mode === "image") {
     text += "\nmasterpiece, ultra realistic, cinematic lighting, detailed";
   }
 
-  if(mode === "video"){
+  if (mode === "video") {
     text += "\ncinematic motion, smooth movement, professional quality";
   }
 
-  if(mode === "text"){
+  if (mode === "text") {
     text += "\nWrite professionally with storytelling.";
   }
 
@@ -184,26 +186,24 @@ function enhancePrompt(prompt, mode){
 /* =========================
    AI GENERATION
 ========================= */
-window.generateContent = async ()=>{
-  if(generating) return;
+window.generateContent = async () => {
+  if (generating) return;
 
   let prompt = val("prompt");
   const mode = val("mode");
 
-  if(!prompt){
-    return showMessage("Enter a prompt");
-  }
+  if (!prompt) return showMessage("Enter a prompt");
 
   generating = true;
   prompt = enhancePrompt(prompt, mode);
 
   setLoading();
 
-  try{
+  try {
     const res = await fetch(`${API}/generate-${mode}`, {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
         Authorization: userToken ? `Bearer ${userToken}` : ""
       },
       body: JSON.stringify({ prompt })
@@ -211,19 +211,11 @@ window.generateContent = async ()=>{
 
     const data = await res.json();
 
-    if(mode === "text"){
-      renderText(data?.data?.content);
-    }
+    if (mode === "text") renderText(data?.data?.content);
+    if (mode === "image") renderImage(data?.data?.url || data?.url);
+    if (mode === "video") renderVideo(data?.video || data?.preview);
 
-    if(mode === "image"){
-      renderImage(data?.data?.url || data?.url);
-    }
-
-    if(mode === "video"){
-      renderVideo(data?.video || data?.preview);
-    }
-
-  }catch{
+  } catch {
     renderText("Generation failed.");
   }
 
@@ -233,17 +225,17 @@ window.generateContent = async ()=>{
 /* =========================
    FEED
 ========================= */
-async function loadFeed(){
-  try{
+async function loadFeed() {
+  try {
     const res = await fetch(`${API}/videos`);
     const data = await res.json();
 
     const feed = el("videoFeed");
-    if(!feed) return;
+    if (!feed) return;
 
     feed.innerHTML = "";
 
-    (data.videos || []).forEach(video=>{
+    (data.videos || []).forEach(video => {
       feed.innerHTML += `
         <div class="feed-card">
           <video controls playsinline src="${video.videoUrl}"></video>
@@ -257,8 +249,7 @@ async function loadFeed(){
         </div>
       `;
     });
-
-  }catch{
+  } catch {
     console.log("Feed failed");
   }
 }
@@ -266,15 +257,15 @@ async function loadFeed(){
 /* =========================
    CHAT
 ========================= */
-window.sendMessage = async ()=>{
+window.sendMessage = async () => {
   const text = val("messageInput");
-  if(!text) return;
+  if (!text) return;
 
-  try{
+  try {
     await fetch(`${API}/messages/send`, {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         sender: auth.currentUser?.uid,
@@ -285,15 +276,14 @@ window.sendMessage = async ()=>{
 
     const box = el("messageList");
 
-    if(box){
+    if (box) {
       box.innerHTML += `
         <div class="message sent">${text}</div>
       `;
     }
 
     el("messageInput").value = "";
-
-  }catch{
+  } catch {
     showMessage("Message failed");
   }
 };
@@ -301,14 +291,14 @@ window.sendMessage = async ()=>{
 /* =========================
    CALLS
 ========================= */
-window.startCall = ()=>{
-  if(el("callStatus")){
+window.startCall = () => {
+  if (el("callStatus")) {
     el("callStatus").innerText = "Audio call started...";
   }
 };
 
-window.startVideoCall = ()=>{
-  if(el("callStatus")){
+window.startVideoCall = () => {
+  if (el("callStatus")) {
     el("callStatus").innerText = "Video call started...";
   }
 };
@@ -316,12 +306,12 @@ window.startVideoCall = ()=>{
 /* =========================
    UPLOAD
 ========================= */
-window.uploadMedia = ()=>{
+window.uploadMedia = () => {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,video/*";
 
-  input.onchange = (e)=>{
+  input.onchange = (e) => {
     uploadedFile = e.target.files[0];
     showMessage("Media uploaded");
   };
@@ -332,16 +322,16 @@ window.uploadMedia = ()=>{
 /* =========================
    VOICE INPUT
 ========================= */
-window.startVoiceInput = ()=>{
+window.startVoiceInput = () => {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if(!SpeechRecognition) return;
+  if (!SpeechRecognition) return;
 
   const recognition = new SpeechRecognition();
 
-  recognition.onresult = (e)=>{
-    if(el("prompt")){
+  recognition.onresult = (e) => {
+    if (el("prompt")) {
       el("prompt").value = e.results[0][0].transcript;
     }
   };
@@ -352,8 +342,8 @@ window.startVoiceInput = ()=>{
 /* =========================
    DOWNLOAD
 ========================= */
-window.downloadResult = ()=>{
-  if(!latestDownloadUrl) return;
+window.downloadResult = () => {
+  if (!latestDownloadUrl) return;
 
   const a = document.createElement("a");
   a.href = latestDownloadUrl;
@@ -364,10 +354,10 @@ window.downloadResult = ()=>{
 /* =========================
    COOKIE
 ========================= */
-window.acceptCookies = ()=>{
-  localStorage.setItem("cookieAccepted","yes");
+window.acceptCookies = () => {
+  localStorage.setItem("cookieAccepted", "yes");
 
-  if(el("cookieBanner")){
+  if (el("cookieBanner")) {
     el("cookieBanner").style.display = "none";
   }
 };
@@ -375,14 +365,14 @@ window.acceptCookies = ()=>{
 /* =========================
    NAVIGATION
 ========================= */
-window.switchTab = (tab)=>{
-  document.querySelectorAll(".tab-section").forEach(section=>{
+window.switchTab = (tab) => {
+  document.querySelectorAll(".tab-section").forEach(section => {
     section.classList.remove("active");
   });
 
   el(tab)?.classList.add("active");
 
-  if(tab === "feed"){
+  if (tab === "feed") {
     loadFeed();
   }
 };
@@ -390,20 +380,20 @@ window.switchTab = (tab)=>{
 /* =========================
    STARTUP
 ========================= */
-window.addEventListener("load", ()=>{
+window.addEventListener("load", () => {
   loadFeed();
 
-  if(localStorage.getItem("cookieAccepted")==="yes"){
-    if(el("cookieBanner")){
+  if (localStorage.getItem("cookieAccepted") === "yes") {
+    if (el("cookieBanner")) {
       el("cookieBanner").style.display = "none";
     }
   }
 
-  setTimeout(()=>{
+  setTimeout(() => {
     const splash = el("welcomeCard");
-    if(splash){
+    if (splash) {
       splash.style.opacity = "0";
-      setTimeout(()=> splash.remove(), 600);
+      setTimeout(() => splash.remove(), 600);
     }
-  },1800);
+  }, 1800);
 });
