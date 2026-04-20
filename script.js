@@ -1,7 +1,7 @@
 const API = "https://reelmindbackend-1.onrender.com";
 
 /* =========================
-   FIREBASE IMPORT
+   FIREBASE
 ========================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -14,9 +14,6 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-/* =========================
-   FIREBASE CONFIG
-========================= */
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -35,7 +32,6 @@ const provider = new GoogleAuthProvider();
 ========================= */
 let userToken = null;
 let latestDownloadUrl = "";
-let uploadedFile = null;
 let generating = false;
 
 /* =========================
@@ -54,185 +50,146 @@ function showMessage(msg) {
 }
 
 /* =========================
-   PROFILE
+   RENDER
 ========================= */
-async function loadProfile() {
-  try {
-    const res = await fetch(`${API}/me`, {
-      headers: {
-        Authorization: userToken ? `Bearer ${userToken}` : ""
-      }
-    });
-
-    const data = await res.json();
-
-    if (el("credits")) el("credits").innerText = data.credits ?? 0;
-    if (el("profileName")) el("profileName").innerText = data.email || "Your Profile";
-    if (el("userLocation")) {
-      el("userLocation").innerText =
-        `${data.city || ""} ${data.country || ""}`.trim();
-    }
-  } catch {}
+function setLoading(text = "Generating...") {
+  el("result").innerHTML = `
+    <div class="card">
+      <div class="spinner"></div>
+      ${text}
+    </div>
+  `;
 }
 
-/* =========================
-   FEED
-========================= */
-async function loadFeed() {
-  try {
-    const res = await fetch(`${API}/videos`);
-    const data = await res.json();
-
-    const feed = el("videoFeed");
-    if (!feed) return;
-
-    feed.innerHTML = "";
-
-    (data.videos || []).forEach(video => {
-      feed.innerHTML += `
-        <div class="feed-card">
-          <video controls playsinline src="${video.videoUrl}"></video>
-          <h4>${video.user?.username || "User"}</h4>
-          <p>${video.caption || ""}</p>
-
-          <button class="action" onclick="likeVideo('${video._id}')">
-            ❤️ ${video.likes?.length || 0}
-          </button>
-        </div>
-      `;
-    });
-  } catch {
-    console.log("Feed failed");
-  }
+function renderText(text) {
+  el("result").innerHTML = `<div class="card">${text}</div>`;
 }
 
-/* =========================
-   LIKE VIDEO
-========================= */
-window.likeVideo = async (videoId) => {
-  try {
-    await fetch(`${API}/videos/${videoId}/like`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        userId: auth.currentUser?.uid || "guest"
-      })
-    });
-
-    loadFeed();
-  } catch {
-    showMessage("Unable to like video");
-  }
-};
-
-/* =========================
-   MESSAGES
-========================= */
-async function loadMessages() {
-  try {
-    const userId = auth.currentUser?.uid;
-    const targetId = "demo-user";
-
-    if (!userId) return;
-
-    const res = await fetch(`${API}/messages/${userId}/${targetId}`);
-    const data = await res.json();
-
-    const box = el("messageList");
-    if (!box) return;
-
-    box.innerHTML = "";
-
-    (data.messages || []).forEach(msg => {
-      const own = msg.sender === userId;
-
-      box.innerHTML += `
-        <div class="message ${own ? "sent" : "received"}">
-          ${msg.text}
-        </div>
-      `;
-    });
-  } catch {
-    console.log("Messages failed");
-  }
+function renderImage(url) {
+  latestDownloadUrl = url;
+  el("result").innerHTML = `
+    <div class="card">
+      <img src="${url}" />
+    </div>
+  `;
 }
 
-window.sendMessage = async () => {
-  const text = val("messageInput");
-  const userId = auth.currentUser?.uid;
-
-  if (!text || !userId) return;
-
-  try {
-    await fetch(`${API}/messages/send`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        sender: userId,
-        receiver: "demo-user",
-        text
-      })
-    });
-
-    el("messageInput").value = "";
-    loadMessages();
-  } catch {
-    showMessage("Message failed");
-  }
-};
-
-/* =========================
-   CALLS
-========================= */
-window.startCall = () => {
-  showMessage("Audio call feature started");
-};
+function renderVideo(url) {
+  latestDownloadUrl = url;
+  el("result").innerHTML = `
+    <div class="card">
+      <video controls playsinline src="${url}"></video>
+    </div>
+  `;
+}
 
 /* =========================
    AUTH
 ========================= */
+window.googleLogin = async () => {
+  await signInWithPopup(auth, provider);
+};
+
 window.emailRegister = async () => {
-  try {
-    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-  } catch (err) {
-    showMessage(err.message);
-  }
+  await createUserWithEmailAndPassword(auth, val("email"), val("password"));
 };
 
 window.emailLogin = async () => {
-  try {
-    await signInWithEmailAndPassword(auth, val("email"), val("password"));
-  } catch (err) {
-    showMessage(err.message);
-  }
-};
-
-window.googleLogin = async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (err) {
-    showMessage(err.message);
-  }
+  await signInWithEmailAndPassword(auth, val("email"), val("password"));
 };
 
 window.logout = async () => {
   await signOut(auth);
 };
 
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    userToken = await user.getIdToken();
-    if (el("userEmail")) el("userEmail").innerText = user.email;
-    await loadProfile();
-  } else {
-    userToken = null;
-    if (el("userEmail")) el("userEmail").innerText = "Guest Mode";
+onAuthStateChanged(auth, async user => {
+  if (!user) return;
+
+  userToken = await user.getIdToken();
+
+  if (el("userEmail")) {
+    el("userEmail").innerText = user.email;
   }
 });
+
+/* =========================
+   AI GENERATION
+========================= */
+window.generateContent = async () => {
+  const prompt = val("prompt");
+  const mode = val("mode");
+
+  if (!prompt) return showMessage("Enter a prompt");
+
+  setLoading();
+
+  const res = await fetch(`${API}/generate-${mode}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: userToken ? `Bearer ${userToken}` : ""
+    },
+    body: JSON.stringify({ prompt })
+  });
+
+  const data = await res.json();
+
+  if (mode === "text") renderText(data?.data?.content || "No text");
+  if (mode === "image") renderImage(data?.data?.url || data?.url);
+  if (mode === "video") renderVideo(data?.video || data?.preview);
+};
+
+/* =========================
+   FEED
+========================= */
+async function loadFeed() {
+  const res = await fetch(`${API}/videos`);
+  const data = await res.json();
+
+  const feed = el("videoFeed");
+  if (!feed) return;
+
+  feed.innerHTML = "";
+
+  (data.videos || []).forEach(video => {
+    feed.innerHTML += `
+      <div class="feed-card">
+        <video controls playsinline src="${video.videoUrl}"></video>
+        <h4>${video.user?.username || "User"}</h4>
+        <p>${video.caption || ""}</p>
+      </div>
+    `;
+  });
+}
+
+/* =========================
+   CHAT
+========================= */
+window.sendMessage = async () => {
+  const text = val("messageInput");
+  if (!text) return;
+
+  await fetch(`${API}/messages/send`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      sender: auth.currentUser?.uid,
+      receiver: "demo-user",
+      text
+    })
+  });
+
+  el("messageInput").value = "";
+};
+
+/* =========================
+   CALL
+========================= */
+window.startCall = () => {
+  showMessage("Call feature ready");
+};
 
 /* =========================
    NAVIGATION
@@ -244,12 +201,25 @@ window.switchTab = (tab) => {
 
   el(tab)?.classList.add("active");
 
-  if (tab === "feed") loadFeed();
-  if (tab === "messages") loadMessages();
+  if (tab === "feed") {
+    loadFeed();
+  }
 };
 
 /* =========================
-   STARTUP
+   DOWNLOAD
+========================= */
+window.downloadResult = () => {
+  if (!latestDownloadUrl) return;
+
+  const a = document.createElement("a");
+  a.href = latestDownloadUrl;
+  a.download = "reelmind-result";
+  a.click();
+};
+
+/* =========================
+   START
 ========================= */
 window.addEventListener("load", () => {
   loadFeed();
