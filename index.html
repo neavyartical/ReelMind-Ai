@@ -31,14 +31,14 @@
     <div class="top-actions">
       <span class="credits">💰 <span id="credits">0</span></span>
       <span class="notify-badge" id="notifyBadge">0</span>
-      <button onclick="switchTab('settings')">⚙️</button>
+      <button class="settings-btn" onclick="switchTab('settings')">⚙️</button>
     </div>
   </header>
 
   <!-- NAVIGATION -->
   <nav class="tabs">
     <button onclick="switchTab('feed')">🎬 Feed</button>
-    <button onclick="switchTab('create')">✨ AI</button>
+    <button onclick="switchTab('create')">🤖 AI</button>
     <button onclick="switchTab('messages')">💬 Chat</button>
     <button onclick="switchTab('profile')">👤 Profile</button>
   </nav>
@@ -48,10 +48,10 @@
     <div id="videoFeed"></div>
   </section>
 
-  <!-- CREATE -->
+  <!-- AI CREATOR -->
   <section id="create" class="tab-section container">
     <div class="ai-panel">
-      <textarea id="prompt" placeholder="Describe what you want AI to create..."></textarea>
+      <textarea id="prompt" placeholder="Describe what AI should create..."></textarea>
 
       <select id="mode">
         <option value="video">Video</option>
@@ -72,7 +72,9 @@
         <option value="ultra">Ultra</option>
       </select>
 
-      <button class="action" onclick="generateContent()">Generate</button>
+      <button class="action ai-generate-btn" onclick="generateContent()">
+        ✨ Generate with AI
+      </button>
     </div>
 
     <div id="result"></div>
@@ -80,11 +82,13 @@
 
   <!-- CHAT -->
   <section id="messages" class="tab-section container">
+    <h3>Messages</h3>
+
     <div id="messageList" class="message-list"></div>
 
     <div class="chat-box">
-      <input id="messageInput" type="text" placeholder="Write a message...">
-      <button onclick="sendMessage()">Send</button>
+      <input id="messageInput" type="text" placeholder="Type your message...">
+      <button class="send-btn" onclick="sendMessage()">Send</button>
     </div>
   </section>
 
@@ -93,31 +97,32 @@
     <div class="profile-card">
       <img id="profileAvatar" class="avatar" src="" alt="">
       <h2 id="profileName">Your Profile</h2>
+
       <p>Followers: <span id="followers">0</span></p>
       <p>Following: <span id="following">0</span></p>
       <p>Videos: <span id="videoCount">0</span></p>
       <p>Status: <span id="onlineStatus">Offline</span></p>
     </div>
 
-    <button class="action" onclick="startCall()">📞 Audio Call</button>
-    <button class="action" onclick="startVideoCall()">🎥 Video Call</button>
-    <button class="action" onclick="buyCredits()">Buy Credits</button>
+    <button class="call-btn" onclick="startCall()">📞 Audio Call</button>
+    <button class="call-btn" onclick="startVideoCall()">🎥 Video Call</button>
+    <button class="action" onclick="buyCredits()">💳 Buy Credits</button>
   </section>
 
   <!-- SETTINGS -->
   <section id="settings" class="tab-section container">
     <div class="info-page">
       <h3>About</h3>
-      <p>ReelMind AI combines AI creation with social entertainment.</p>
+      <p>ReelMind AI combines artificial intelligence with social media interaction.</p>
     </div>
 
     <div class="info-page">
       <h3>Privacy</h3>
-      <p>Your content and messages remain protected.</p>
+      <p>Your videos, messages and account stay protected.</p>
     </div>
 
     <div class="info-page">
-      <h3>Contact</h3>
+      <h3>Support</h3>
       <p>Email: neavyartical@gmail.com</p>
     </div>
   </section>
@@ -125,14 +130,14 @@
   <!-- CALL STATUS -->
   <div id="callStatus" class="call-status"></div>
 
-  <!-- FLOATING -->
+  <!-- FLOATING BUTTONS -->
   <button class="floating-btn upload-btn" onclick="uploadMedia()">📤</button>
   <button class="floating-btn mic-btn" onclick="startVoiceInput()">🎤</button>
-  <button class="download-btn" onclick="downloadResult()">⬇</button>
+  <button class="download-btn" onclick="downloadResult()">⬇ Download</button>
 
   <!-- COOKIE -->
   <div id="cookieBanner" class="cookie-banner">
-    <span>This app uses cookies to improve experience.</span>
+    <span>This app uses cookies to improve your experience.</span>
     <button onclick="acceptCookies()">Accept</button>
   </div>
 
