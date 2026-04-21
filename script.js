@@ -14,6 +14,16 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+/* =========================
+   SOCKET
+========================= */
+import { io } from "https://cdn.socket.io/4.7.5/socket.io.esm.min.js";
+
+const socket = io(API);
+
+/* =========================
+   FIREBASE CONFIG
+========================= */
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -34,6 +44,7 @@ let userToken = null;
 let latestDownloadUrl = "";
 let uploadedFile = null;
 let generating = false;
+let selectedUser = "demo-user";
 
 /* =========================
    HELPERS
@@ -49,6 +60,64 @@ function val(id) {
 function showMessage(msg) {
   alert(msg);
 }
+
+/* =========================
+   SOCKET EVENTS
+========================= */
+socket.on("online-users", (users) => {
+  if (el("onlineStatus")) {
+    el("onlineStatus").innerText = "Online";
+  }
+});
+
+socket.on("receive-message", (data) => {
+  const box = el("messageList");
+  if (!box) return;
+
+  box.innerHTML += `
+    <div class="message received">${data.text}</div>
+  `;
+
+  box.scrollTop = box.scrollHeight;
+});
+
+socket.on("incoming-call", (data) => {
+  const accept = confirm(`${data.callerName || "Someone"} is calling you`);
+
+  if (accept) {
+    socket.emit("answer-call", {
+      callerId: data.callerId,
+      receiverId: auth.currentUser?.uid
+    });
+
+    if (el("callStatus")) {
+      el("callStatus").innerText = "Call connected";
+    }
+  } else {
+    socket.emit("reject-call", {
+      callerId: data.callerId,
+      receiverId: auth.currentUser?.uid
+    });
+  }
+});
+
+socket.on("call-answered", () => {
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Call answered";
+  }
+});
+
+socket.on("call-rejected", () => {
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Call rejected";
+  }
+});
+
+socket.on("call-ended", () => {
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Call ended";
+  }
+});
 
 /* =========================
    UI RENDER
@@ -105,39 +174,26 @@ async function loadProfile() {
       el("userLocation").innerText =
         `${data.city || ""} ${data.country || ""}`.trim();
     }
+
     if (el("profileName")) {
       el("profileName").innerText = data.email || "Your Profile";
     }
-  } catch {
-    console.log("Profile failed");
-  }
+  } catch {}
 }
 
 /* =========================
    AUTH
 ========================= */
 window.googleLogin = async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (err) {
-    showMessage(err.message);
-  }
+  await signInWithPopup(auth, provider);
 };
 
 window.emailRegister = async () => {
-  try {
-    await createUserWithEmailAndPassword(auth, val("email"), val("password"));
-  } catch (err) {
-    showMessage(err.message);
-  }
+  await createUserWithEmailAndPassword(auth, val("email"), val("password"));
 };
 
 window.emailLogin = async () => {
-  try {
-    await signInWithEmailAndPassword(auth, val("email"), val("password"));
-  } catch (err) {
-    showMessage(err.message);
-  }
+  await signInWithEmailAndPassword(auth, val("email"), val("password"));
 };
 
 window.logout = async () => {
@@ -148,6 +204,8 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     userToken = await user.getIdToken();
 
+    socket.emit("register", user.uid);
+
     if (el("userEmail")) {
       el("userEmail").innerText = user.email;
     }
@@ -155,33 +213,8 @@ onAuthStateChanged(auth, async (user) => {
     await loadProfile();
   } else {
     userToken = null;
-
-    if (el("userEmail")) {
-      el("userEmail").innerText = "Guest Mode";
-    }
   }
 });
-
-/* =========================
-   PROMPT ENHANCER
-========================= */
-function enhancePrompt(prompt, mode) {
-  let text = String(prompt || "").trim();
-
-  if (mode === "image") {
-    text += "\nmasterpiece, ultra realistic, cinematic lighting, detailed";
-  }
-
-  if (mode === "video") {
-    text += "\ncinematic motion, smooth movement, professional quality";
-  }
-
-  if (mode === "text") {
-    text += "\nWrite professionally with storytelling.";
-  }
-
-  return text;
-}
 
 /* =========================
    AI GENERATION
@@ -189,14 +222,12 @@ function enhancePrompt(prompt, mode) {
 window.generateContent = async () => {
   if (generating) return;
 
-  let prompt = val("prompt");
+  const prompt = val("prompt");
   const mode = val("mode");
 
-  if (!prompt) return showMessage("Enter a prompt");
+  if (!prompt) return showMessage("Enter prompt");
 
   generating = true;
-  prompt = enhancePrompt(prompt, mode);
-
   setLoading();
 
   try {
@@ -212,11 +243,10 @@ window.generateContent = async () => {
     const data = await res.json();
 
     if (mode === "text") renderText(data?.data?.content);
-    if (mode === "image") renderImage(data?.data?.url || data?.url);
-    if (mode === "video") renderVideo(data?.video || data?.preview);
-
+    if (mode === "image") renderImage(data?.data?.url);
+    if (mode === "video") renderVideo(data?.preview || data?.video);
   } catch {
-    renderText("Generation failed.");
+    renderText("Generation failed");
   }
 
   generating = false;
@@ -226,32 +256,23 @@ window.generateContent = async () => {
    FEED
 ========================= */
 async function loadFeed() {
-  try {
-    const res = await fetch(`${API}/videos`);
-    const data = await res.json();
+  const res = await fetch(`${API}/videos`);
+  const data = await res.json();
 
-    const feed = el("videoFeed");
-    if (!feed) return;
+  const feed = el("videoFeed");
+  if (!feed) return;
 
-    feed.innerHTML = "";
+  feed.innerHTML = "";
 
-    (data.videos || []).forEach(video => {
-      feed.innerHTML += `
-        <div class="feed-card">
-          <video controls playsinline src="${video.videoUrl}"></video>
-          <h4>${video.user?.username || "User"}</h4>
-          <p>${video.caption || ""}</p>
-          <div class="feed-actions">
-            <button onclick="showMessage('Liked')">❤️</button>
-            <button onclick="switchTab('messages')">💬</button>
-            <button onclick="showMessage('Shared')">📤</button>
-          </div>
-        </div>
-      `;
-    });
-  } catch {
-    console.log("Feed failed");
-  }
+  (data.videos || []).forEach(video => {
+    feed.innerHTML += `
+      <div class="feed-card">
+        <video controls playsinline src="${video.videoUrl}"></video>
+        <h4>${video.user?.username || "User"}</h4>
+        <p>${video.caption || ""}</p>
+      </div>
+    `;
+  });
 }
 
 /* =========================
@@ -261,67 +282,58 @@ window.sendMessage = async () => {
   const text = val("messageInput");
   if (!text) return;
 
-  try {
-    await fetch(`${API}/messages/send`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        sender: auth.currentUser?.uid,
-        receiver: "demo-user",
-        text
-      })
-    });
+  socket.emit("send-message", {
+    senderId: auth.currentUser?.uid,
+    receiverId: selectedUser,
+    text
+  });
 
-    const box = el("messageList");
+  const box = el("messageList");
 
-    if (box) {
-      box.innerHTML += `
-        <div class="message sent">${text}</div>
-      `;
-    }
-
-    el("messageInput").value = "";
-  } catch {
-    showMessage("Message failed");
+  if (box) {
+    box.innerHTML += `
+      <div class="message sent">${text}</div>
+    `;
+    box.scrollTop = box.scrollHeight;
   }
+
+  el("messageInput").value = "";
 };
 
 /* =========================
    CALLS
 ========================= */
 window.startCall = () => {
-  if (el("callStatus")) {
-    el("callStatus").innerText = "Audio call started...";
-  }
+  socket.emit("call-user", {
+    callerId: auth.currentUser?.uid,
+    receiverId: selectedUser,
+    callerName: auth.currentUser?.email,
+    type: "audio"
+  });
+
+  el("callStatus").innerText = "Calling...";
 };
 
 window.startVideoCall = () => {
-  if (el("callStatus")) {
-    el("callStatus").innerText = "Video call started...";
-  }
+  socket.emit("call-user", {
+    callerId: auth.currentUser?.uid,
+    receiverId: selectedUser,
+    callerName: auth.currentUser?.email,
+    type: "video"
+  });
+
+  el("callStatus").innerText = "Video calling...";
 };
 
 /* =========================
-   UPLOAD
+   UTILITIES
 ========================= */
 window.uploadMedia = () => {
   const input = document.createElement("input");
   input.type = "file";
-  input.accept = "image/*,video/*";
-
-  input.onchange = (e) => {
-    uploadedFile = e.target.files[0];
-    showMessage("Media uploaded");
-  };
-
   input.click();
 };
 
-/* =========================
-   VOICE INPUT
-========================= */
 window.startVoiceInput = () => {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -331,17 +343,12 @@ window.startVoiceInput = () => {
   const recognition = new SpeechRecognition();
 
   recognition.onresult = (e) => {
-    if (el("prompt")) {
-      el("prompt").value = e.results[0][0].transcript;
-    }
+    el("prompt").value = e.results[0][0].transcript;
   };
 
   recognition.start();
 };
 
-/* =========================
-   DOWNLOAD
-========================= */
 window.downloadResult = () => {
   if (!latestDownloadUrl) return;
 
@@ -351,20 +358,13 @@ window.downloadResult = () => {
   a.click();
 };
 
-/* =========================
-   COOKIE
-========================= */
 window.acceptCookies = () => {
   localStorage.setItem("cookieAccepted", "yes");
-
   if (el("cookieBanner")) {
     el("cookieBanner").style.display = "none";
   }
 };
 
-/* =========================
-   NAVIGATION
-========================= */
 window.switchTab = (tab) => {
   document.querySelectorAll(".tab-section").forEach(section => {
     section.classList.remove("active");
@@ -391,9 +391,6 @@ window.addEventListener("load", () => {
 
   setTimeout(() => {
     const splash = el("welcomeCard");
-    if (splash) {
-      splash.style.opacity = "0";
-      setTimeout(() => splash.remove(), 600);
-    }
+    if (splash) splash.remove();
   }, 1800);
 });
