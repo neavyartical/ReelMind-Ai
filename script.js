@@ -1,6 +1,3 @@
-/* =========================
-   MAIN APP
-========================= */
 export const API = "https://reelmindbackend-1.onrender.com";
 
 /* =========================
@@ -41,12 +38,12 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 export const socket = io(API);
 
 window.socket = socket;
-window.currentUserId = null;
 
 /* =========================
    HELPERS
@@ -56,7 +53,7 @@ export function el(id) {
 }
 
 /* =========================
-   GOOGLE LOGIN
+   AUTH
 ========================= */
 window.googleLogin = async () => {
   try {
@@ -70,14 +67,11 @@ window.logout = async () => {
   try {
     await signOut(auth);
   } catch (error) {
-    console.log("Logout error:", error);
+    console.log(error);
   }
 };
 
-/* =========================
-   AUTH STATE
-========================= */
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, (user) => {
   if (user) {
     window.currentUserId = user.uid;
 
@@ -89,58 +83,74 @@ onAuthStateChanged(auth, async (user) => {
 
     if (window.loadFeed) {
       window.loadFeed();
-    } else {
-      loadFeed();
     }
-
-  } else {
-    window.currentUserId = null;
-
-    if (el("userEmail")) {
-      el("userEmail").innerText = "";
-    }
-
-    setTimeout(() => {
-      window.googleLogin();
-    }, 800);
   }
 });
 
 /* =========================
-   TAB SWITCHER
+   TAB SWITCHING
 ========================= */
 window.switchTab = function(tabId) {
-  const sections = document.querySelectorAll(".tab-section");
-
-  sections.forEach(section => {
+  document.querySelectorAll(".tab-section").forEach(section => {
     section.style.display = "none";
     section.classList.remove("active");
   });
 
-  const activeSection = el(tabId);
+  const target = el(tabId);
 
-  if (activeSection) {
-    activeSection.style.display = "block";
-    activeSection.classList.add("active");
+  if (target) {
+    target.style.display = "block";
+    target.classList.add("active");
   }
 
-  if (tabId === "feed") {
-    if (window.loadFeed) {
-      window.loadFeed();
-    }
+  if (tabId === "feed" && window.loadFeed) {
+    window.loadFeed();
   }
 
-  if (tabId === "messages") {
-    if (window.loadMessages) {
-      window.loadMessages("demo-user");
-    }
+  if (tabId === "messages" && window.loadMessages) {
+    window.loadMessages("demo-user");
   }
 };
 
 /* =========================
-   BIND BUTTONS
+   COOKIE
 ========================= */
-function bindButtons() {
+window.acceptCookies = function() {
+  localStorage.setItem("cookieAccepted", "yes");
+
+  const banner = el("cookieBanner");
+  if (banner) {
+    banner.style.display = "none";
+  }
+};
+
+/* =========================
+   PLACEHOLDER BUTTONS
+========================= */
+window.startCall = function() {
+  alert("Audio calling coming soon");
+};
+
+window.startVideoCall = function() {
+  alert("Video calling coming soon");
+};
+
+/* =========================
+   STARTUP
+========================= */
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    const splash = el("welcomeCard");
+    if (splash) splash.remove();
+  }, 1500);
+
+  if (localStorage.getItem("cookieAccepted") === "yes") {
+    const banner = el("cookieBanner");
+    if (banner) banner.style.display = "none";
+  }
+
+  window.switchTab("feed");
+
   el("generateBtn")?.addEventListener("click", () => {
     window.generateContent?.();
   });
@@ -157,36 +167,19 @@ function bindButtons() {
     window.downloadResult?.();
   });
 
+  el("cookieAcceptBtn")?.addEventListener("click", () => {
+    window.acceptCookies();
+  });
+
   el("audioCallBtn")?.addEventListener("click", () => {
-    window.startCall?.();
+    window.startCall();
   });
 
   el("videoCallBtn")?.addEventListener("click", () => {
-    window.startVideoCall?.();
-  });
-
-  el("cookieAcceptBtn")?.addEventListener("click", () => {
-    window.acceptCookies?.();
-  });
-
-  el("buyCreditsBtn")?.addEventListener("click", () => {
-    window.buyCredits?.();
+    window.startVideoCall();
   });
 
   el("uploadBtn")?.addEventListener("click", () => {
-    window.uploadMedia?.();
+    window.switchTab("create");
   });
-}
-
-/* =========================
-   STARTUP
-========================= */
-window.addEventListener("load", () => {
-  bindButtons();
-
-  setTimeout(() => {
-    el("welcomeCard")?.remove();
-  }, 1500);
-
-  window.switchTab("feed");
 });
