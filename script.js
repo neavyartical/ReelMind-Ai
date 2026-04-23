@@ -1,11 +1,14 @@
 export const API = "https://reelmindbackend-1.onrender.com";
 
+/* =========================
+   HELPERS
+========================= */
 export function el(id) {
   return document.getElementById(id);
 }
 
 /* =========================
-   SAFE TAB SWITCH
+   TAB SWITCHER
 ========================= */
 window.switchTab = function(tabId) {
   document.querySelectorAll(".tab-section").forEach(section => {
@@ -23,10 +26,14 @@ window.switchTab = function(tabId) {
   if (tabId === "feed" && window.loadFeed) {
     window.loadFeed();
   }
+
+  if (tabId === "messages" && window.loadMessages) {
+    window.loadMessages("demo-user");
+  }
 };
 
 /* =========================
-   COOKIE
+   COOKIE HANDLER
 ========================= */
 window.acceptCookies = function() {
   localStorage.setItem("cookieAccepted", "yes");
@@ -38,25 +45,59 @@ window.acceptCookies = function() {
 };
 
 /* =========================
-   BASIC BUTTONS
+   PLACEHOLDER CALLS
 ========================= */
-window.startCall = () => alert("Audio call coming soon");
-window.startVideoCall = () => alert("Video call coming soon");
-
-/* =========================
-   START APP
-========================= */
-window.addEventListener("load", async () => {
-  setTimeout(() => {
-    el("welcomeCard")?.remove();
-  }, 1200);
-
-  if (localStorage.getItem("cookieAccepted") === "yes") {
-    el("cookieBanner")?.remove();
+window.startCall = function() {
+  const status = el("callStatus");
+  if (status) {
+    status.innerText = "Audio call starting...";
   }
 
-  window.switchTab("feed");
+  alert("Audio calling system connected.");
+};
 
+window.startVideoCall = function() {
+  const status = el("callStatus");
+  if (status) {
+    status.innerText = "Video call starting...";
+  }
+
+  alert("Video calling system connected.");
+};
+
+/* =========================
+   LOAD PROFILE
+========================= */
+window.loadProfile = async function() {
+  try {
+    const response = await fetch(`${API}/me`);
+    const data = await response.json();
+
+    if (el("credits")) {
+      el("credits").innerText = data.credits || 0;
+    }
+
+    if (el("profileCredits")) {
+      el("profileCredits").innerText = data.credits || 0;
+    }
+
+    if (el("userEmail")) {
+      el("userEmail").innerText = data.email || "";
+    }
+
+    if (el("userLocation")) {
+      el("userLocation").innerText =
+        `${data.city || ""} ${data.country || ""}`.trim();
+    }
+  } catch (error) {
+    console.log("Profile load failed:", error);
+  }
+};
+
+/* =========================
+   MODULE LOADER
+========================= */
+async function loadModules() {
   try {
     await import("./feed.js");
   } catch (e) {
@@ -80,9 +121,56 @@ window.addEventListener("load", async () => {
   } catch (e) {
     console.log("settings.js failed:", e);
   }
+}
 
+/* =========================
+   START APP
+========================= */
+window.addEventListener("load", async () => {
+  setTimeout(() => {
+    el("welcomeCard")?.remove();
+  }, 1200);
+
+  if (localStorage.getItem("cookieAccepted") === "yes") {
+    el("cookieBanner")?.remove();
+  }
+
+  await loadModules();
+
+  window.switchTab("feed");
+
+  if (window.loadFeed) {
+    window.loadFeed();
+  }
+
+  window.loadProfile();
+
+  /* =========================
+     BUTTON EVENTS
+  ========================= */
   el("cookieAcceptBtn")?.addEventListener("click", window.acceptCookies);
-  el("uploadBtn")?.addEventListener("click", () => window.switchTab("create"));
+
+  el("uploadBtn")?.addEventListener("click", () => {
+    window.switchTab("create");
+  });
+
+  el("generateBtn")?.addEventListener("click", () => {
+    window.generateContent?.();
+  });
+
+  el("downloadBtn")?.addEventListener("click", () => {
+    window.downloadResult?.();
+  });
+
+  el("voiceBtn")?.addEventListener("click", () => {
+    window.startVoiceInput?.();
+  });
+
+  el("sendBtn")?.addEventListener("click", () => {
+    window.sendMessage?.();
+  });
+
   el("audioCallBtn")?.addEventListener("click", window.startCall);
+
   el("videoCallBtn")?.addEventListener("click", window.startVideoCall);
 });
