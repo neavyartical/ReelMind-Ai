@@ -40,7 +40,7 @@
     <button onclick="switchTab('feed')">🎬 Feed</button>
     <button onclick="switchTab('create')">🤖 AI</button>
     <button onclick="switchTab('messages')">💬 Chat</button>
-    <button onclick="switchTab('settings')">👤 Account</button>
+    <button onclick="switchTab('profile')">👤 Profile</button>
   </nav>
 
   <!-- FEED -->
@@ -72,7 +72,7 @@
         <option value="ultra">Ultra</option>
       </select>
 
-      <button id="generateBtn" class="action ai-generate-btn">
+      <button id="generateBtn" class="action">
         ✨ Generate with AI
       </button>
     </div>
@@ -80,9 +80,14 @@
     <div id="result"></div>
   </section>
 
-  <!-- CHAT -->
+  <!-- CHAT WITH WHATSAPP FEATURES -->
   <section id="messages" class="tab-section container">
     <h3>Messages</h3>
+
+    <div class="chat-header">
+      <button id="audioCallBtn" class="call-btn">📞 Audio</button>
+      <button id="videoCallBtn" class="call-btn">🎥 Video</button>
+    </div>
 
     <div id="messageList" class="message-list"></div>
 
@@ -90,14 +95,10 @@
       <input id="messageInput" type="text" placeholder="Type your message...">
       <button id="sendBtn" class="send-btn">Send</button>
     </div>
-
-    <!-- CALLS MOVED HERE -->
-    <button id="audioCallBtn" class="call-btn">📞 Audio Call</button>
-    <button id="videoCallBtn" class="call-btn">🎥 Video Call</button>
   </section>
 
-  <!-- SETTINGS / PROFILE -->
-  <section id="settings" class="tab-section container">
+  <!-- PROFILE -->
+  <section id="profile" class="tab-section container">
     <div class="profile-card">
       <img id="profileAvatar" class="avatar" src="" alt="Profile">
       <h2 id="profileName">Your Profile</h2>
@@ -107,8 +108,15 @@
       <p>Videos: <span id="videoCount">0</span></p>
       <p>Status: <span id="onlineStatus">Offline</span></p>
     </div>
+  </section>
 
-    <button id="buyCreditsBtn" class="action">💳 Buy Credits</button>
+  <!-- SETTINGS -->
+  <section id="settings" class="tab-section container">
+    <div class="info-page">
+      <h3>Profile Settings</h3>
+      <button onclick="editProfile()">Edit Profile</button>
+      <button onclick="changePhoto()">Change Photo</button>
+    </div>
 
     <div class="info-page">
       <h3>Appearance</h3>
@@ -124,6 +132,11 @@
         Enable Notifications
         <input type="checkbox" id="notificationsToggle" onchange="toggleNotifications()">
       </label>
+    </div>
+
+    <div class="info-page">
+      <h3>Credits</h3>
+      <button id="buyCreditsBtn" class="action">💳 Buy Credits</button>
     </div>
 
     <div class="info-page">
@@ -158,17 +171,7 @@
     <p>© 2026 ReelMind AI — Powered by Artical Neavy</p>
   </footer>
 
-  <!-- MAIN -->
   <script type="module" src="script.js"></script>
-
-  <script>
-    window.addEventListener("load", () => {
-      setTimeout(() => {
-        const splash = document.getElementById("welcomeCard");
-        if (splash) splash.remove();
-      }, 2000);
-    });
-  </script>
 
 </body>
 </html>
