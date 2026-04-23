@@ -9,7 +9,7 @@ const AI = {
 };
 
 /* =========================
-   UI HELPERS
+   LOADING UI
 ========================= */
 function setLoading(message = "Generating...") {
   const result = el("result");
@@ -23,6 +23,9 @@ function setLoading(message = "Generating...") {
   `;
 }
 
+/* =========================
+   ERROR UI
+========================= */
 function showError(message) {
   const result = el("result");
   if (!result) return;
@@ -34,12 +37,16 @@ function showError(message) {
   `;
 }
 
+/* =========================
+   RENDER RESULT
+========================= */
 function renderResult(mode, data) {
   const result = el("result");
   if (!result) return;
 
   if (mode === "text") {
     AI.latestUrl = "";
+
     result.innerHTML = `
       <div class="card">
         <p>${data.content || "No text returned"}</p>
@@ -50,6 +57,7 @@ function renderResult(mode, data) {
 
   if (mode === "image") {
     AI.latestUrl = data.url || "";
+
     result.innerHTML = `
       <div class="card">
         <img src="${data.url}" alt="Generated image">
@@ -71,7 +79,7 @@ function renderResult(mode, data) {
 }
 
 /* =========================
-   GENERATE
+   GENERATE AI
 ========================= */
 export async function generateAI() {
   if (AI.generating) return;
@@ -85,10 +93,10 @@ export async function generateAI() {
   }
 
   AI.generating = true;
-  setLoading();
+  setLoading("Generating with AI...");
 
   try {
-    const response = await fetch(`${API}/api/ai/${mode}`, {
+    const response = await fetch(`${API}/ai/${mode}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -111,7 +119,7 @@ export async function generateAI() {
 }
 
 /* =========================
-   DOWNLOAD
+   DOWNLOAD RESULT
 ========================= */
 export function downloadAIResult() {
   if (!AI.latestUrl) {
@@ -141,18 +149,25 @@ export function startVoiceInput() {
 
   const recognition = new SpeechRecognition();
 
+  recognition.lang = "en-US";
+
   recognition.onresult = (event) => {
     const text = event.results[0][0].transcript;
+
     if (el("prompt")) {
       el("prompt").value = text;
     }
+  };
+
+  recognition.onerror = () => {
+    alert("Voice recognition failed");
   };
 
   recognition.start();
 }
 
 /* =========================
-   GLOBALS
+   GLOBAL FUNCTIONS
 ========================= */
 window.generateContent = generateAI;
 window.downloadResult = downloadAIResult;
