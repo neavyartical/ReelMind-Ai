@@ -23,7 +23,7 @@ import {
 import { io } from "https://cdn.socket.io/4.7.5/socket.io.esm.min.js";
 
 /* =========================
-   MODULES
+   LOAD MODULES
 ========================= */
 import "./ai.js";
 import "./feed.js";
@@ -42,6 +42,9 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
+/* =========================
+   INITIALIZE
+========================= */
 export const firebaseApp = initializeApp(firebaseConfig);
 export const auth = getAuth(firebaseApp);
 export const provider = new GoogleAuthProvider();
@@ -92,7 +95,7 @@ window.logout = async () => {
 };
 
 /* =========================
-   LOAD PROFILE
+   PROFILE
 ========================= */
 export async function loadProfile() {
   try {
@@ -119,10 +122,25 @@ export async function loadProfile() {
       el("profileName").innerText =
         data.email || "Your Profile";
     }
+
+    if (el("userEmail")) {
+      el("userEmail").innerText =
+        data.email || "Guest Mode";
+    }
+
   } catch (error) {
-    console.log("Profile load error:", error);
+    console.log("Profile error:", error);
   }
 }
+
+/* =========================
+   SOCKET BASIC EVENTS
+========================= */
+socket.on("online-users", () => {
+  if (el("onlineStatus")) {
+    el("onlineStatus").innerText = "Online";
+  }
+});
 
 /* =========================
    AUTH STATE
@@ -133,13 +151,13 @@ onAuthStateChanged(auth, async (user) => {
 
     socket.emit("register", user.uid);
 
-    if (el("userEmail")) {
-      el("userEmail").innerText = user.email;
-    }
-
     await loadProfile();
   } else {
     userToken = null;
+
+    if (el("userEmail")) {
+      el("userEmail").innerText = "Guest Mode";
+    }
   }
 });
 
@@ -152,6 +170,18 @@ window.switchTab = (tab) => {
   });
 
   el(tab)?.classList.add("active");
+
+  if (tab === "feed" && window.loadFeed) {
+    window.loadFeed();
+  }
+
+  if (tab === "messages" && window.loadMessages) {
+    window.loadMessages();
+  }
+
+  if (tab === "settings" && window.loadSettings) {
+    window.loadSettings();
+  }
 };
 
 /* =========================
@@ -166,6 +196,17 @@ window.acceptCookies = () => {
 };
 
 /* =========================
+   PLACEHOLDER UTILITIES
+========================= */
+window.buyCredits = () => {
+  alert("Payment integration coming soon");
+};
+
+window.uploadMedia = () => {
+  alert("Upload feature coming soon");
+};
+
+/* =========================
    STARTUP
 ========================= */
 window.addEventListener("load", () => {
@@ -173,6 +214,10 @@ window.addEventListener("load", () => {
     if (el("cookieBanner")) {
       el("cookieBanner").style.display = "none";
     }
+  }
+
+  if (window.loadFeed) {
+    window.loadFeed();
   }
 
   setTimeout(() => {
