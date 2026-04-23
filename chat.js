@@ -1,48 +1,59 @@
 /* =========================
-   CHAT FUNCTIONS
+   CHAT MODULE
 ========================= */
+import { API, auth, socket, el } from "./script.js";
 
-const API = "https://reelmindbackend-1.onrender.com";
-
-function el(id) {
-  return document.getElementById(id);
-}
-
-let selectedUser = "demo-user";
+let activeChatUser = "demo-user";
+let typingTimer = null;
 
 /* =========================
-   LOAD CHAT
+   GET CURRENT USER
 ========================= */
-window.loadMessages = async (targetUserId) => {
+function getCurrentUserId() {
+  return auth.currentUser?.uid || "guest";
+}
+
+/* =========================
+   SET ACTIVE CHAT USER
+========================= */
+window.openChat = (userId) => {
+  activeChatUser = userId;
+  loadMessages(userId);
+};
+
+/* =========================
+   LOAD MESSAGES
+========================= */
+window.loadMessages = async (targetUserId = activeChatUser) => {
   try {
-    selectedUser = targetUserId;
+    activeChatUser = targetUserId;
 
-    const currentUser = window.currentUserId || "guest";
+    const currentUser = getCurrentUserId();
 
-    const res = await fetch(
+    const response = await fetch(
       `${API}/messages/${currentUser}/${targetUserId}`
     );
 
-    const data = await res.json();
+    const data = await response.json();
 
-    const box = el("messageList");
-    if (!box) return;
+    const messageList = el("messageList");
+    if (!messageList) return;
 
-    box.innerHTML = "";
+    messageList.innerHTML = "";
 
     (data.messages || []).forEach(msg => {
       const mine = msg.sender === currentUser;
 
-      box.innerHTML += `
+      messageList.innerHTML += `
         <div class="message ${mine ? "sent" : "received"}">
           ${msg.text}
         </div>
       `;
     });
 
-    box.scrollTop = box.scrollHeight;
+    messageList.scrollTop = messageList.scrollHeight;
   } catch (error) {
-    console.log("Message load error:", error);
+    console.log("Load messages error:", error);
   }
 };
 
@@ -55,7 +66,7 @@ window.sendMessage = async () => {
 
   if (!text) return;
 
-  const sender = window.currentUserId || "guest";
+  const sender = getCurrentUserId();
 
   try {
     await fetch(`${API}/messages/send`, {
@@ -65,62 +76,67 @@ window.sendMessage = async () => {
       },
       body: JSON.stringify({
         sender,
-        receiver: selectedUser,
+        receiver: activeChatUser,
         text
       })
     });
 
+    socket.emit("send-message", {
+      senderId: sender,
+      receiverId: activeChatUser,
+      text
+    });
+
     input.value = "";
 
-    loadMessages(selectedUser);
+    loadMessages(activeChatUser);
   } catch (error) {
     console.log("Send message error:", error);
   }
 };
 
 /* =========================
-   TYPING STATUS
+   TYPING
 ========================= */
 window.handleTyping = () => {
-  if (!window.socket) return;
+  const sender = getCurrentUserId();
 
-  window.socket.emit("typing", {
-    senderId: window.currentUserId,
-    receiverId: selectedUser
+  socket.emit("typing", {
+    senderId: sender,
+    receiverId: activeChatUser
   });
 
-  clearTimeout(window.typingTimeout);
+  clearTimeout(typingTimer);
 
-  window.typingTimeout = setTimeout(() => {
-    window.socket.emit("stop-typing", {
-      senderId: window.currentUserId,
-      receiverId: selectedUser
+  typingTimer = setTimeout(() => {
+    socket.emit("stop-typing", {
+      senderId: sender,
+      receiverId: activeChatUser
     });
   }, 1200);
 };
 
 /* =========================
-   SOCKET CHAT EVENTS
+   SOCKET EVENTS
 ========================= */
-window.setupChatSocket = () => {
-  if (!window.socket) return;
+socket.on("receive-message", () => {
+  loadMessages(activeChatUser);
+});
 
-  window.socket.on("receive-message", () => {
-    loadMessages(selectedUser);
-  });
+socket.on("user-typing", () => {
+  if (el("onlineStatus")) {
+    el("onlineStatus").innerText = "Typing...";
+  }
+});
 
-  window.socket.on("user-typing", () => {
-    const status = el("onlineStatus");
-    if (status) status.innerText = "Typing...";
-  });
+socket.on("user-stop-typing", () => {
+  if (el("onlineStatus")) {
+    el("onlineStatus").innerText = "Online";
+  }
+});
 
-  window.socket.on("user-stop-typing", () => {
-    const status = el("onlineStatus");
-    if (status) status.innerText = "Online";
-  });
-
-  window.socket.on("online-users", () => {
-    const status = el("onlineStatus");
-    if (status) status.innerText = "Online";
-  });
-};
+socket.on("online-users", () => {
+  if (el("onlineStatus")) {
+    el("onlineStatus").innerText = "Online";
+  }
+});
