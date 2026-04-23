@@ -40,13 +40,13 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(firebaseApp);
+export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 export const socket = io(API);
 
-export let currentUserId = null;
+window.socket = socket;
 
 /* =========================
    HELPERS
@@ -56,7 +56,7 @@ export function el(id) {
 }
 
 /* =========================
-   AUTH
+   GOOGLE LOGIN
 ========================= */
 window.googleLogin = async () => {
   try {
@@ -70,7 +70,7 @@ window.logout = async () => {
   try {
     await signOut(auth);
   } catch (error) {
-    console.log("Logout error:", error);
+    console.log(error);
   }
 };
 
@@ -79,18 +79,16 @@ window.logout = async () => {
 ========================= */
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    currentUserId = user.uid;
     window.currentUserId = user.uid;
 
     if (el("userEmail")) {
-      el("userEmail").innerText = user.email || "";
+      el("userEmail").innerText = user.email;
     }
 
     socket.emit("register", user.uid);
 
     loadFeed();
   } else {
-    currentUserId = null;
     window.currentUserId = null;
 
     if (el("userEmail")) {
@@ -104,9 +102,9 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 /* =========================
-   TAB SWITCHING
+   TAB SWITCHER
 ========================= */
-window.switchTab = (tab) => {
+window.switchTab = function(tab) {
   document.querySelectorAll(".tab-section").forEach(section => {
     section.style.display = "none";
     section.classList.remove("active");
@@ -129,20 +127,15 @@ window.switchTab = (tab) => {
 };
 
 /* =========================
-   COOKIE
+   STARTUP
 ========================= */
-window.acceptCookies = () => {
-  localStorage.setItem("cookieAccepted", "yes");
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    el("welcomeCard")?.remove();
+  }, 1500);
 
-  if (el("cookieBanner")) {
-    el("cookieBanner").style.display = "none";
-  }
-};
+  window.switchTab("feed");
 
-/* =========================
-   BUTTON EVENTS
-========================= */
-function bindButtons() {
   el("generateBtn")?.addEventListener("click", () => {
     window.generateContent?.();
   });
@@ -159,10 +152,6 @@ function bindButtons() {
     window.downloadResult?.();
   });
 
-  el("cookieAcceptBtn")?.addEventListener("click", () => {
-    window.acceptCookies?.();
-  });
-
   el("audioCallBtn")?.addEventListener("click", () => {
     window.startCall?.();
   });
@@ -171,32 +160,7 @@ function bindButtons() {
     window.startVideoCall?.();
   });
 
-  el("uploadBtn")?.addEventListener("click", () => {
-    window.uploadMedia?.();
+  el("cookieAcceptBtn")?.addEventListener("click", () => {
+    window.acceptCookies?.();
   });
-}
-
-/* =========================
-   STARTUP
-========================= */
-window.addEventListener("load", () => {
-  bindButtons();
-
-  if (localStorage.getItem("cookieAccepted") === "yes") {
-    if (el("cookieBanner")) {
-      el("cookieBanner").style.display = "none";
-    }
-  }
-
-  setTimeout(() => {
-    if (el("welcomeCard")) {
-      el("welcomeCard").style.opacity = "0";
-
-      setTimeout(() => {
-        el("welcomeCard")?.remove();
-      }, 700);
-    }
-  }, 1500);
-
-  window.switchTab("feed");
 });
