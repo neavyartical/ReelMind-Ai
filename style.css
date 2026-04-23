@@ -9,6 +9,7 @@ body{
   background:linear-gradient(to bottom,#020617,#0f172a);
   color:#fff;
   min-height:100vh;
+  overflow-x:hidden;
   padding-bottom:220px;
 }
 
@@ -26,7 +27,7 @@ body{
   text-align:center;
   padding:30px;
   z-index:9999;
-  transition:opacity .7s ease;
+  transition:opacity .6s ease;
 }
 
 .welcome-card h1{
@@ -52,7 +53,7 @@ body{
   justify-content:space-between;
   align-items:center;
   padding:16px;
-  background:rgba(2,6,23,.9);
+  background:rgba(2,6,23,.92);
   backdrop-filter:blur(16px);
   border-bottom:1px solid rgba(255,255,255,.06);
 }
@@ -98,7 +99,7 @@ body{
   height:42px;
   border:none;
   border-radius:50%;
-  background:rgba(255,255,255,.06);
+  background:rgba(255,255,255,.08);
   color:#fff;
   cursor:pointer;
 }
@@ -129,10 +130,12 @@ body{
 }
 
 /* =========================
-   SECTIONS
+   SECTION FIX
 ========================= */
 .tab-section{
   display:none;
+  width:100%;
+  min-height:calc(100vh - 220px);
 }
 
 .tab-section.active{
@@ -144,7 +147,7 @@ body{
 }
 
 /* =========================
-   GLASS PANELS
+   PANELS
 ========================= */
 .card,
 .feed-card,
@@ -173,6 +176,7 @@ body{
 ========================= */
 .card img,
 .card video,
+.feed-card img,
 .feed-card video{
   width:100%;
   border-radius:18px;
@@ -204,7 +208,7 @@ body{
   background:none;
   border:none;
   color:#fff;
-  font-size:22px;
+  font-size:18px;
   cursor:pointer;
 }
 
@@ -230,7 +234,7 @@ body{
 }
 
 /* =========================
-   FORM ELEMENTS
+   INPUTS
 ========================= */
 textarea,
 input,
@@ -276,17 +280,6 @@ select option{
   font-weight:bold;
   cursor:pointer;
   margin-top:10px;
-  transition:.25s;
-}
-
-.action:hover,
-.send-btn:hover,
-.call-btn:hover{
-  transform:translateY(-2px);
-}
-
-.ai-generate-btn{
-  font-size:17px;
 }
 
 .call-btn{
@@ -308,7 +301,6 @@ select option{
   border-radius:18px;
   margin-bottom:12px;
   max-width:80%;
-  line-height:1.5;
 }
 
 .message.sent{
@@ -319,7 +311,6 @@ select option{
 
 .message.received{
   background:rgba(255,255,255,.08);
-  color:#fff;
 }
 
 .chat-box{
@@ -327,17 +318,7 @@ select option{
 }
 
 /* =========================
-   CALL STATUS
-========================= */
-.call-status{
-  text-align:center;
-  color:#22c55e;
-  font-weight:bold;
-  padding:12px;
-}
-
-/* =========================
-   FLOATING BUTTONS
+   FLOATING
 ========================= */
 .floating-btn{
   position:fixed;
@@ -350,7 +331,6 @@ select option{
   font-size:24px;
   cursor:pointer;
   z-index:700;
-  box-shadow:0 10px 25px rgba(0,0,0,.35);
 }
 
 .upload-btn{
@@ -398,24 +378,6 @@ select option{
   padding:10px 18px;
   border-radius:12px;
   font-weight:bold;
-}
-
-/* =========================
-   SPINNER
-========================= */
-.spinner{
-  width:38px;
-  height:38px;
-  border:4px solid rgba(255,255,255,.15);
-  border-top:4px solid #00d9ff;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-  margin:0 auto 14px;
-}
-
-@keyframes spin{
-  from{transform:rotate(0deg);}
-  to{transform:rotate(360deg);}
 }
 
 /* =========================
