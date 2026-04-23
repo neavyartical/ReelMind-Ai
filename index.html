@@ -14,7 +14,7 @@
 </head>
 <body>
 
-  <!-- SPLASH SCREEN -->
+  <!-- SPLASH -->
   <div id="welcomeCard" class="welcome-card">
     <h1>ReelMind AI</h1>
     <p>Transform imagination into social reality.</p>
@@ -40,7 +40,7 @@
     <button onclick="switchTab('feed')">🎬 Feed</button>
     <button onclick="switchTab('create')">🤖 AI</button>
     <button onclick="switchTab('messages')">💬 Chat</button>
-    <button onclick="switchTab('profile')">👤 Profile</button>
+    <button onclick="switchTab('settings')">👤 Account</button>
   </nav>
 
   <!-- FEED -->
@@ -48,7 +48,7 @@
     <div id="videoFeed"></div>
   </section>
 
-  <!-- AI CREATE -->
+  <!-- AI -->
   <section id="create" class="tab-section container">
     <div class="ai-panel">
       <textarea id="prompt" placeholder="Describe what AI should create..."></textarea>
@@ -91,14 +91,13 @@
       <button id="sendBtn" class="send-btn">Send</button>
     </div>
 
-    <div class="call-controls">
-      <button id="audioCallBtn" class="call-btn">📞 Audio Call</button>
-      <button id="videoCallBtn" class="call-btn">🎥 Video Call</button>
-    </div>
+    <!-- CALLS MOVED HERE -->
+    <button id="audioCallBtn" class="call-btn">📞 Audio Call</button>
+    <button id="videoCallBtn" class="call-btn">🎥 Video Call</button>
   </section>
 
-  <!-- PROFILE -->
-  <section id="profile" class="tab-section container">
+  <!-- SETTINGS / PROFILE -->
+  <section id="settings" class="tab-section container">
     <div class="profile-card">
       <img id="profileAvatar" class="avatar" src="" alt="Profile">
       <h2 id="profileName">Your Profile</h2>
@@ -107,14 +106,10 @@
       <p>Following: <span id="following">0</span></p>
       <p>Videos: <span id="videoCount">0</span></p>
       <p>Status: <span id="onlineStatus">Offline</span></p>
-      <p>Credits: <span id="profileCredits">0</span></p>
     </div>
 
     <button id="buyCreditsBtn" class="action">💳 Buy Credits</button>
-  </section>
 
-  <!-- SETTINGS -->
-  <section id="settings" class="tab-section container">
     <div class="info-page">
       <h3>Appearance</h3>
       <label>
@@ -147,7 +142,7 @@
   <!-- CALL STATUS -->
   <div id="callStatus" class="call-status"></div>
 
-  <!-- FLOATING BUTTONS -->
+  <!-- FLOATING -->
   <button id="uploadBtn" class="floating-btn upload-btn">📤</button>
   <button id="voiceBtn" class="floating-btn mic-btn">🎤</button>
   <button id="downloadBtn" class="download-btn">⬇ Download</button>
@@ -163,16 +158,15 @@
     <p>© 2026 ReelMind AI — Powered by Artical Neavy</p>
   </footer>
 
-  <!-- MAIN SCRIPT -->
+  <!-- MAIN -->
   <script type="module" src="script.js"></script>
 
-  <!-- FAILSAFE -->
   <script>
     window.addEventListener("load", () => {
       setTimeout(() => {
         const splash = document.getElementById("welcomeCard");
-        if (splash) splash.style.display = "none";
-      }, 2500);
+        if (splash) splash.remove();
+      }, 2000);
     });
   </script>
 
