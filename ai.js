@@ -1,127 +1,147 @@
-const express = require("express");
-const router = express.Router();
+const API = "https://reelmindbackend-1.onrender.com";
 
 /* =========================
-   PROMPT IMPROVER
+   AI MODULE
 ========================= */
-function improvePrompt(prompt, mode) {
-  const clean = String(prompt || "").trim();
+const AI = {
+  latestUrl: "",
+  generating: false
+};
 
-  if (!clean) return "";
+/* =========================
+   HELPERS
+========================= */
+function el(id) {
+  return document.getElementById(id);
+}
 
-  if (mode === "text") {
-    return `${clean}
-Write professionally with immersive storytelling and engaging detail.`;
-  }
+function setLoading(message = "Generating...") {
+  const result = el("result");
+  if (!result) return;
 
-  if (mode === "image") {
-    return `${clean}
-masterpiece, ultra realistic, cinematic lighting, highly detailed`;
-  }
+  result.innerHTML = `
+    <div class="card">
+      <div class="spinner"></div>
+      <p>${message}</p>
+    </div>
+  `;
+}
 
-  if (mode === "video") {
-    return `${clean}
-cinematic motion, smooth movement, professional film quality`;
-  }
+function showText(text) {
+  AI.latestUrl = "";
+  el("result").innerHTML = `
+    <div class="card">${text}</div>
+  `;
+}
 
-  return clean;
+function showImage(url) {
+  AI.latestUrl = url;
+  el("result").innerHTML = `
+    <div class="card">
+      <img src="${url}" alt="Generated image">
+    </div>
+  `;
+}
+
+function showVideo(url) {
+  AI.latestUrl = url;
+  el("result").innerHTML = `
+    <div class="card">
+      <video controls playsinline src="${url}"></video>
+    </div>
+  `;
 }
 
 /* =========================
-   AI TEXT
+   GENERATE CONTENT
 ========================= */
-router.post("/text", async (req, res) => {
-  try {
-    const prompt = improvePrompt(req.body.prompt, "text");
+export async function generateAI() {
+  if (AI.generating) return;
 
-    return res.json({
-      success: true,
-      type: "text",
-      data: {
-        content: prompt
-      }
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: "Text generation failed"
-    });
+  const prompt = el("prompt")?.value?.trim();
+  const mode = el("mode")?.value || "image";
+
+  if (!prompt) {
+    alert("Please enter a prompt");
+    return;
   }
-});
+
+  AI.generating = true;
+  setLoading();
+
+  try {
+    const response = await fetch(`${API}/api/ai/${mode}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || "Generation failed");
+    }
+
+    if (mode === "text") {
+      showText(data.data.content);
+    }
+
+    if (mode === "image") {
+      showImage(data.data.url);
+    }
+
+    if (mode === "video") {
+      showVideo(data.data.preview);
+    }
+  } catch (error) {
+    showText(error.message || "Generation failed");
+  }
+
+  AI.generating = false;
+}
 
 /* =========================
-   AI IMAGE
+   EDIT IMAGE
 ========================= */
-router.post("/image", async (req, res) => {
+export async function editImage(promptText) {
+  AI.generating = true;
+  setLoading("Editing image...");
+
   try {
-    const prompt = improvePrompt(req.body.prompt, "image");
-
-    const imageUrl =
-      `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
-      `?width=1024&height=1024&seed=${Date.now()}&enhance=true&nologo=true&private=true`;
-
-    return res.json({
-      success: true,
-      type: "image",
-      data: {
-        url: imageUrl
-      }
+    const response = await fetch(`${API}/api/ai/edit-image`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        prompt: promptText || "Enhance image"
+      })
     });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error("Image editing failed");
+    }
+
+    showImage(data.data.url);
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: "Image generation failed"
-    });
+    showText(error.message);
   }
-});
+
+  AI.generating = false;
+}
 
 /* =========================
-   AI VIDEO
+   DOWNLOAD
 ========================= */
-router.post("/video", async (req, res) => {
-  try {
-    const prompt = improvePrompt(req.body.prompt, "video");
+export function downloadAIResult() {
+  if (!AI.latestUrl) return;
 
-    return res.json({
-      success: true,
-      type: "video",
-      data: {
-        prompt,
-        preview: "https://www.w3schools.com/html/mov_bbb.mp4"
-      }
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: "Video generation failed"
-    });
-  }
-});
-
-/* =========================
-   AI EDIT IMAGE
-========================= */
-router.post("/edit-image", async (req, res) => {
-  try {
-    const prompt = improvePrompt(req.body.prompt || "Enhance image", "image");
-
-    const imageUrl =
-      `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
-      `?width=1024&height=1024&seed=${Date.now()}&enhance=true&nologo=true&private=true`;
-
-    return res.json({
-      success: true,
-      type: "edit-image",
-      data: {
-        url: imageUrl
-      }
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: "Image editing failed"
-    });
-  }
-});
-
-module.exports = router;
+  const a = document.createElement("a");
+  a.href = AI.latestUrl;
+  a.download = "reelmind-result";
+  a.click();
+}
