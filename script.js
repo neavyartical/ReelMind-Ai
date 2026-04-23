@@ -1,14 +1,14 @@
 export const API = "https://reelmindbackend-1.onrender.com";
 
 /* =========================
-   HELPERS
+   ELEMENT HELPER
 ========================= */
 export function el(id) {
   return document.getElementById(id);
 }
 
 /* =========================
-   TAB SWITCHER
+   SAFE TAB SWITCHER
 ========================= */
 window.switchTab = function(tabId) {
   document.querySelectorAll(".tab-section").forEach(section => {
@@ -28,12 +28,12 @@ window.switchTab = function(tabId) {
   }
 
   if (tabId === "messages" && window.loadMessages) {
-    window.loadMessages("demo-user");
+    window.loadMessages();
   }
 };
 
 /* =========================
-   COOKIE HANDLER
+   COOKIE ACCEPT
 ========================= */
 window.acceptCookies = function() {
   localStorage.setItem("cookieAccepted", "yes");
@@ -45,59 +45,68 @@ window.acceptCookies = function() {
 };
 
 /* =========================
-   PLACEHOLDER CALLS
+   SETTINGS ACTIONS
+========================= */
+window.toggleTheme = function() {
+  document.body.classList.toggle("light-mode");
+};
+
+window.toggleNotifications = function() {
+  alert("Notifications updated");
+};
+
+window.editProfile = function() {
+  alert("Profile editing coming soon");
+};
+
+window.changePhoto = function() {
+  alert("Photo upload coming soon");
+};
+
+window.logoutUser = function() {
+  alert("Logout feature coming soon");
+};
+
+window.clearAppCache = function() {
+  localStorage.clear();
+  alert("Cache cleared");
+};
+
+window.deleteAccount = function() {
+  alert("Delete account feature coming soon");
+};
+
+/* =========================
+   CALL ACTIONS
 ========================= */
 window.startCall = function() {
   const status = el("callStatus");
   if (status) {
-    status.innerText = "Audio call starting...";
+    status.innerText = "Starting audio call...";
   }
-
-  alert("Audio calling system connected.");
 };
 
 window.startVideoCall = function() {
   const status = el("callStatus");
   if (status) {
-    status.innerText = "Video call starting...";
-  }
-
-  alert("Video calling system connected.");
-};
-
-/* =========================
-   LOAD PROFILE
-========================= */
-window.loadProfile = async function() {
-  try {
-    const response = await fetch(`${API}/me`);
-    const data = await response.json();
-
-    if (el("credits")) {
-      el("credits").innerText = data.credits || 0;
-    }
-
-    if (el("profileCredits")) {
-      el("profileCredits").innerText = data.credits || 0;
-    }
-
-    if (el("userEmail")) {
-      el("userEmail").innerText = data.email || "";
-    }
-
-    if (el("userLocation")) {
-      el("userLocation").innerText =
-        `${data.city || ""} ${data.country || ""}`.trim();
-    }
-  } catch (error) {
-    console.log("Profile load failed:", error);
+    status.innerText = "Starting video call...";
   }
 };
 
 /* =========================
-   MODULE LOADER
+   START APP
 ========================= */
-async function loadModules() {
+window.addEventListener("load", async () => {
+  setTimeout(() => {
+    el("welcomeCard")?.remove();
+  }, 1200);
+
+  if (localStorage.getItem("cookieAccepted") === "yes") {
+    el("cookieBanner")?.remove();
+  }
+
+  window.switchTab("feed");
+
   try {
     await import("./feed.js");
   } catch (e) {
@@ -121,53 +130,28 @@ async function loadModules() {
   } catch (e) {
     console.log("settings.js failed:", e);
   }
-}
 
-/* =========================
-   START APP
-========================= */
-window.addEventListener("load", async () => {
-  setTimeout(() => {
-    el("welcomeCard")?.remove();
-  }, 1200);
-
-  if (localStorage.getItem("cookieAccepted") === "yes") {
-    el("cookieBanner")?.remove();
-  }
-
-  await loadModules();
-
-  window.switchTab("feed");
-
-  if (window.loadFeed) {
-    window.loadFeed();
-  }
-
-  window.loadProfile();
-
-  /* =========================
-     BUTTON EVENTS
-  ========================= */
+  /* Buttons */
   el("cookieAcceptBtn")?.addEventListener("click", window.acceptCookies);
-
-  el("uploadBtn")?.addEventListener("click", () => {
-    window.switchTab("create");
-  });
 
   el("generateBtn")?.addEventListener("click", () => {
     window.generateContent?.();
   });
 
-  el("downloadBtn")?.addEventListener("click", () => {
-    window.downloadResult?.();
+  el("sendBtn")?.addEventListener("click", () => {
+    window.sendMessage?.();
   });
 
   el("voiceBtn")?.addEventListener("click", () => {
     window.startVoiceInput?.();
   });
 
-  el("sendBtn")?.addEventListener("click", () => {
-    window.sendMessage?.();
+  el("downloadBtn")?.addEventListener("click", () => {
+    window.downloadResult?.();
+  });
+
+  el("uploadBtn")?.addEventListener("click", () => {
+    window.switchTab("create");
   });
 
   el("audioCallBtn")?.addEventListener("click", window.startCall);
