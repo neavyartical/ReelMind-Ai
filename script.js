@@ -1,5 +1,5 @@
 /* =========================
-   MAIN APP CONFIG
+   MAIN APP
 ========================= */
 export const API = "https://reelmindbackend-1.onrender.com";
 
@@ -11,8 +11,6 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -23,15 +21,15 @@ import {
 import { io } from "https://cdn.socket.io/4.7.5/socket.io.esm.min.js";
 
 /* =========================
-   LOAD MODULES
+   MODULES
 ========================= */
-import "./ai.js";
-import "./feed.js";
+import { loadFeed } from "./feed.js";
 import "./chat.js";
 import "./settings.js";
+import "./ai.js";
 
 /* =========================
-   FIREBASE CONFIG
+   CONFIG
 ========================= */
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
@@ -42,19 +40,13 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
-/* =========================
-   INITIALIZE
-========================= */
-export const firebaseApp = initializeApp(firebaseConfig);
-export const auth = getAuth(firebaseApp);
+const app = initializeApp(firebaseConfig);
+
+export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 export const socket = io(API);
 
-/* =========================
-   GLOBALS
-========================= */
-export let userToken = null;
-export let selectedUser = "demo-user";
+export let currentUserId = null;
 
 /* =========================
    HELPERS
@@ -63,31 +55,15 @@ export function el(id) {
   return document.getElementById(id);
 }
 
-export function val(id) {
-  return el(id)?.value?.trim() || "";
-}
-
 /* =========================
-   AUTH FUNCTIONS
+   LOGIN
 ========================= */
 window.googleLogin = async () => {
-  await signInWithPopup(auth, provider);
-};
-
-window.emailRegister = async () => {
-  await createUserWithEmailAndPassword(
-    auth,
-    val("email"),
-    val("password")
-  );
-};
-
-window.emailLogin = async () => {
-  await signInWithEmailAndPassword(
-    auth,
-    val("email"),
-    val("password")
-  );
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 window.logout = async () => {
@@ -95,132 +71,101 @@ window.logout = async () => {
 };
 
 /* =========================
-   PROFILE
-========================= */
-export async function loadProfile() {
-  try {
-    const res = await fetch(`${API}/me`, {
-      headers: {
-        Authorization: userToken
-          ? `Bearer ${userToken}`
-          : ""
-      }
-    });
-
-    const data = await res.json();
-
-    if (el("credits")) {
-      el("credits").innerText = data.credits || 0;
-    }
-
-    if (el("userLocation")) {
-      el("userLocation").innerText =
-        `${data.city || ""} ${data.country || ""}`.trim();
-    }
-
-    if (el("profileName")) {
-      el("profileName").innerText =
-        data.email || "Your Profile";
-    }
-
-    if (el("userEmail")) {
-      el("userEmail").innerText =
-        data.email || "Guest Mode";
-    }
-
-  } catch (error) {
-    console.log("Profile error:", error);
-  }
-}
-
-/* =========================
-   SOCKET BASIC EVENTS
-========================= */
-socket.on("online-users", () => {
-  if (el("onlineStatus")) {
-    el("onlineStatus").innerText = "Online";
-  }
-});
-
-/* =========================
    AUTH STATE
 ========================= */
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    userToken = await user.getIdToken();
+    currentUserId = user.uid;
+    window.currentUserId = user.uid;
+
+    if (el("userEmail")) {
+      el("userEmail").innerText = user.email;
+    }
 
     socket.emit("register", user.uid);
 
-    await loadProfile();
+    loadFeed();
   } else {
-    userToken = null;
+    currentUserId = null;
+    window.currentUserId = null;
 
     if (el("userEmail")) {
-      el("userEmail").innerText = "Guest Mode";
+      el("userEmail").innerText = "";
     }
+
+    setTimeout(() => {
+      googleLogin();
+    }, 1000);
   }
 });
 
 /* =========================
-   TAB SWITCHING
+   TABS
 ========================= */
 window.switchTab = (tab) => {
   document.querySelectorAll(".tab-section").forEach(section => {
     section.classList.remove("active");
   });
 
-  el(tab)?.classList.add("active");
-
-  if (tab === "feed" && window.loadFeed) {
-    window.loadFeed();
+  const target = el(tab);
+  if (target) {
+    target.classList.add("active");
   }
 
-  if (tab === "messages" && window.loadMessages) {
-    window.loadMessages();
-  }
-
-  if (tab === "settings" && window.loadSettings) {
-    window.loadSettings();
+  if (tab === "feed") {
+    loadFeed();
   }
 };
 
 /* =========================
-   COOKIE
-========================= */
-window.acceptCookies = () => {
-  localStorage.setItem("cookieAccepted", "yes");
-
-  if (el("cookieBanner")) {
-    el("cookieBanner").style.display = "none";
-  }
-};
-
-/* =========================
-   PLACEHOLDER UTILITIES
-========================= */
-window.buyCredits = () => {
-  alert("Payment integration coming soon");
-};
-
-window.uploadMedia = () => {
-  alert("Upload feature coming soon");
-};
-
-/* =========================
-   STARTUP
+   BUTTON EVENTS
 ========================= */
 window.addEventListener("load", () => {
-  if (localStorage.getItem("cookieAccepted") === "yes") {
-    if (el("cookieBanner")) {
-      el("cookieBanner").style.display = "none";
-    }
-  }
-
-  if (window.loadFeed) {
-    window.loadFeed();
-  }
-
   setTimeout(() => {
     el("welcomeCard")?.remove();
-  }, 1800);
+  }, 1500);
+
+  el("generateBtn")?.addEventListener("click", () => {
+    if (window.generateContent) {
+      window.generateContent();
+    }
+  });
+
+  el("sendBtn")?.addEventListener("click", () => {
+    if (window.sendMessage) {
+      window.sendMessage();
+    }
+  });
+
+  el("voiceBtn")?.addEventListener("click", () => {
+    if (window.startVoiceInput) {
+      window.startVoiceInput();
+    }
+  });
+
+  el("downloadBtn")?.addEventListener("click", () => {
+    if (window.downloadResult) {
+      window.downloadResult();
+    }
+  });
+
+  el("cookieAcceptBtn")?.addEventListener("click", () => {
+    if (window.acceptCookies) {
+      window.acceptCookies();
+    }
+  });
+
+  el("audioCallBtn")?.addEventListener("click", () => {
+    if (window.startCall) {
+      window.startCall();
+    }
+  });
+
+  el("videoCallBtn")?.addEventListener("click", () => {
+    if (window.startVideoCall) {
+      window.startVideoCall();
+    }
+  });
+
+  loadFeed();
 });
