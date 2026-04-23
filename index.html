@@ -112,18 +112,69 @@
   <!-- SETTINGS -->
   <section id="settings" class="tab-section container">
     <div class="info-page">
-      <h3>About</h3>
-      <p>ReelMind AI combines artificial intelligence with social media interaction.</p>
+      <h3>Appearance</h3>
+      <label class="setting-row">
+        <span>Dark Mode</span>
+        <input
+          type="checkbox"
+          id="themeToggle"
+          onchange="toggleTheme()"
+        >
+      </label>
     </div>
 
     <div class="info-page">
-      <h3>Privacy</h3>
-      <p>Your videos, messages and account stay protected.</p>
+      <h3>Notifications</h3>
+      <label class="setting-row">
+        <span>Push Notifications</span>
+        <input
+          type="checkbox"
+          id="notificationsToggle"
+          onchange="toggleNotifications()"
+        >
+      </label>
+    </div>
+
+    <div class="info-page">
+      <h3>Playback</h3>
+      <label class="setting-row">
+        <span>Autoplay Videos</span>
+        <input
+          type="checkbox"
+          id="autoplayToggle"
+          onchange="toggleAutoplay()"
+        >
+      </label>
+
+      <label class="setting-row">
+        <span>Sound Effects</span>
+        <input
+          type="checkbox"
+          id="soundToggle"
+          onchange="toggleSound()"
+        >
+      </label>
+    </div>
+
+    <div class="info-page">
+      <h3>Account</h3>
+      <button class="action" onclick="logoutUser()">
+        Logout
+      </button>
+
+      <button class="action" onclick="clearAppCache()">
+        Clear Cache
+      </button>
+
+      <button class="danger-btn" onclick="deleteAccount()">
+        Delete Account
+      </button>
     </div>
 
     <div class="info-page">
       <h3>Support</h3>
       <p>Email: neavyartical@gmail.com</p>
+      <p>ReelMind AI combines artificial intelligence with social media interaction.</p>
     </div>
   </section>
 
@@ -149,4 +200,4 @@
   <!-- MODULE ENTRY -->
   <script type="module" src="script.js"></script>
 </body>
-</html>
+        </html>
