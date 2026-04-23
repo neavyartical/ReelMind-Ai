@@ -7,7 +7,7 @@ import { el } from "./script.js";
    DEFAULT SETTINGS
 ========================= */
 const defaultSettings = {
-  theme: "light",
+  theme: "dark",
   notifications: true,
   autoplay: true,
   soundEffects: true
@@ -45,24 +45,33 @@ function applySettings() {
   const settings = getSettings();
 
   document.body.classList.toggle(
+    "light-mode",
+    settings.theme === "light"
+  );
+
+  document.body.classList.toggle(
     "dark-mode",
     settings.theme === "dark"
   );
 
   if (el("themeToggle")) {
-    el("themeToggle").checked = settings.theme === "dark";
+    el("themeToggle").checked =
+      settings.theme === "dark";
   }
 
   if (el("notificationsToggle")) {
-    el("notificationsToggle").checked = settings.notifications;
+    el("notificationsToggle").checked =
+      settings.notifications;
   }
 
   if (el("autoplayToggle")) {
-    el("autoplayToggle").checked = settings.autoplay;
+    el("autoplayToggle").checked =
+      settings.autoplay;
   }
 
   if (el("soundToggle")) {
-    el("soundToggle").checked = settings.soundEffects;
+    el("soundToggle").checked =
+      settings.soundEffects;
   }
 }
 
@@ -118,26 +127,101 @@ window.toggleSound = () => {
 };
 
 /* =========================
+   EDIT PROFILE
+========================= */
+window.editProfile = () => {
+  const currentName =
+    el("profileName")?.innerText || "";
+
+  const newName = prompt(
+    "Enter your new profile name:",
+    currentName
+  );
+
+  if (!newName) return;
+
+  localStorage.setItem(
+    "profileName",
+    newName
+  );
+
+  if (el("profileName")) {
+    el("profileName").innerText = newName;
+  }
+};
+
+/* =========================
+   CHANGE PHOTO
+========================= */
+window.changePhoto = () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+
+  input.onchange = () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const image = reader.result;
+
+      localStorage.setItem(
+        "profileAvatar",
+        image
+      );
+
+      if (el("profileAvatar")) {
+        el("profileAvatar").src = image;
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  input.click();
+};
+
+/* =========================
+   LOAD PROFILE
+========================= */
+function loadProfile() {
+  const savedName =
+    localStorage.getItem("profileName");
+
+  const savedAvatar =
+    localStorage.getItem("profileAvatar");
+
+  if (savedName && el("profileName")) {
+    el("profileName").innerText = savedName;
+  }
+
+  if (savedAvatar && el("profileAvatar")) {
+    el("profileAvatar").src = savedAvatar;
+  }
+}
+
+/* =========================
    LOGOUT
 ========================= */
 window.logoutUser = async () => {
-  try {
-    if (window.logout) {
-      await window.logout();
-    }
+  const ok = confirm("Logout now?");
+  if (!ok) return;
 
-    alert("Logged out successfully");
-    location.reload();
-  } catch (error) {
-    console.log("Logout error:", error);
-  }
+  alert("Logout backend can be connected next.");
 };
 
 /* =========================
    CLEAR CACHE
 ========================= */
 window.clearAppCache = () => {
-  const keepSettings = localStorage.getItem("reelmind_settings");
+  const keepSettings =
+    localStorage.getItem("reelmind_settings");
+  const keepName =
+    localStorage.getItem("profileName");
+  const keepAvatar =
+    localStorage.getItem("profileAvatar");
 
   localStorage.clear();
   sessionStorage.clear();
@@ -149,6 +233,20 @@ window.clearAppCache = () => {
     );
   }
 
+  if (keepName) {
+    localStorage.setItem(
+      "profileName",
+      keepName
+    );
+  }
+
+  if (keepAvatar) {
+    localStorage.setItem(
+      "profileAvatar",
+      keepAvatar
+    );
+  }
+
   alert("App cache cleared");
 };
 
@@ -156,13 +254,17 @@ window.clearAppCache = () => {
    DELETE ACCOUNT
 ========================= */
 window.deleteAccount = () => {
-  const confirmDelete = confirm(
-    "Are you sure you want to delete your account permanently?"
+  const ok = confirm(
+    "Delete your account permanently?"
   );
 
-  if (!confirmDelete) return;
+  if (!ok) return;
 
-  alert("Account deletion backend can be connected next.");
+  localStorage.clear();
+  sessionStorage.clear();
+
+  alert("Account deleted locally.");
+  location.reload();
 };
 
 /* =========================
@@ -170,6 +272,7 @@ window.deleteAccount = () => {
 ========================= */
 window.loadSettings = () => {
   applySettings();
+  loadProfile();
 };
 
 /* =========================
@@ -177,4 +280,5 @@ window.loadSettings = () => {
 ========================= */
 window.addEventListener("load", () => {
   applySettings();
+  loadProfile();
 });
