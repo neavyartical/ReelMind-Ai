@@ -41,12 +41,12 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 export const socket = io(API);
 
 window.socket = socket;
+window.currentUserId = null;
 
 /* =========================
    HELPERS
@@ -82,14 +82,17 @@ onAuthStateChanged(auth, async (user) => {
     window.currentUserId = user.uid;
 
     if (el("userEmail")) {
-      el("userEmail").innerText = user.email;
+      el("userEmail").innerText = user.email || "";
     }
 
     socket.emit("register", user.uid);
 
     if (window.loadFeed) {
       window.loadFeed();
+    } else {
+      loadFeed();
     }
+
   } else {
     window.currentUserId = null;
 
@@ -106,7 +109,7 @@ onAuthStateChanged(auth, async (user) => {
 /* =========================
    TAB SWITCHER
 ========================= */
-window.switchTab = (tabId) => {
+window.switchTab = function(tabId) {
   const sections = document.querySelectorAll(".tab-section");
 
   sections.forEach(section => {
@@ -121,17 +124,21 @@ window.switchTab = (tabId) => {
     activeSection.classList.add("active");
   }
 
-  if (tabId === "feed" && window.loadFeed) {
-    window.loadFeed();
+  if (tabId === "feed") {
+    if (window.loadFeed) {
+      window.loadFeed();
+    }
   }
 
-  if (tabId === "messages" && window.loadMessages) {
-    window.loadMessages("demo-user");
+  if (tabId === "messages") {
+    if (window.loadMessages) {
+      window.loadMessages("demo-user");
+    }
   }
 };
 
 /* =========================
-   BUTTON HANDLERS
+   BIND BUTTONS
 ========================= */
 function bindButtons() {
   el("generateBtn")?.addEventListener("click", () => {
@@ -160,6 +167,14 @@ function bindButtons() {
 
   el("cookieAcceptBtn")?.addEventListener("click", () => {
     window.acceptCookies?.();
+  });
+
+  el("buyCreditsBtn")?.addEventListener("click", () => {
+    window.buyCredits?.();
+  });
+
+  el("uploadBtn")?.addEventListener("click", () => {
+    window.uploadMedia?.();
   });
 }
 
