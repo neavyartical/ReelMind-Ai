@@ -14,7 +14,7 @@
 </head>
 <body>
 
-  <!-- SPLASH -->
+  <!-- SPLASH SCREEN -->
   <div id="welcomeCard" class="welcome-card">
     <h1>ReelMind AI</h1>
     <p>Transform imagination into social reality.</p>
@@ -24,7 +24,7 @@
   <header class="topbar">
     <div class="brand">
       <h1>ReelMind AI</h1>
-      <small id="userEmail">Guest Mode</small>
+      <small id="userEmail"></small>
       <small id="userLocation"></small>
     </div>
 
@@ -83,6 +83,7 @@
   <!-- CHAT -->
   <section id="messages" class="tab-section container">
     <h3>Messages</h3>
+
     <div id="messageList" class="message-list"></div>
 
     <div class="chat-box">
@@ -142,7 +143,7 @@
   <!-- CALL STATUS -->
   <div id="callStatus" class="call-status"></div>
 
-  <!-- FLOATING -->
+  <!-- FLOATING BUTTONS -->
   <button id="uploadBtn" class="floating-btn upload-btn">📤</button>
   <button id="voiceBtn" class="floating-btn mic-btn">🎤</button>
   <button id="downloadBtn" class="download-btn">⬇ Download</button>
@@ -158,18 +159,16 @@
     <p>© 2026 ReelMind AI — Powered by Artical Neavy</p>
   </footer>
 
-  <!-- MAIN APP -->
+  <!-- MAIN SCRIPT -->
   <script type="module" src="script.js"></script>
 
-  <!-- EMERGENCY SPLASH FIX -->
+  <!-- FAILSAFE SPLASH REMOVE -->
   <script>
     window.addEventListener("load", () => {
       setTimeout(() => {
         const splash = document.getElementById("welcomeCard");
-        if (splash) {
-          splash.style.display = "none";
-        }
-      }, 3000);
+        if (splash) splash.style.display = "none";
+      }, 2500);
     });
   </script>
 
