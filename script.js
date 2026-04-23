@@ -70,7 +70,7 @@ window.logout = async () => {
   try {
     await signOut(auth);
   } catch (error) {
-    console.log(error);
+    console.log("Logout error:", error);
   }
 };
 
@@ -87,7 +87,9 @@ onAuthStateChanged(auth, async (user) => {
 
     socket.emit("register", user.uid);
 
-    loadFeed();
+    if (window.loadFeed) {
+      window.loadFeed();
+    }
   } else {
     window.currentUserId = null;
 
@@ -104,38 +106,34 @@ onAuthStateChanged(auth, async (user) => {
 /* =========================
    TAB SWITCHER
 ========================= */
-window.switchTab = function(tab) {
-  document.querySelectorAll(".tab-section").forEach(section => {
+window.switchTab = (tabId) => {
+  const sections = document.querySelectorAll(".tab-section");
+
+  sections.forEach(section => {
     section.style.display = "none";
     section.classList.remove("active");
   });
 
-  const current = el(tab);
+  const activeSection = el(tabId);
 
-  if (current) {
-    current.style.display = "block";
-    current.classList.add("active");
+  if (activeSection) {
+    activeSection.style.display = "block";
+    activeSection.classList.add("active");
   }
 
-  if (tab === "feed" && window.loadFeed) {
+  if (tabId === "feed" && window.loadFeed) {
     window.loadFeed();
   }
 
-  if (tab === "messages" && window.loadMessages) {
+  if (tabId === "messages" && window.loadMessages) {
     window.loadMessages("demo-user");
   }
 };
 
 /* =========================
-   STARTUP
+   BUTTON HANDLERS
 ========================= */
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    el("welcomeCard")?.remove();
-  }, 1500);
-
-  window.switchTab("feed");
-
+function bindButtons() {
   el("generateBtn")?.addEventListener("click", () => {
     window.generateContent?.();
   });
@@ -163,4 +161,17 @@ window.addEventListener("load", () => {
   el("cookieAcceptBtn")?.addEventListener("click", () => {
     window.acceptCookies?.();
   });
+}
+
+/* =========================
+   STARTUP
+========================= */
+window.addEventListener("load", () => {
+  bindButtons();
+
+  setTimeout(() => {
+    el("welcomeCard")?.remove();
+  }, 1500);
+
+  window.switchTab("feed");
 });
