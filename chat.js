@@ -1,25 +1,14 @@
-/* =========================
-   CHAT MODULE
-========================= */
 import { API, auth, socket, el } from "./script.js";
 
 let activeChatUser = "demo-user";
-let typingTimer = null;
+let localStream = null;
 
 /* =========================
-   GET CURRENT USER
+   USER ID
 ========================= */
 function getCurrentUserId() {
-  return auth.currentUser?.uid || "guest";
+  return auth.currentUser?.uid || null;
 }
-
-/* =========================
-   SET ACTIVE CHAT USER
-========================= */
-window.openChat = (userId) => {
-  activeChatUser = userId;
-  loadMessages(userId);
-};
 
 /* =========================
    LOAD MESSAGES
@@ -28,32 +17,30 @@ window.loadMessages = async (targetUserId = activeChatUser) => {
   try {
     activeChatUser = targetUserId;
 
-    const currentUser = getCurrentUserId();
+    const sender = getCurrentUserId();
+    if (!sender) return;
 
-    const response = await fetch(
-      `${API}/messages/${currentUser}/${targetUserId}`
-    );
+    const res = await fetch(`${API}/messages/${sender}/${targetUserId}`);
+    const data = await res.json();
 
-    const data = await response.json();
+    const list = el("messageList");
+    if (!list) return;
 
-    const messageList = el("messageList");
-    if (!messageList) return;
-
-    messageList.innerHTML = "";
+    list.innerHTML = "";
 
     (data.messages || []).forEach(msg => {
-      const mine = msg.sender === currentUser;
+      const mine = msg.sender === sender;
 
-      messageList.innerHTML += `
+      list.innerHTML += `
         <div class="message ${mine ? "sent" : "received"}">
           ${msg.text}
         </div>
       `;
     });
 
-    messageList.scrollTop = messageList.scrollHeight;
+    list.scrollTop = list.scrollHeight;
   } catch (error) {
-    console.log("Load messages error:", error);
+    console.log(error);
   }
 };
 
@@ -63,57 +50,88 @@ window.loadMessages = async (targetUserId = activeChatUser) => {
 window.sendMessage = async () => {
   const input = el("messageInput");
   const text = input?.value?.trim();
-
-  if (!text) return;
-
   const sender = getCurrentUserId();
 
-  try {
-    await fetch(`${API}/messages/send`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        sender,
-        receiver: activeChatUser,
-        text
-      })
-    });
+  if (!text || !sender) return;
 
-    socket.emit("send-message", {
-      senderId: sender,
-      receiverId: activeChatUser,
+  await fetch(`${API}/messages/send`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      sender,
+      receiver: activeChatUser,
       text
-    });
+    })
+  });
 
-    input.value = "";
+  socket.emit("send-message", {
+    senderId: sender,
+    receiverId: activeChatUser,
+    text
+  });
 
-    loadMessages(activeChatUser);
-  } catch (error) {
-    console.log("Send message error:", error);
+  input.value = "";
+  loadMessages(activeChatUser);
+};
+
+/* =========================
+   START AUDIO CALL
+========================= */
+window.startCall = async () => {
+  const callerId = getCurrentUserId();
+  if (!callerId) return;
+
+  socket.emit("call-user", {
+    callerId,
+    receiverId: activeChatUser,
+    callerName: auth.currentUser?.email || "User",
+    type: "audio"
+  });
+
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Calling...";
   }
 };
 
 /* =========================
-   TYPING
+   START VIDEO CALL
 ========================= */
-window.handleTyping = () => {
-  const sender = getCurrentUserId();
+window.startVideoCall = async () => {
+  const callerId = getCurrentUserId();
+  if (!callerId) return;
 
-  socket.emit("typing", {
-    senderId: sender,
+  socket.emit("call-user", {
+    callerId,
+    receiverId: activeChatUser,
+    callerName: auth.currentUser?.email || "User",
+    type: "video"
+  });
+
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Video calling...";
+  }
+};
+
+/* =========================
+   END CALL
+========================= */
+window.endCall = () => {
+  const callerId = getCurrentUserId();
+
+  socket.emit("end-call", {
+    callerId,
     receiverId: activeChatUser
   });
 
-  clearTimeout(typingTimer);
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Call ended";
+  }
 
-  typingTimer = setTimeout(() => {
-    socket.emit("stop-typing", {
-      senderId: sender,
-      receiverId: activeChatUser
-    });
-  }, 1200);
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+  }
 };
 
 /* =========================
@@ -123,20 +141,43 @@ socket.on("receive-message", () => {
   loadMessages(activeChatUser);
 });
 
-socket.on("user-typing", () => {
-  if (el("onlineStatus")) {
-    el("onlineStatus").innerText = "Typing...";
+socket.on("incoming-call", (data) => {
+  const accept = confirm(
+    `${data.callerName} is calling you (${data.type}). Accept?`
+  );
+
+  if (accept) {
+    if (el("callStatus")) {
+      el("callStatus").innerText = `${data.type} call connected`;
+    }
+
+    socket.emit("answer-call", {
+      callerId: data.callerId,
+      receiverId: getCurrentUserId(),
+      answer: true
+    });
+  } else {
+    socket.emit("reject-call", {
+      callerId: data.callerId,
+      receiverId: getCurrentUserId()
+    });
   }
 });
 
-socket.on("user-stop-typing", () => {
-  if (el("onlineStatus")) {
-    el("onlineStatus").innerText = "Online";
+socket.on("call-answered", () => {
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Call connected";
   }
 });
 
-socket.on("online-users", () => {
-  if (el("onlineStatus")) {
-    el("onlineStatus").innerText = "Online";
+socket.on("call-rejected", () => {
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Call rejected";
+  }
+});
+
+socket.on("call-ended", () => {
+  if (el("callStatus")) {
+    el("callStatus").innerText = "Call ended";
   }
 });
