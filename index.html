@@ -24,7 +24,7 @@
   <header class="topbar">
     <div class="brand">
       <h1>ReelMind AI</h1>
-      <small id="userEmail"></small>
+      <small id="userEmail">Guest</small>
       <small id="userLocation"></small>
     </div>
 
@@ -80,13 +80,14 @@
     <div id="result"></div>
   </section>
 
-  <!-- CHAT WITH WHATSAPP FEATURES -->
+  <!-- CHAT -->
   <section id="messages" class="tab-section container">
-    <h3>Messages</h3>
-
     <div class="chat-header">
-      <button id="audioCallBtn" class="call-btn">📞 Audio</button>
-      <button id="videoCallBtn" class="call-btn">🎥 Video</button>
+      <h3>Messages</h3>
+      <div class="chat-actions">
+        <button id="audioCallBtn" class="call-btn">📞 Audio</button>
+        <button id="videoCallBtn" class="call-btn">🎥 Video</button>
+      </div>
     </div>
 
     <div id="messageList" class="message-list"></div>
@@ -112,6 +113,7 @@
 
   <!-- SETTINGS -->
   <section id="settings" class="tab-section container">
+
     <div class="info-page">
       <h3>Profile Settings</h3>
       <button onclick="editProfile()">Edit Profile</button>
@@ -150,12 +152,13 @@
       <h3>Support</h3>
       <p>Email: neavyartical@gmail.com</p>
     </div>
+
   </section>
 
   <!-- CALL STATUS -->
   <div id="callStatus" class="call-status"></div>
 
-  <!-- FLOATING -->
+  <!-- FLOATING BUTTONS -->
   <button id="uploadBtn" class="floating-btn upload-btn">📤</button>
   <button id="voiceBtn" class="floating-btn mic-btn">🎤</button>
   <button id="downloadBtn" class="download-btn">⬇ Download</button>
@@ -171,6 +174,7 @@
     <p>© 2026 ReelMind AI — Powered by Artical Neavy</p>
   </footer>
 
+  <!-- MAIN SCRIPT -->
   <script type="module" src="script.js"></script>
 
 </body>
