@@ -48,7 +48,7 @@
     <div id="videoFeed"></div>
   </section>
 
-  <!-- AI -->
+  <!-- AI CREATE -->
   <section id="create" class="tab-section container">
     <div class="ai-panel">
       <textarea id="prompt" placeholder="Describe what AI should create..."></textarea>
@@ -90,6 +90,11 @@
       <input id="messageInput" type="text" placeholder="Type your message...">
       <button id="sendBtn" class="send-btn">Send</button>
     </div>
+
+    <div class="call-controls">
+      <button id="audioCallBtn" class="call-btn">📞 Audio Call</button>
+      <button id="videoCallBtn" class="call-btn">🎥 Video Call</button>
+    </div>
   </section>
 
   <!-- PROFILE -->
@@ -102,10 +107,9 @@
       <p>Following: <span id="following">0</span></p>
       <p>Videos: <span id="videoCount">0</span></p>
       <p>Status: <span id="onlineStatus">Offline</span></p>
+      <p>Credits: <span id="profileCredits">0</span></p>
     </div>
 
-    <button id="audioCallBtn" class="call-btn">📞 Audio Call</button>
-    <button id="videoCallBtn" class="call-btn">🎥 Video Call</button>
     <button id="buyCreditsBtn" class="action">💳 Buy Credits</button>
   </section>
 
@@ -162,7 +166,7 @@
   <!-- MAIN SCRIPT -->
   <script type="module" src="script.js"></script>
 
-  <!-- FAILSAFE SPLASH REMOVE -->
+  <!-- FAILSAFE -->
   <script>
     window.addEventListener("load", () => {
       setTimeout(() => {
