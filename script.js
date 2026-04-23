@@ -1,94 +1,11 @@
 export const API = "https://reelmindbackend-1.onrender.com";
 
-/* =========================
-   FIREBASE
-========================= */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-/* =========================
-   SOCKET
-========================= */
-import { io } from "https://cdn.socket.io/4.7.5/socket.io.esm.min.js";
-
-/* =========================
-   MODULES
-========================= */
-import { loadFeed } from "./feed.js";
-import "./chat.js";
-import "./settings.js";
-import "./ai.js";
-
-/* =========================
-   FIREBASE CONFIG
-========================= */
-const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
-export const provider = new GoogleAuthProvider();
-export const socket = io(API);
-
-window.socket = socket;
-
-/* =========================
-   HELPERS
-========================= */
 export function el(id) {
   return document.getElementById(id);
 }
 
 /* =========================
-   AUTH
-========================= */
-window.googleLogin = async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (error) {
-    console.log("Login error:", error);
-  }
-};
-
-window.logout = async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    window.currentUserId = user.uid;
-
-    if (el("userEmail")) {
-      el("userEmail").innerText = user.email || "";
-    }
-
-    socket.emit("register", user.uid);
-
-    if (window.loadFeed) {
-      window.loadFeed();
-    }
-  }
-});
-
-/* =========================
-   TAB SWITCHING
+   SAFE TAB SWITCH
 ========================= */
 window.switchTab = function(tabId) {
   document.querySelectorAll(".tab-section").forEach(section => {
@@ -106,10 +23,6 @@ window.switchTab = function(tabId) {
   if (tabId === "feed" && window.loadFeed) {
     window.loadFeed();
   }
-
-  if (tabId === "messages" && window.loadMessages) {
-    window.loadMessages("demo-user");
-  }
 };
 
 /* =========================
@@ -125,61 +38,51 @@ window.acceptCookies = function() {
 };
 
 /* =========================
-   PLACEHOLDER BUTTONS
+   BASIC BUTTONS
 ========================= */
-window.startCall = function() {
-  alert("Audio calling coming soon");
-};
-
-window.startVideoCall = function() {
-  alert("Video calling coming soon");
-};
+window.startCall = () => alert("Audio call coming soon");
+window.startVideoCall = () => alert("Video call coming soon");
 
 /* =========================
-   STARTUP
+   START APP
 ========================= */
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
   setTimeout(() => {
-    const splash = el("welcomeCard");
-    if (splash) splash.remove();
-  }, 1500);
+    el("welcomeCard")?.remove();
+  }, 1200);
 
   if (localStorage.getItem("cookieAccepted") === "yes") {
-    const banner = el("cookieBanner");
-    if (banner) banner.style.display = "none";
+    el("cookieBanner")?.remove();
   }
 
   window.switchTab("feed");
 
-  el("generateBtn")?.addEventListener("click", () => {
-    window.generateContent?.();
-  });
+  try {
+    await import("./feed.js");
+  } catch (e) {
+    console.log("feed.js failed:", e);
+  }
 
-  el("sendBtn")?.addEventListener("click", () => {
-    window.sendMessage?.();
-  });
+  try {
+    await import("./ai.js");
+  } catch (e) {
+    console.log("ai.js failed:", e);
+  }
 
-  el("voiceBtn")?.addEventListener("click", () => {
-    window.startVoiceInput?.();
-  });
+  try {
+    await import("./chat.js");
+  } catch (e) {
+    console.log("chat.js failed:", e);
+  }
 
-  el("downloadBtn")?.addEventListener("click", () => {
-    window.downloadResult?.();
-  });
+  try {
+    await import("./settings.js");
+  } catch (e) {
+    console.log("settings.js failed:", e);
+  }
 
-  el("cookieAcceptBtn")?.addEventListener("click", () => {
-    window.acceptCookies();
-  });
-
-  el("audioCallBtn")?.addEventListener("click", () => {
-    window.startCall();
-  });
-
-  el("videoCallBtn")?.addEventListener("click", () => {
-    window.startVideoCall();
-  });
-
-  el("uploadBtn")?.addEventListener("click", () => {
-    window.switchTab("create");
-  });
+  el("cookieAcceptBtn")?.addEventListener("click", window.acceptCookies);
+  el("uploadBtn")?.addEventListener("click", () => window.switchTab("create"));
+  el("audioCallBtn")?.addEventListener("click", window.startCall);
+  el("videoCallBtn")?.addEventListener("click", window.startVideoCall);
 });
