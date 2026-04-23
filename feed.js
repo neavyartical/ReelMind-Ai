@@ -1,23 +1,34 @@
-const API = "https://reelmindbackend-1.onrender.com";
-
 /* =========================
-   HELPERS
+   FEED MODULE
 ========================= */
-function el(id) {
-  return document.getElementById(id);
-}
+import { API, socket, el } from "./script.js";
 
 /* =========================
-   RENDER SINGLE POST
+   RENDER POST
 ========================= */
 function renderPost(video) {
   const media =
     video.mediaType === "image"
-      ? `<img src="${video.mediaUrl}" class="feed-media" alt="Post">`
-      : `<video controls playsinline class="feed-media" src="${video.mediaUrl}"></video>`;
+      ? `
+        <img
+          src="${video.mediaUrl}"
+          class="feed-media"
+          alt="Post"
+        >
+      `
+      : `
+        <video
+          class="feed-media"
+          src="${video.mediaUrl}"
+          controls
+          playsinline
+          muted
+          loop
+        ></video>
+      `;
 
   return `
-    <div class="feed-card">
+    <div class="feed-card" data-id="${video._id}">
       ${media}
 
       <div class="feed-user">
@@ -43,13 +54,11 @@ function renderPost(video) {
 ========================= */
 export async function loadFeed() {
   try {
-    const res = await fetch(`${API}/videos`);
-    const data = await res.json();
+    const response = await fetch(`${API}/videos`);
+    const data = await response.json();
 
     const feed = el("videoFeed");
     if (!feed) return;
-
-    feed.innerHTML = "";
 
     const videos = data.videos || [];
 
@@ -62,11 +71,13 @@ export async function loadFeed() {
       return;
     }
 
-    videos.forEach(video => {
-      feed.innerHTML += renderPost(video);
-    });
+    feed.innerHTML = videos
+      .map(video => renderPost(video))
+      .join("");
+
+    enableAutoPlay();
   } catch (error) {
-    console.log("Feed load error:", error);
+    console.log("Feed error:", error);
 
     const feed = el("videoFeed");
     if (feed) {
@@ -88,7 +99,11 @@ export async function likePost(id) {
       method: "POST"
     });
 
-    await loadFeed();
+    socket.emit("like-post", {
+      postId: id
+    });
+
+    loadFeed();
   } catch (error) {
     console.log("Like error:", error);
   }
@@ -102,6 +117,7 @@ export async function sharePost(url) {
     if (navigator.share) {
       await navigator.share({
         title: "ReelMind AI",
+        text: "Check this post",
         url
       });
     } else {
@@ -114,6 +130,36 @@ export async function sharePost(url) {
 }
 
 /* =========================
+   AUTO PLAY VISIBLE VIDEOS
+========================= */
+function enableAutoPlay() {
+  const videos = document.querySelectorAll(".feed-media");
+
+  const observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        const media = entry.target;
+
+        if (media.tagName !== "VIDEO") return;
+
+        if (entry.isIntersecting) {
+          media.play().catch(() => {});
+        } else {
+          media.pause();
+        }
+      });
+    },
+    {
+      threshold: 0.7
+    }
+  );
+
+  videos.forEach(video => {
+    observer.observe(video);
+  });
+}
+
+/* =========================
    AUTO REFRESH
 ========================= */
 export function startFeedAutoRefresh() {
@@ -121,6 +167,13 @@ export function startFeedAutoRefresh() {
     loadFeed();
   }, 30000);
 }
+
+/* =========================
+   SOCKET EVENTS
+========================= */
+socket.on("feed-new-post", loadFeed);
+socket.on("feed-post-liked", loadFeed);
+socket.on("feed-new-comment", loadFeed);
 
 /* =========================
    GLOBAL BINDINGS
