@@ -1,199 +1,442 @@
-const { Server } = require("socket.io");
+const API = "https://reelmindbackend-1.onrender.com";
 
-function socketServer(server) {
-  const io = new Server(server, {
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
-    }
-  });
+/* =========================
+   FIREBASE
+========================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  const onlineUsers = new Map();
+/* =========================
+   SOCKET
+========================= */
+import { io } from "https://cdn.socket.io/4.7.5/socket.io.esm.min.js";
 
-  function emitOnlineUsers() {
-    io.emit("online-users", Array.from(onlineUsers.keys()));
-  }
+const socket = io(API);
 
-  io.on("connection", (socket) => {
-    console.log("User connected:", socket.id);
+/* =========================
+   FIREBASE CONFIG
+========================= */
+const firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
 
-    /* =========================
-       REGISTER USER
-    ========================= */
-    socket.on("register", (userId) => {
-      if (!userId) return;
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const provider = new GoogleAuthProvider();
 
-      onlineUsers.set(userId, socket.id);
-      socket.userId = userId;
+/* =========================
+   GLOBALS
+========================= */
+let userToken = null;
+let latestDownloadUrl = "";
+let generating = false;
+let selectedUser = "demo-user";
 
-      emitOnlineUsers();
-
-      console.log(`Registered user: ${userId}`);
-    });
-
-    /* =========================
-       PRIVATE MESSAGE
-    ========================= */
-    socket.on("send-message", (data) => {
-      const {
-        senderId,
-        receiverId,
-        text,
-        createdAt
-      } = data || {};
-
-      if (!receiverId || !text) return;
-
-      const targetSocket = onlineUsers.get(receiverId);
-
-      if (targetSocket) {
-        io.to(targetSocket).emit("receive-message", {
-          senderId,
-          receiverId,
-          text,
-          createdAt: createdAt || new Date()
-        });
-      }
-    });
-
-    /* =========================
-       TYPING STATUS
-    ========================= */
-    socket.on("typing", ({ senderId, receiverId }) => {
-      const targetSocket = onlineUsers.get(receiverId);
-
-      if (targetSocket) {
-        io.to(targetSocket).emit("user-typing", {
-          senderId
-        });
-      }
-    });
-
-    socket.on("stop-typing", ({ senderId, receiverId }) => {
-      const targetSocket = onlineUsers.get(receiverId);
-
-      if (targetSocket) {
-        io.to(targetSocket).emit("user-stop-typing", {
-          senderId
-        });
-      }
-    });
-
-    /* =========================
-       START CALL
-    ========================= */
-    socket.on("call-user", (data) => {
-      const {
-        callerId,
-        receiverId,
-        callerName,
-        offer,
-        type
-      } = data || {};
-
-      const targetSocket = onlineUsers.get(receiverId);
-
-      if (targetSocket) {
-        io.to(targetSocket).emit("incoming-call", {
-          callerId,
-          callerName,
-          offer,
-          type: type || "audio"
-        });
-      }
-    });
-
-    /* =========================
-       ANSWER CALL
-    ========================= */
-    socket.on("answer-call", (data) => {
-      const {
-        callerId,
-        receiverId,
-        answer
-      } = data || {};
-
-      const targetSocket = onlineUsers.get(callerId);
-
-      if (targetSocket) {
-        io.to(targetSocket).emit("call-answered", {
-          receiverId,
-          answer
-        });
-      }
-    });
-
-    /* =========================
-       REJECT CALL
-    ========================= */
-    socket.on("reject-call", (data) => {
-      const { callerId, receiverId } = data || {};
-
-      const targetSocket = onlineUsers.get(callerId);
-
-      if (targetSocket) {
-        io.to(targetSocket).emit("call-rejected", {
-          receiverId
-        });
-      }
-    });
-
-    /* =========================
-       ICE CANDIDATE
-    ========================= */
-    socket.on("ice-candidate", (data) => {
-      const {
-        targetUserId,
-        candidate
-      } = data || {};
-
-      const targetSocket = onlineUsers.get(targetUserId);
-
-      if (targetSocket) {
-        io.to(targetSocket).emit("ice-candidate", {
-          candidate
-        });
-      }
-    });
-
-    /* =========================
-       END CALL
-    ========================= */
-    socket.on("end-call", (data) => {
-      const {
-        callerId,
-        receiverId
-      } = data || {};
-
-      const targetSocket =
-        onlineUsers.get(receiverId) ||
-        onlineUsers.get(callerId);
-
-      if (targetSocket) {
-        io.to(targetSocket).emit("call-ended");
-      }
-    });
-
-    /* =========================
-       DISCONNECT
-    ========================= */
-    socket.on("disconnect", () => {
-      if (socket.userId) {
-        onlineUsers.delete(socket.userId);
-      } else {
-        for (const [userId, socketId] of onlineUsers.entries()) {
-          if (socketId === socket.id) {
-            onlineUsers.delete(userId);
-            break;
-          }
-        }
-      }
-
-      emitOnlineUsers();
-
-      console.log("User disconnected:", socket.id);
-    });
-  });
+/* =========================
+   HELPERS
+========================= */
+function el(id) {
+  return document.getElementById(id);
 }
 
-module.exports = socketServer;
+function val(id) {
+  return el(id)?.value?.trim() || "";
+}
+
+function showMessage(msg) {
+  alert(msg);
+}
+
+/* =========================
+   SOCKET EVENTS
+========================= */
+socket.on("online-users", () => {
+  if (el("onlineStatus")) {
+    el("onlineStatus").innerText = "Online";
+  }
+});
+
+socket.on("receive-message", (data) => {
+  const box = el("messageList");
+  if (!box) return;
+
+  box.innerHTML += `
+    <div class="message received">${data.text}</div>
+  `;
+
+  box.scrollTop = box.scrollHeight;
+});
+
+socket.on("incoming-call", (data) => {
+  const accept = confirm(`${data.callerName || "Someone"} is calling you`);
+
+  if (accept) {
+    socket.emit("answer-call", {
+      callerId: data.callerId,
+      receiverId: auth.currentUser?.uid
+    });
+
+    el("callStatus").innerText = "Call connected";
+  } else {
+    socket.emit("reject-call", {
+      callerId: data.callerId,
+      receiverId: auth.currentUser?.uid
+    });
+  }
+});
+
+socket.on("call-answered", () => {
+  el("callStatus").innerText = "Call answered";
+});
+
+socket.on("call-rejected", () => {
+  el("callStatus").innerText = "Call rejected";
+});
+
+socket.on("call-ended", () => {
+  el("callStatus").innerText = "Call ended";
+});
+
+/* =========================
+   LIVE FEED SOCKET
+========================= */
+socket.on("feed-new-post", () => {
+  loadFeed();
+});
+
+socket.on("feed-post-liked", () => {
+  loadFeed();
+});
+
+socket.on("feed-new-comment", () => {
+  loadFeed();
+});
+
+/* =========================
+   UI
+========================= */
+function setLoading(text = "Generating...") {
+  el("result").innerHTML = `
+    <div class="card">
+      <div class="spinner"></div>
+      ${text}
+    </div>
+  `;
+}
+
+function renderText(text) {
+  latestDownloadUrl = "";
+  el("result").innerHTML = `
+    <div class="card">${text || "No response"}</div>
+  `;
+}
+
+function renderImage(url) {
+  latestDownloadUrl = url;
+  el("result").innerHTML = `
+    <div class="card">
+      <img src="${url}">
+    </div>
+  `;
+}
+
+function renderVideo(url) {
+  latestDownloadUrl = url;
+  el("result").innerHTML = `
+    <div class="card">
+      <video controls playsinline src="${url}"></video>
+    </div>
+  `;
+}
+
+/* =========================
+   PROFILE
+========================= */
+async function loadProfile() {
+  try {
+    const res = await fetch(`${API}/me`, {
+      headers: {
+        Authorization: userToken ? `Bearer ${userToken}` : ""
+      }
+    });
+
+    const data = await res.json();
+
+    el("credits").innerText = data.credits || 0;
+    el("userLocation").innerText =
+      `${data.city || ""} ${data.country || ""}`.trim();
+    el("profileName").innerText = data.email || "Your Profile";
+  } catch {}
+}
+
+/* =========================
+   AUTH
+========================= */
+window.googleLogin = async () => {
+  await signInWithPopup(auth, provider);
+};
+
+window.emailRegister = async () => {
+  await createUserWithEmailAndPassword(auth, val("email"), val("password"));
+};
+
+window.emailLogin = async () => {
+  await signInWithEmailAndPassword(auth, val("email"), val("password"));
+};
+
+window.logout = async () => {
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    userToken = await user.getIdToken();
+
+    socket.emit("register", user.uid);
+
+    el("userEmail").innerText = user.email;
+
+    await loadProfile();
+  } else {
+    userToken = null;
+  }
+});
+
+/* =========================
+   AUTO POST
+========================= */
+async function autoPost(mediaUrl, mediaType, caption) {
+  try {
+    const res = await fetch(`${API}/videos/create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userId: auth.currentUser?.uid || "guest",
+        username: auth.currentUser?.email || "Guest",
+        avatar: "",
+        caption,
+        mediaUrl,
+        mediaType
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      socket.emit("new-post", data.video);
+      loadFeed();
+    }
+  } catch {}
+}
+
+/* =========================
+   AI GENERATION
+========================= */
+window.generateContent = async () => {
+  if (generating) return;
+
+  const prompt = val("prompt");
+  const mode = val("mode");
+
+  if (!prompt) return showMessage("Enter prompt");
+
+  generating = true;
+  setLoading();
+
+  try {
+    const res = await fetch(`${API}/generate-${mode}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: userToken ? `Bearer ${userToken}` : ""
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+
+    if (mode === "text") {
+      renderText(data?.data?.content);
+    }
+
+    if (mode === "image") {
+      const url = data?.data?.url;
+      renderImage(url);
+      await autoPost(url, "image", prompt);
+    }
+
+    if (mode === "video") {
+      const url = data?.preview || data?.video;
+      renderVideo(url);
+      await autoPost(url, "video", prompt);
+    }
+
+    loadProfile();
+  } catch {
+    renderText("Generation failed");
+  }
+
+  generating = false;
+};
+
+/* =========================
+   FEED
+========================= */
+async function loadFeed() {
+  try {
+    const res = await fetch(`${API}/videos`);
+    const data = await res.json();
+
+    const feed = el("videoFeed");
+    if (!feed) return;
+
+    feed.innerHTML = "";
+
+    (data.videos || []).forEach(video => {
+      feed.innerHTML += `
+        <div class="feed-card">
+          ${
+            video.mediaType === "image"
+              ? `<img src="${video.mediaUrl}" class="feed-media">`
+              : `<video controls playsinline class="feed-media" src="${video.mediaUrl}"></video>`
+          }
+
+          <h4>${video.username || "User"}</h4>
+          <p>${video.caption || ""}</p>
+
+          <button onclick="likePost('${video._id}')">
+            ❤️ ${video.likes || 0}
+          </button>
+        </div>
+      `;
+    });
+  } catch {}
+}
+
+window.likePost = async (id) => {
+  await fetch(`${API}/videos/like/${id}`, {
+    method: "POST"
+  });
+
+  socket.emit("like-post", { postId: id });
+  loadFeed();
+};
+
+/* =========================
+   CHAT
+========================= */
+window.sendMessage = () => {
+  const text = val("messageInput");
+  if (!text) return;
+
+  socket.emit("send-message", {
+    senderId: auth.currentUser?.uid,
+    receiverId: selectedUser,
+    text
+  });
+
+  el("messageList").innerHTML += `
+    <div class="message sent">${text}</div>
+  `;
+
+  el("messageInput").value = "";
+};
+
+/* =========================
+   CALLS
+========================= */
+window.startCall = () => {
+  socket.emit("call-user", {
+    callerId: auth.currentUser?.uid,
+    receiverId: selectedUser,
+    callerName: auth.currentUser?.email,
+    type: "audio"
+  });
+
+  el("callStatus").innerText = "Calling...";
+};
+
+window.startVideoCall = () => {
+  socket.emit("call-user", {
+    callerId: auth.currentUser?.uid,
+    receiverId: selectedUser,
+    callerName: auth.currentUser?.email,
+    type: "video"
+  });
+
+  el("callStatus").innerText = "Video calling...";
+};
+
+/* =========================
+   UTILITIES
+========================= */
+window.startVoiceInput = () => {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) return;
+
+  const recognition = new SpeechRecognition();
+
+  recognition.onresult = (e) => {
+    el("prompt").value = e.results[0][0].transcript;
+  };
+
+  recognition.start();
+};
+
+window.downloadResult = () => {
+  if (!latestDownloadUrl) return;
+
+  const a = document.createElement("a");
+  a.href = latestDownloadUrl;
+  a.download = "reelmind-result";
+  a.click();
+};
+
+window.acceptCookies = () => {
+  localStorage.setItem("cookieAccepted", "yes");
+  el("cookieBanner").style.display = "none";
+};
+
+window.switchTab = (tab) => {
+  document.querySelectorAll(".tab-section").forEach(section => {
+    section.classList.remove("active");
+  });
+
+  el(tab)?.classList.add("active");
+
+  if (tab === "feed") {
+    loadFeed();
+  }
+};
+
+/* =========================
+   STARTUP
+========================= */
+window.addEventListener("load", () => {
+  loadFeed();
+
+  if (localStorage.getItem("cookieAccepted") === "yes") {
+    el("cookieBanner").style.display = "none";
+  }
+
+  setTimeout(() => {
+    el("welcomeCard")?.remove();
+  }, 1800);
+});
