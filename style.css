@@ -130,7 +130,7 @@ body{
 }
 
 /* =========================
-   SECTION FIX
+   SECTIONS
 ========================= */
 .tab-section{
   display:none;
@@ -153,22 +153,23 @@ body{
 .feed-card,
 .profile-card,
 .info-page,
-.ai-panel,
+.ai-panel{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.05);
+  backdrop-filter:blur(12px);
+  border-radius:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  padding:18px;
+  margin-bottom:18px;
+}
+
 .chat-box{
   background:rgba(255,255,255,.04);
   border:1px solid rgba(255,255,255,.05);
   backdrop-filter:blur(12px);
   border-radius:24px;
   box-shadow:0 10px 30px rgba(0,0,0,.25);
-}
-
-.card,
-.feed-card,
-.profile-card,
-.info-page,
-.ai-panel{
-  padding:18px;
-  margin-bottom:18px;
+  padding:14px;
 }
 
 /* =========================
@@ -186,33 +187,6 @@ body{
 }
 
 /* =========================
-   FEED
-========================= */
-.feed-card h4{
-  margin-top:12px;
-  font-size:18px;
-}
-
-.feed-card p{
-  margin-top:8px;
-  color:#cbd5e1;
-}
-
-.feed-actions{
-  display:flex;
-  justify-content:space-around;
-  margin-top:16px;
-}
-
-.feed-actions button{
-  background:none;
-  border:none;
-  color:#fff;
-  font-size:18px;
-  cursor:pointer;
-}
-
-/* =========================
    PROFILE
 ========================= */
 .profile-card{
@@ -226,6 +200,10 @@ body{
   object-fit:cover;
   margin-bottom:14px;
   border:3px solid #00d9ff;
+}
+
+.edit-profile-btn{
+  margin-top:14px;
 }
 
 #onlineStatus{
@@ -287,13 +265,38 @@ select option{
 }
 
 /* =========================
-   CHAT
+   CHAT WHATSAPP STYLE
 ========================= */
+#messages{
+  display:flex;
+  flex-direction:column;
+  height:calc(100vh - 230px);
+}
+
+.chat-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+  gap:10px;
+}
+
+.chat-actions{
+  display:flex;
+  gap:10px;
+}
+
+.chat-actions .call-btn{
+  width:auto;
+  padding:12px 14px;
+  margin-top:0;
+}
+
 .message-list{
-  min-height:260px;
-  max-height:420px;
+  flex:1;
   overflow-y:auto;
-  margin-bottom:16px;
+  padding-right:6px;
+  margin-bottom:14px;
 }
 
 .message{
@@ -301,6 +304,7 @@ select option{
   border-radius:18px;
   margin-bottom:12px;
   max-width:80%;
+  word-wrap:break-word;
 }
 
 .message.sent{
@@ -314,7 +318,20 @@ select option{
 }
 
 .chat-box{
-  padding:14px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.chat-box input{
+  flex:1;
+  margin-bottom:0;
+}
+
+.send-btn{
+  width:auto;
+  padding:14px 18px;
+  margin-top:0;
 }
 
 /* =========================
@@ -413,4 +430,8 @@ select option{
   .card video{
     max-height:55vh;
   }
-}
+
+  .chat-actions{
+    flex-direction:row;
+  }
+  }
