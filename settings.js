@@ -1,49 +1,120 @@
+/* =========================
+   SETTINGS MODULE
+========================= */
+import { el } from "./script.js";
 
 /* =========================
-   SETTINGS FUNCTIONS
+   DEFAULT SETTINGS
 ========================= */
-
-function el(id) {
-  return document.getElementById(id);
-}
-
-/* =========================
-   THEME TOGGLE
-========================= */
-window.toggleTheme = () => {
-  document.body.classList.toggle("dark-mode");
-
-  const darkEnabled = document.body.classList.contains("dark-mode");
-
-  localStorage.setItem("theme", darkEnabled ? "dark" : "light");
+const defaultSettings = {
+  theme: "light",
+  notifications: true,
+  autoplay: true,
+  soundEffects: true
 };
 
 /* =========================
-   LOAD SAVED SETTINGS
+   STORAGE
 ========================= */
-window.loadSettings = () => {
-  const theme = localStorage.getItem("theme");
+function getSettings() {
+  const saved = localStorage.getItem("reelmind_settings");
 
-  if (theme === "dark") {
-    document.body.classList.add("dark-mode");
+  if (!saved) return defaultSettings;
+
+  try {
+    return {
+      ...defaultSettings,
+      ...JSON.parse(saved)
+    };
+  } catch {
+    return defaultSettings;
+  }
+}
+
+function saveSettings(settings) {
+  localStorage.setItem(
+    "reelmind_settings",
+    JSON.stringify(settings)
+  );
+}
+
+/* =========================
+   APPLY SETTINGS
+========================= */
+function applySettings() {
+  const settings = getSettings();
+
+  document.body.classList.toggle(
+    "dark-mode",
+    settings.theme === "dark"
+  );
+
+  if (el("themeToggle")) {
+    el("themeToggle").checked = settings.theme === "dark";
   }
 
-  const notifications = localStorage.getItem("notifications");
   if (el("notificationsToggle")) {
-    el("notificationsToggle").checked = notifications !== "off";
+    el("notificationsToggle").checked = settings.notifications;
   }
+
+  if (el("autoplayToggle")) {
+    el("autoplayToggle").checked = settings.autoplay;
+  }
+
+  if (el("soundToggle")) {
+    el("soundToggle").checked = settings.soundEffects;
+  }
+}
+
+/* =========================
+   THEME
+========================= */
+window.toggleTheme = () => {
+  const settings = getSettings();
+
+  settings.theme =
+    settings.theme === "dark"
+      ? "light"
+      : "dark";
+
+  saveSettings(settings);
+  applySettings();
 };
 
 /* =========================
    NOTIFICATIONS
 ========================= */
 window.toggleNotifications = () => {
-  const enabled = el("notificationsToggle")?.checked;
+  const settings = getSettings();
 
-  localStorage.setItem(
-    "notifications",
-    enabled ? "on" : "off"
-  );
+  settings.notifications =
+    el("notificationsToggle")?.checked || false;
+
+  saveSettings(settings);
+};
+
+/* =========================
+   AUTOPLAY
+========================= */
+window.toggleAutoplay = () => {
+  const settings = getSettings();
+
+  settings.autoplay =
+    el("autoplayToggle")?.checked || false;
+
+  saveSettings(settings);
+};
+
+/* =========================
+   SOUND
+========================= */
+window.toggleSound = () => {
+  const settings = getSettings();
+
+  settings.soundEffects =
+    el("soundToggle")?.checked || false;
+
+  saveSettings(settings);
 };
 
 /* =========================
@@ -55,7 +126,7 @@ window.logoutUser = async () => {
       await window.logout();
     }
 
-    alert("Logged out");
+    alert("Logged out successfully");
     location.reload();
   } catch (error) {
     console.log("Logout error:", error);
@@ -66,21 +137,44 @@ window.logoutUser = async () => {
    CLEAR CACHE
 ========================= */
 window.clearAppCache = () => {
+  const keepSettings = localStorage.getItem("reelmind_settings");
+
   localStorage.clear();
   sessionStorage.clear();
+
+  if (keepSettings) {
+    localStorage.setItem(
+      "reelmind_settings",
+      keepSettings
+    );
+  }
 
   alert("App cache cleared");
 };
 
 /* =========================
-   DELETE ACCOUNT PLACEHOLDER
+   DELETE ACCOUNT
 ========================= */
 window.deleteAccount = () => {
   const confirmDelete = confirm(
-    "Are you sure you want to delete your account?"
+    "Are you sure you want to delete your account permanently?"
   );
 
   if (!confirmDelete) return;
 
-  alert("Account deletion feature can be connected later.");
+  alert("Account deletion backend can be connected next.");
 };
+
+/* =========================
+   LOAD SETTINGS
+========================= */
+window.loadSettings = () => {
+  applySettings();
+};
+
+/* =========================
+   STARTUP
+========================= */
+window.addEventListener("load", () => {
+  applySettings();
+});
