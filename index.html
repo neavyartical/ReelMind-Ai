@@ -83,7 +83,6 @@
   <!-- CHAT -->
   <section id="messages" class="tab-section container">
     <h3>Messages</h3>
-
     <div id="messageList" class="message-list"></div>
 
     <div class="chat-box">
@@ -113,68 +112,30 @@
   <section id="settings" class="tab-section container">
     <div class="info-page">
       <h3>Appearance</h3>
-      <label class="setting-row">
-        <span>Dark Mode</span>
-        <input
-          type="checkbox"
-          id="themeToggle"
-          onchange="toggleTheme()"
-        >
+      <label>
+        Dark Mode
+        <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
       </label>
     </div>
 
     <div class="info-page">
       <h3>Notifications</h3>
-      <label class="setting-row">
-        <span>Push Notifications</span>
-        <input
-          type="checkbox"
-          id="notificationsToggle"
-          onchange="toggleNotifications()"
-        >
-      </label>
-    </div>
-
-    <div class="info-page">
-      <h3>Playback</h3>
-      <label class="setting-row">
-        <span>Autoplay Videos</span>
-        <input
-          type="checkbox"
-          id="autoplayToggle"
-          onchange="toggleAutoplay()"
-        >
-      </label>
-
-      <label class="setting-row">
-        <span>Sound Effects</span>
-        <input
-          type="checkbox"
-          id="soundToggle"
-          onchange="toggleSound()"
-        >
+      <label>
+        Enable Notifications
+        <input type="checkbox" id="notificationsToggle" onchange="toggleNotifications()">
       </label>
     </div>
 
     <div class="info-page">
       <h3>Account</h3>
-      <button class="action" onclick="logoutUser()">
-        Logout
-      </button>
-
-      <button class="action" onclick="clearAppCache()">
-        Clear Cache
-      </button>
-
-      <button class="danger-btn" onclick="deleteAccount()">
-        Delete Account
-      </button>
+      <button onclick="logoutUser()">Logout</button>
+      <button onclick="clearAppCache()">Clear Cache</button>
+      <button onclick="deleteAccount()">Delete Account</button>
     </div>
 
     <div class="info-page">
       <h3>Support</h3>
       <p>Email: neavyartical@gmail.com</p>
-      <p>ReelMind AI combines artificial intelligence with social media interaction.</p>
     </div>
   </section>
 
@@ -197,7 +158,20 @@
     <p>© 2026 ReelMind AI — Powered by Artical Neavy</p>
   </footer>
 
-  <!-- MODULE ENTRY -->
+  <!-- MAIN APP -->
   <script type="module" src="script.js"></script>
+
+  <!-- EMERGENCY SPLASH FIX -->
+  <script>
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        const splash = document.getElementById("welcomeCard");
+        if (splash) {
+          splash.style.display = "none";
+        }
+      }, 3000);
+    });
+  </script>
+
 </body>
-        </html>
+</html>
