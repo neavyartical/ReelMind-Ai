@@ -1,5 +1,8 @@
 export const API = "https://reelmindbackend-1.onrender.com";
 
+import { watchUser } from "./firebase.js";
+import "./socket.js";
+
 /* =========================
    ELEMENT HELPER
 ========================= */
@@ -29,12 +32,12 @@ window.switchTab = function(tabId) {
       tabId === "create" ? "block" : "none";
   }
 
-  if (tabId === "feed" && window.loadFeed) {
-    window.loadFeed();
+  if (tabId === "feed") {
+    window.loadFeed?.();
   }
 
-  if (tabId === "messages" && window.loadMessages) {
-    window.loadMessages();
+  if (tabId === "messages") {
+    window.loadMessages?.();
   }
 };
 
@@ -55,13 +58,15 @@ window.showCallStatus = function(text) {
 
   status.innerText = text;
 
-  setTimeout(() => {
+  clearTimeout(window.callTimer);
+
+  window.callTimer = setTimeout(() => {
     status.innerText = "";
   }, 3000);
 };
 
 /* =========================
-   GLOBAL FILE PICKER
+   GLOBAL UPLOAD
 ========================= */
 window.openUpload = function() {
   const input = document.createElement("input");
@@ -72,12 +77,7 @@ window.openUpload = function() {
     const file = input.files?.[0];
     if (!file) return;
 
-    localStorage.setItem("lastUploadName", file.name);
-
-    if (window.handleUploadFile) {
-      window.handleUploadFile(file);
-    }
-
+    window.handleUploadFile?.(file);
     window.switchTab("create");
   };
 
@@ -85,7 +85,7 @@ window.openUpload = function() {
 };
 
 /* =========================
-   CHAT FILE PICKER
+   CHAT UPLOAD
 ========================= */
 window.openChatUpload = function() {
   const input = document.createElement("input");
@@ -96,20 +96,16 @@ window.openChatUpload = function() {
     const file = input.files?.[0];
     if (!file) return;
 
-    if (window.sendChatFile) {
-      window.sendChatFile(file);
-    } else {
-      alert("Selected: " + file.name);
-    }
+    window.sendChatFile?.(file);
   };
 
   input.click();
 };
 
 /* =========================
-   RESTORE PROFILE
+   RESTORE LOCAL PROFILE
 ========================= */
-function restoreProfile() {
+function restoreLocalProfile() {
   const savedName = localStorage.getItem("profileName");
   const savedAvatar = localStorage.getItem("profileAvatar");
   const savedTheme = localStorage.getItem("theme");
@@ -124,11 +120,38 @@ function restoreProfile() {
 
   document.body.classList.remove("light-mode", "dark-mode");
 
-  if (savedTheme === "light") {
-    document.body.classList.add("light-mode");
-  } else {
-    document.body.classList.add("dark-mode");
-  }
+  document.body.classList.add(
+    savedTheme === "light"
+      ? "light-mode"
+      : "dark-mode"
+  );
+}
+
+/* =========================
+   AUTH UI
+========================= */
+function setupAuthWatcher() {
+  watchUser(user => {
+    if (el("userEmail")) {
+      el("userEmail").innerText =
+        user?.email || "Guest";
+    }
+
+    if (user?.displayName && el("profileNameInput")) {
+      el("profileNameInput").value =
+        user.displayName;
+    }
+
+    if (user?.photoURL && el("profileAvatar")) {
+      el("profileAvatar").src =
+        user.photoURL;
+    }
+
+    if (el("onlineStatus")) {
+      el("onlineStatus").innerText =
+        user ? "Online" : "Offline";
+    }
+  });
 }
 
 /* =========================
@@ -155,56 +178,36 @@ async function loadModules() {
    BUTTON BINDINGS
 ========================= */
 function bindButtons() {
-  el("cookieAcceptBtn")?.addEventListener(
-    "click",
-    window.acceptCookies
-  );
+  el("cookieAcceptBtn")?.onclick =
+    window.acceptCookies;
 
-  el("generateBtn")?.addEventListener(
-    "click",
-    () => window.generateContent?.()
-  );
+  el("generateBtn")?.onclick =
+    () => window.generateContent?.();
 
-  el("downloadBtn")?.addEventListener(
-    "click",
-    () => window.downloadResult?.()
-  );
+  el("downloadBtn")?.onclick =
+    () => window.downloadResult?.();
 
-  el("uploadBtn")?.addEventListener(
-    "click",
-    window.openUpload
-  );
+  el("uploadBtn")?.onclick =
+    window.openUpload;
 
-  el("voiceBtn")?.addEventListener(
-    "click",
-    () => window.startVoiceInput?.()
-  );
+  el("voiceBtn")?.onclick =
+    () => window.startVoiceInput?.();
 
-  /* Chat */
-  el("sendBtn")?.addEventListener(
-    "click",
-    () => window.sendMessage?.()
-  );
+  /* CHAT */
+  el("sendBtn")?.onclick =
+    () => window.sendMessage?.();
 
-  el("chatUploadBtn")?.addEventListener(
-    "click",
-    window.openChatUpload
-  );
+  el("chatUploadBtn")?.onclick =
+    window.openChatUpload;
 
-  el("chatMicBtn")?.addEventListener(
-    "click",
-    () => window.startVoiceInput?.()
-  );
+  el("chatMicBtn")?.onclick =
+    () => window.startVoiceInput?.();
 
-  el("audioCallBtn")?.addEventListener(
-    "click",
-    () => window.startCall?.()
-  );
+  el("audioCallBtn")?.onclick =
+    () => window.startCall?.();
 
-  el("videoCallBtn")?.addEventListener(
-    "click",
-    () => window.startVideoCall?.()
-  );
+  el("videoCallBtn")?.onclick =
+    () => window.startVideoCall?.();
 
   el("messageInput")?.addEventListener(
     "keypress",
@@ -218,7 +221,7 @@ function bindButtons() {
 }
 
 /* =========================
-   APP START
+   START APP
 ========================= */
 window.addEventListener("load", async () => {
   setTimeout(() => {
@@ -229,7 +232,9 @@ window.addEventListener("load", async () => {
     el("cookieBanner")?.remove();
   }
 
-  restoreProfile();
+  restoreLocalProfile();
+
+  setupAuthWatcher();
 
   await loadModules();
 
