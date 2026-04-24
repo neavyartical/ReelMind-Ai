@@ -44,7 +44,7 @@ async function syncUserToBackend(user) {
   try {
     const token = await user.getIdToken();
 
-    await fetch(`${API}/auth/sync`, {
+    await fetch(`${API}/auth/sync-user`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -54,7 +54,7 @@ async function syncUserToBackend(user) {
         uid: user.uid,
         email: user.email,
         name: user.displayName || "",
-        photoURL: user.photoURL || ""
+        photo: user.photoURL || ""
       })
     });
   } catch (error) {
@@ -63,33 +63,27 @@ async function syncUserToBackend(user) {
 }
 
 /* =========================
-   UPDATE UI
+   UI UPDATE
 ========================= */
 function updateUserUI(user) {
   if (el("userEmail")) {
     el("userEmail").innerText = user?.email || "Guest";
   }
 
-  if (el("profileAvatar")) {
-    el("profileAvatar").src =
-      user?.photoURL || "logo.png";
+  if (user?.photoURL && el("profileAvatar")) {
+    el("profileAvatar").src = user.photoURL;
   }
 
-  if (el("profileNameInput")) {
-    el("profileNameInput").value =
-      user?.displayName || "";
+  if (user?.displayName && el("profileNameInput")) {
+    el("profileNameInput").value = user.displayName;
   }
 }
 
 /* =========================
-   SIGNUP
+   AUTH METHODS
 ========================= */
 export async function signup(email, password, name = "") {
-  const result = await createUserWithEmailAndPassword(
-    auth,
-    email,
-    password
-  );
+  const result = await createUserWithEmailAndPassword(auth, email, password);
 
   if (name) {
     await updateProfile(result.user, {
@@ -98,45 +92,27 @@ export async function signup(email, password, name = "") {
   }
 
   await syncUserToBackend(result.user);
-
   return result;
 }
 
-/* =========================
-   LOGIN
-========================= */
 export async function login(email, password) {
-  const result = await signInWithEmailAndPassword(
-    auth,
-    email,
-    password
-  );
-
+  const result = await signInWithEmailAndPassword(auth, email, password);
   await syncUserToBackend(result.user);
-
   return result;
 }
 
-/* =========================
-   GOOGLE LOGIN
-========================= */
 export async function loginWithGoogle() {
   const result = await signInWithPopup(auth, provider);
-
   await syncUserToBackend(result.user);
-
   return result;
 }
 
-/* =========================
-   LOGOUT
-========================= */
 export async function logout() {
   await signOut(auth);
 }
 
 /* =========================
-   AUTH WATCHER
+   WATCH USER
 ========================= */
 export function watchUser(callback) {
   onAuthStateChanged(auth, async (user) => {
