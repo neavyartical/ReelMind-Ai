@@ -34,6 +34,11 @@ body{
   margin-bottom:10px;
 }
 
+.welcome-card p{
+  color:#cbd5e1;
+  max-width:420px;
+}
+
 /* =========================
    HEADER
 ========================= */
@@ -47,6 +52,7 @@ body{
   padding:16px;
   background:rgba(2,6,23,.92);
   backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.06);
 }
 
 .brand h1{
@@ -64,6 +70,24 @@ body{
   display:flex;
   gap:10px;
   align-items:center;
+}
+
+.credits{
+  color:#facc15;
+  font-weight:bold;
+}
+
+.notify-badge{
+  background:#ef4444;
+  color:#fff;
+  min-width:22px;
+  height:22px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  font-weight:bold;
 }
 
 .settings-btn{
@@ -94,6 +118,11 @@ body{
   color:#000;
   font-weight:bold;
   cursor:pointer;
+  transition:.25s;
+}
+
+.tabs button:hover{
+  transform:translateY(-2px);
 }
 
 /* =========================
@@ -125,6 +154,7 @@ body{
   border-radius:22px;
   padding:18px;
   margin-bottom:18px;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
 }
 
 /* =========================
@@ -143,8 +173,9 @@ body{
   margin-bottom:14px;
 }
 
-.profile-card button{
-  margin-top:12px;
+#onlineStatus{
+  color:#22c55e;
+  font-weight:bold;
 }
 
 /* =========================
@@ -156,6 +187,7 @@ body{
   border-radius:18px;
   max-height:65vh;
   object-fit:cover;
+  background:#000;
 }
 
 /* =========================
@@ -172,6 +204,16 @@ select{
   background:rgba(255,255,255,.06);
   color:#fff;
   outline:none;
+}
+
+textarea{
+  min-height:140px;
+  resize:none;
+}
+
+textarea::placeholder,
+input::placeholder{
+  color:#94a3b8;
 }
 
 /* =========================
@@ -201,7 +243,7 @@ select{
 }
 
 /* =========================
-   CHAT LIKE WHATSAPP
+   CHAT - WHATSAPP STYLE
 ========================= */
 #messages{
   display:flex;
@@ -303,6 +345,23 @@ select{
   left:50%;
   transform:translateX(-50%);
   width:220px;
+  display:none;
+}
+
+/* =========================
+   CALL STATUS
+========================= */
+.call-status{
+  position:fixed;
+  top:110px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#111827;
+  color:#fff;
+  padding:12px 20px;
+  border-radius:14px;
+  z-index:999;
+  font-size:14px;
 }
 
 /* =========================
@@ -349,6 +408,31 @@ body.dark-mode{
   background:#000;
 }
 
+body.light-mode{
+  background:#f1f5f9;
+  color:#111;
+}
+
 /* =========================
    MOBILE
 ========================= */
+@media(max-width:768px){
+  .tabs button{
+    font-size:13px;
+    padding:12px;
+  }
+
+  .chat-actions{
+    flex-direction:column;
+  }
+
+  .cookie-banner{
+    flex-direction:column;
+    gap:10px;
+    text-align:center;
+  }
+
+  .download-btn{
+    width:88%;
+  }
+  }
