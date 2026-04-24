@@ -78,12 +78,17 @@
     </div>
 
     <div id="result"></div>
+
+    <button id="downloadBtn" class="download-btn">
+      ⬇ Download
+    </button>
   </section>
 
   <!-- CHAT -->
   <section id="messages" class="tab-section chat-screen">
     <div class="chat-header">
       <h3>Messages</h3>
+
       <div class="chat-actions">
         <button id="audioCallBtn" class="mini-call">📞</button>
         <button id="videoCallBtn" class="mini-call">🎥</button>
@@ -93,8 +98,16 @@
     <div id="messageList" class="message-list"></div>
 
     <div class="chat-input-bar">
-      <input id="messageInput" type="text" placeholder="Type your message...">
-      <button id="sendBtn">➤</button>
+      <button id="chatUploadBtn" class="chat-icon">➕</button>
+
+      <input
+        id="messageInput"
+        type="text"
+        placeholder="Type your message..."
+      >
+
+      <button id="chatMicBtn" class="chat-icon">🎤</button>
+      <button id="sendBtn" class="send-btn">➤</button>
     </div>
   </section>
 
@@ -103,15 +116,25 @@
     <div class="profile-card">
       <img id="profileAvatar" class="avatar" src="" alt="Profile">
 
-      <input id="profileNameInput" type="text" placeholder="Your name">
-      <textarea id="profileBioInput" placeholder="Write your bio"></textarea>
+      <input
+        id="profileNameInput"
+        type="text"
+        placeholder="Your name"
+      >
+
+      <textarea
+        id="profileBioInput"
+        placeholder="Write your bio"
+      ></textarea>
 
       <p>Followers: <span id="followers">0</span></p>
       <p>Following: <span id="following">0</span></p>
       <p>Videos: <span id="videoCount">0</span></p>
       <p>Status: <span id="onlineStatus">Offline</span></p>
 
-      <button id="saveProfileBtn" class="action">Save Profile</button>
+      <button id="saveProfileBtn" class="action">
+        Save Profile
+      </button>
     </div>
   </section>
 
@@ -159,7 +182,6 @@
   <!-- FLOATING -->
   <button id="uploadBtn" class="floating-btn upload-btn">📤</button>
   <button id="voiceBtn" class="floating-btn mic-btn">🎤</button>
-  <button id="downloadBtn" class="download-btn">⬇ Download</button>
 
   <!-- HIDDEN FILE PICKER -->
   <input type="file" id="mediaPicker" accept="image/*,video/*" hidden>
