@@ -3,31 +3,37 @@ export const API = "https://reelmindbackend-1.onrender.com";
 /* =========================
    ELEMENT HELPER
 ========================= */
-export function el(id) {
+export function el(id){
   return document.getElementById(id);
 }
 
 /* =========================
-   SAFE TAB SWITCHER
+   TAB SWITCHER
 ========================= */
-window.switchTab = function(tabId) {
-  document.querySelectorAll(".tab-section").forEach(section => {
+window.switchTab = function(tabId){
+  document.querySelectorAll(".tab-section").forEach(section=>{
     section.style.display = "none";
     section.classList.remove("active");
   });
 
   const target = el(tabId);
 
-  if (target) {
+  if(target){
     target.style.display = "block";
     target.classList.add("active");
   }
 
-  if (tabId === "feed" && window.loadFeed) {
+  const downloadBtn = el("downloadBtn");
+  if(downloadBtn){
+    downloadBtn.style.display =
+      tabId === "create" ? "block" : "none";
+  }
+
+  if(tabId === "feed" && window.loadFeed){
     window.loadFeed();
   }
 
-  if (tabId === "messages" && window.loadMessages) {
+  if(tabId === "messages" && window.loadMessages){
     window.loadMessages();
   }
 };
@@ -35,40 +41,42 @@ window.switchTab = function(tabId) {
 /* =========================
    COOKIE
 ========================= */
-window.acceptCookies = function() {
-  localStorage.setItem("cookieAccepted", "yes");
+window.acceptCookies = function(){
+  localStorage.setItem("cookieAccepted","yes");
   el("cookieBanner")?.remove();
 };
 
 /* =========================
    CALL STATUS
 ========================= */
-window.showCallStatus = function(text) {
+window.showCallStatus = function(text){
   const status = el("callStatus");
-  if (!status) return;
+  if(!status) return;
 
   status.innerText = text;
 
-  setTimeout(() => {
+  setTimeout(()=>{
     status.innerText = "";
-  }, 3000);
+  },3000);
 };
 
 /* =========================
-   UPLOAD BUTTON
+   GLOBAL FILE PICKER
 ========================= */
-window.openUpload = function() {
+window.openUpload = function(){
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,video/*";
 
-  input.onchange = () => {
+  input.onchange = ()=>{
     const file = input.files?.[0];
-    if (!file) return;
+    if(!file) return;
 
     localStorage.setItem("lastUploadName", file.name);
 
-    alert("Selected: " + file.name);
+    if(window.handleUploadFile){
+      window.handleUploadFile(file);
+    }
 
     window.switchTab("create");
   };
@@ -77,30 +85,54 @@ window.openUpload = function() {
 };
 
 /* =========================
+   CHAT FILE PICKER
+========================= */
+window.openChatUpload = function(){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*,video/*,audio/*";
+
+  input.onchange = ()=>{
+    const file = input.files?.[0];
+    if(!file) return;
+
+    if(window.sendChatFile){
+      window.sendChatFile(file);
+    }else{
+      alert("Selected: " + file.name);
+    }
+  };
+
+  input.click();
+};
+
+/* =========================
    RESTORE PROFILE
 ========================= */
-function restoreProfile() {
+function restoreProfile(){
   const savedName = localStorage.getItem("profileName");
   const savedAvatar = localStorage.getItem("profileAvatar");
   const savedTheme = localStorage.getItem("theme");
 
-  if (savedName && el("profileName")) {
+  if(savedName && el("profileName")){
     el("profileName").innerText = savedName;
   }
 
-  if (savedAvatar && el("profileAvatar")) {
+  if(savedAvatar && el("profileAvatar")){
     el("profileAvatar").src = savedAvatar;
   }
 
-  if (savedTheme === "light") {
+  if(savedTheme === "light"){
     document.body.classList.add("light-mode");
+  }else{
+    document.body.classList.add("dark-mode");
   }
 }
 
 /* =========================
    LOAD MODULES
 ========================= */
-async function loadModules() {
+async function loadModules(){
   const files = [
     "./feed.js",
     "./ai.js",
@@ -108,10 +140,10 @@ async function loadModules() {
     "./settings.js"
   ];
 
-  for (const file of files) {
-    try {
+  for(const file of files){
+    try{
       await import(file);
-    } catch (error) {
+    }catch(error){
       console.log(`${file} failed`, error);
     }
   }
@@ -120,7 +152,7 @@ async function loadModules() {
 /* =========================
    BIND BUTTONS
 ========================= */
-function bindButtons() {
+function bindButtons(){
   el("cookieAcceptBtn")?.addEventListener(
     "click",
     window.acceptCookies
@@ -128,22 +160,22 @@ function bindButtons() {
 
   el("generateBtn")?.addEventListener(
     "click",
-    () => window.generateContent?.()
+    ()=>window.generateContent?.()
   );
 
   el("sendBtn")?.addEventListener(
     "click",
-    () => window.sendMessage?.()
+    ()=>window.sendMessage?.()
   );
 
   el("voiceBtn")?.addEventListener(
     "click",
-    () => window.startVoiceInput?.()
+    ()=>window.startVoiceInput?.()
   );
 
   el("downloadBtn")?.addEventListener(
     "click",
-    () => window.downloadResult?.()
+    ()=>window.downloadResult?.()
   );
 
   el("uploadBtn")?.addEventListener(
@@ -151,26 +183,47 @@ function bindButtons() {
     window.openUpload
   );
 
+  /* WhatsApp style chat buttons */
+  el("chatUploadBtn")?.addEventListener(
+    "click",
+    window.openChatUpload
+  );
+
+  el("chatMicBtn")?.addEventListener(
+    "click",
+    ()=>window.startVoiceInput?.()
+  );
+
   el("audioCallBtn")?.addEventListener(
     "click",
-    () => window.startCall?.()
+    ()=>window.startCall?.()
   );
 
   el("videoCallBtn")?.addEventListener(
     "click",
-    () => window.startVideoCall?.()
+    ()=>window.startVideoCall?.()
+  );
+
+  el("messageInput")?.addEventListener(
+    "keypress",
+    (e)=>{
+      if(e.key === "Enter"){
+        e.preventDefault();
+        window.sendMessage?.();
+      }
+    }
   );
 }
 
 /* =========================
    START APP
 ========================= */
-window.addEventListener("load", async () => {
-  setTimeout(() => {
+window.addEventListener("load", async ()=>{
+  setTimeout(()=>{
     el("welcomeCard")?.remove();
-  }, 1200);
+  },1200);
 
-  if (localStorage.getItem("cookieAccepted") === "yes") {
+  if(localStorage.getItem("cookieAccepted")==="yes"){
     el("cookieBanner")?.remove();
   }
 
