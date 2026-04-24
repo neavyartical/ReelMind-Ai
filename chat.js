@@ -1,247 +1,292 @@
-import { API, auth, socket, el } from "./script.js";
+import { API, el } from "./script.js";
+import { auth } from "./firebase.js";
+import { socket } from "./socket.js";
 
 let activeChatUser = "demo-user";
 let typingTimeout = null;
 
 /* =========================
-   USER ID
+   CURRENT USER
 ========================= */
-function getCurrentUserId(){
+function getCurrentUserId() {
   return auth?.currentUser?.uid || null;
 }
 
 /* =========================
    AUTO SCROLL
 ========================= */
-function scrollMessages(){
+function scrollMessages() {
   const list = el("messageList");
-  if(list){
-    list.scrollTop = list.scrollHeight;
-  }
+  if (!list) return;
+
+  list.scrollTop = list.scrollHeight;
 }
 
 /* =========================
-   CALL STATUS
+   STATUS
 ========================= */
-function setCallStatus(text=""){
+function setStatus(text = "") {
   const status = el("callStatus");
-  if(status){
-    status.innerText = text;
+  if (!status) return;
+
+  status.innerText = text;
+}
+
+/* =========================
+   RENDER MESSAGE
+========================= */
+function renderMessage(msg, currentUser) {
+  const list = el("messageList");
+  if (!list) return;
+
+  const mine = msg.sender === currentUser;
+
+  const div = document.createElement("div");
+  div.className = `message ${mine ? "sent" : "received"}`;
+
+  if (msg.fileUrl) {
+    if (msg.fileType?.startsWith("image")) {
+      div.innerHTML = `
+        <img src="${msg.fileUrl}" class="chat-media">
+      `;
+    } else if (msg.fileType?.startsWith("video")) {
+      div.innerHTML = `
+        <video controls class="chat-media">
+          <source src="${msg.fileUrl}">
+        </video>
+      `;
+    } else {
+      div.innerHTML = `
+        <a href="${msg.fileUrl}" target="_blank">📎 Download file</a>
+      `;
+    }
+  } else {
+    div.textContent = msg.text || "";
   }
+
+  list.appendChild(div);
 }
 
 /* =========================
    LOAD MESSAGES
 ========================= */
-window.loadMessages = async (targetUserId = activeChatUser)=>{
-  try{
+window.loadMessages = async (targetUserId = activeChatUser) => {
+  try {
     activeChatUser = targetUserId;
 
     const sender = getCurrentUserId();
-    if(!sender) return;
+    if (!sender) return;
 
-    const res = await fetch(`${API}/messages/${sender}/${targetUserId}`);
+    const res = await fetch(
+      `${API}/messages/${sender}/${targetUserId}`
+    );
+
     const data = await res.json();
 
     const list = el("messageList");
-    if(!list) return;
+    if (!list) return;
 
     list.innerHTML = "";
 
-    (data.messages || []).forEach(msg=>{
-      const mine = msg.sender === sender;
-
-      const div = document.createElement("div");
-      div.className = `message ${mine ? "sent" : "received"}`;
-      div.textContent = msg.text || "";
-      list.appendChild(div);
+    (data.messages || []).forEach(msg => {
+      renderMessage(msg, sender);
     });
 
     scrollMessages();
-  }catch(error){
-    console.log("loadMessages error:", error);
+  } catch (error) {
+    console.log("Load messages error:", error);
   }
 };
 
 /* =========================
-   SEND MESSAGE
+   SEND TEXT MESSAGE
 ========================= */
-window.sendMessage = async ()=>{
+window.sendMessage = async () => {
   const input = el("messageInput");
   const text = input?.value?.trim();
   const sender = getCurrentUserId();
 
-  if(!text || !sender) return;
+  if (!text || !sender) return;
 
-  try{
-    await fetch(`${API}/messages/send`,{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
+  try {
+    await fetch(`${API}/messages/send`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
-      body:JSON.stringify({
+      body: JSON.stringify({
         sender,
-        receiver:activeChatUser,
+        receiver: activeChatUser,
         text
       })
     });
 
-    socket.emit("send-message",{
-      senderId:sender,
-      receiverId:activeChatUser,
-      text
+    socket.emit("send-message", {
+      senderId: sender,
+      receiverId: activeChatUser
     });
 
     input.value = "";
     loadMessages(activeChatUser);
+  } catch (error) {
+    console.log("Send message error:", error);
+  }
+};
 
-  }catch(error){
-    console.log("sendMessage error:", error);
+/* =========================
+   SEND FILE
+========================= */
+window.sendChatFile = async file => {
+  const sender = getCurrentUserId();
+  if (!sender || !file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("sender", sender);
+  formData.append("receiver", activeChatUser);
+
+  try {
+    await fetch(`${API}/messages/upload`, {
+      method: "POST",
+      body: formData
+    });
+
+    socket.emit("send-message", {
+      senderId: sender,
+      receiverId: activeChatUser
+    });
+
+    loadMessages(activeChatUser);
+  } catch (error) {
+    console.log("File send error:", error);
   }
 };
 
 /* =========================
    TYPING STATUS
 ========================= */
-function emitTyping(){
+function emitTyping() {
   const sender = getCurrentUserId();
-  if(!sender) return;
+  if (!sender) return;
 
-  socket.emit("typing",{
-    senderId:sender,
-    receiverId:activeChatUser
+  socket.emit("typing", {
+    senderId: sender,
+    receiverId: activeChatUser
   });
 
   clearTimeout(typingTimeout);
 
-  typingTimeout = setTimeout(()=>{
-    socket.emit("stop-typing",{
-      senderId:sender,
-      receiverId:activeChatUser
+  typingTimeout = setTimeout(() => {
+    socket.emit("stop-typing", {
+      senderId: sender,
+      receiverId: activeChatUser
     });
-  },1000);
+  }, 1000);
 }
 
 /* =========================
-   START AUDIO CALL
+   CALLS
 ========================= */
-window.startCall = ()=>{
+window.startCall = () => {
   const callerId = getCurrentUserId();
-  if(!callerId) return;
+  if (!callerId) return;
 
-  socket.emit("call-user",{
+  socket.emit("call-user", {
     callerId,
-    receiverId:activeChatUser,
-    callerName:auth.currentUser?.email || "User",
-    type:"audio"
+    receiverId: activeChatUser,
+    callerName: auth.currentUser?.email || "User",
+    type: "audio"
   });
 
-  setCallStatus("Calling...");
+  setStatus("Calling...");
 };
 
-/* =========================
-   START VIDEO CALL
-========================= */
-window.startVideoCall = ()=>{
+window.startVideoCall = () => {
   const callerId = getCurrentUserId();
-  if(!callerId) return;
+  if (!callerId) return;
 
-  socket.emit("call-user",{
+  socket.emit("call-user", {
     callerId,
-    receiverId:activeChatUser,
-    callerName:auth.currentUser?.email || "User",
-    type:"video"
+    receiverId: activeChatUser,
+    callerName: auth.currentUser?.email || "User",
+    type: "video"
   });
 
-  setCallStatus("Video calling...");
+  setStatus("Video calling...");
 };
 
-/* =========================
-   END CALL
-========================= */
-window.endCall = ()=>{
+window.endCall = () => {
   const callerId = getCurrentUserId();
 
-  socket.emit("end-call",{
+  socket.emit("end-call", {
     callerId,
-    receiverId:activeChatUser
+    receiverId: activeChatUser
   });
 
-  setCallStatus("Call ended");
-
-  setTimeout(()=>{
-    setCallStatus("");
-  },2500);
+  setStatus("Call ended");
 };
 
 /* =========================
    SOCKET EVENTS
 ========================= */
-socket.on("receive-message",()=>{
+socket.on("receive-message", () => {
   loadMessages(activeChatUser);
 });
 
-socket.on("user-typing",()=>{
-  setCallStatus("Typing...");
+socket.on("user-typing", () => {
+  setStatus("Typing...");
 });
 
-socket.on("user-stop-typing",()=>{
-  setCallStatus("");
+socket.on("user-stop-typing", () => {
+  setStatus("");
 });
 
-socket.on("incoming-call",(data)=>{
+socket.on("incoming-call", data => {
   const accept = confirm(
-    `${data.callerName} is calling you (${data.type}). Accept?`
+    `${data.callerName} is calling (${data.type}). Accept?`
   );
 
-  if(accept){
-    socket.emit("answer-call",{
-      callerId:data.callerId,
-      receiverId:getCurrentUserId(),
-      answer:true
+  if (accept) {
+    socket.emit("answer-call", {
+      callerId: data.callerId,
+      receiverId: getCurrentUserId()
     });
 
-    setCallStatus(`${data.type} call connected`);
-  }else{
-    socket.emit("reject-call",{
-      callerId:data.callerId,
-      receiverId:getCurrentUserId()
+    setStatus("Call connected");
+  } else {
+    socket.emit("reject-call", {
+      callerId: data.callerId,
+      receiverId: getCurrentUserId()
     });
   }
 });
 
-socket.on("call-answered",()=>{
-  setCallStatus("Call connected");
+socket.on("call-answered", () => {
+  setStatus("Call connected");
 });
 
-socket.on("call-rejected",()=>{
-  setCallStatus("Call rejected");
+socket.on("call-rejected", () => {
+  setStatus("Call rejected");
 });
 
-socket.on("call-ended",()=>{
-  setCallStatus("Call ended");
-
-  setTimeout(()=>{
-    setCallStatus("");
-  },2500);
+socket.on("call-ended", () => {
+  setStatus("Call ended");
 });
 
 /* =========================
-   INPUT EVENTS
+   INPUT LISTENERS
 ========================= */
-window.addEventListener("load",()=>{
+window.addEventListener("load", () => {
   const input = el("messageInput");
 
-  if(input){
-    input.addEventListener("keypress",(e)=>{
-      if(e.key==="Enter"){
-        e.preventDefault();
-        window.sendMessage();
-      }else{
-        emitTyping();
-      }
-    });
+  if (!input) return;
 
-    input.addEventListener("input",emitTyping);
-  }
+  input.addEventListener("keypress", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      window.sendMessage();
+    }
+  });
+
+  input.addEventListener("input", emitTyping);
 });
