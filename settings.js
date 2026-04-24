@@ -76,6 +76,22 @@ function applySettings() {
 }
 
 /* =========================
+   AI DOWNLOAD BUTTON CONTROL
+========================= */
+window.updateDownloadVisibility = () => {
+  const downloadBtn = el("downloadBtn");
+  const createSection = el("create");
+
+  if (!downloadBtn || !createSection) return;
+
+  const isAIVisible =
+    createSection.classList.contains("active");
+
+  downloadBtn.style.display =
+    isAIVisible ? "block" : "none";
+};
+
+/* =========================
    THEME
 ========================= */
 window.toggleTheme = () => {
@@ -205,7 +221,7 @@ function loadProfile() {
 /* =========================
    LOGOUT
 ========================= */
-window.logoutUser = async () => {
+window.logoutUser = () => {
   const ok = confirm("Logout now?");
   if (!ok) return;
 
@@ -218,8 +234,10 @@ window.logoutUser = async () => {
 window.clearAppCache = () => {
   const keepSettings =
     localStorage.getItem("reelmind_settings");
+
   const keepName =
     localStorage.getItem("profileName");
+
   const keepAvatar =
     localStorage.getItem("profileAvatar");
 
@@ -273,6 +291,7 @@ window.deleteAccount = () => {
 window.loadSettings = () => {
   applySettings();
   loadProfile();
+  window.updateDownloadVisibility?.();
 };
 
 /* =========================
@@ -281,4 +300,5 @@ window.loadSettings = () => {
 window.addEventListener("load", () => {
   applySettings();
   loadProfile();
+  window.updateDownloadVisibility?.();
 });
