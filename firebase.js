@@ -18,16 +18,17 @@ import {
    FIREBASE CONFIG
 ========================= */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
+  authDomain: "reelmind-ai-f07cb.firebaseapp.com",
+  projectId: "reelmind-ai-f07cb",
+  storageBucket: "reelmind-ai-f07cb.firebasestorage.app",
+  messagingSenderId: "731354245603",
+  appId: "1:731354245603:web:1db1952458a8473082d8d6",
+  measurementId: "G-F23DP2G9MW"
 };
 
 /* =========================
-   INIT
+   INIT FIREBASE
 ========================= */
 const app = initializeApp(firebaseConfig);
 
@@ -43,7 +44,7 @@ async function syncUserToBackend(user) {
   try {
     const token = await user.getIdToken();
 
-    await fetch(`${API}/auth/sync-user`, {
+    await fetch(`${API}/auth/sync`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,11 +54,11 @@ async function syncUserToBackend(user) {
         uid: user.uid,
         email: user.email,
         name: user.displayName || "",
-        photo: user.photoURL || ""
+        photoURL: user.photoURL || ""
       })
     });
   } catch (error) {
-    console.log("Sync user failed:", error);
+    console.log("Backend sync failed:", error.message);
   }
 }
 
@@ -66,16 +67,17 @@ async function syncUserToBackend(user) {
 ========================= */
 function updateUserUI(user) {
   if (el("userEmail")) {
-    el("userEmail").innerText =
-      user?.email || "Guest";
+    el("userEmail").innerText = user?.email || "Guest";
   }
 
-  if (user?.photoURL && el("profileAvatar")) {
-    el("profileAvatar").src = user.photoURL;
+  if (el("profileAvatar")) {
+    el("profileAvatar").src =
+      user?.photoURL || "logo.png";
   }
 
-  if (user?.displayName && el("profileNameInput")) {
-    el("profileNameInput").value = user.displayName;
+  if (el("profileNameInput")) {
+    el("profileNameInput").value =
+      user?.displayName || "";
   }
 }
 
@@ -119,10 +121,7 @@ export async function login(email, password) {
    GOOGLE LOGIN
 ========================= */
 export async function loginWithGoogle() {
-  const result = await signInWithPopup(
-    auth,
-    provider
-  );
+  const result = await signInWithPopup(auth, provider);
 
   await syncUserToBackend(result.user);
 
@@ -140,7 +139,7 @@ export async function logout() {
    AUTH WATCHER
 ========================= */
 export function watchUser(callback) {
-  onAuthStateChanged(auth, async user => {
+  onAuthStateChanged(auth, async (user) => {
     updateUserUI(user);
 
     if (user) {
