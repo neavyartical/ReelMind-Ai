@@ -159,7 +159,7 @@ function setupAuthWatcher() {
 /* =========================
    LOAD MODULES BACKGROUND
 ========================= */
-async function loadModules() {
+function loadModules() {
   const modules = [
     "./feed.js",
     "./ai.js",
@@ -167,16 +167,14 @@ async function loadModules() {
     "./settings.js"
   ];
 
-  Promise.all(
-    modules.map(async file => {
-      try {
-        await import(file);
-        console.log("Loaded:", file);
-      } catch (error) {
-        console.log("Module failed:", file, error);
-      }
-    })
-  );
+  modules.forEach(async file => {
+    try {
+      await import(file);
+      console.log("Loaded:", file);
+    } catch (error) {
+      console.log("Module failed:", file, error);
+    }
+  });
 }
 
 /* =========================
@@ -208,6 +206,25 @@ function bindButtons() {
 }
 
 /* =========================
+   SPLASH REMOVE
+========================= */
+function hideSplash() {
+  document.body.classList.add("app-ready");
+
+  setTimeout(() => {
+    const splash = el("welcomeCard");
+
+    if (splash) {
+      splash.classList.add("fade-out");
+
+      setTimeout(() => {
+        splash.remove();
+      }, 500);
+    }
+  }, 800);
+}
+
+/* =========================
    START APP
 ========================= */
 function startApp() {
@@ -218,21 +235,18 @@ function startApp() {
 
     window.switchTab("feed");
 
-    setTimeout(() => {
-      el("welcomeCard")?.remove();
-    }, 1000);
-
     if (localStorage.getItem("cookieAccepted") === "yes") {
       el("cookieBanner")?.remove();
     }
 
+    hideSplash();
     loadModules();
 
   } catch (error) {
     console.log("App startup failed:", error);
 
+    document.body.classList.add("app-ready");
     el("welcomeCard")?.remove();
-    document.body.style.visibility = "visible";
   }
 }
 
