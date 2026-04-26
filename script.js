@@ -13,7 +13,7 @@ export function el(id) {
 /* =========================
    TAB SWITCHER
 ========================= */
-window.switchTab = function (tabId) {
+window.switchTab = function(tabId) {
   try {
     document.querySelectorAll(".tab-section").forEach(section => {
       section.style.display = "none";
@@ -29,7 +29,8 @@ window.switchTab = function (tabId) {
 
     const downloadBtn = el("downloadBtn");
     if (downloadBtn) {
-      downloadBtn.style.display = tabId === "create" ? "block" : "none";
+      downloadBtn.style.display =
+        tabId === "create" ? "block" : "none";
     }
 
     if (tabId === "feed") {
@@ -47,7 +48,7 @@ window.switchTab = function (tabId) {
 /* =========================
    COOKIE
 ========================= */
-window.acceptCookies = function () {
+window.acceptCookies = function() {
   localStorage.setItem("cookieAccepted", "yes");
   el("cookieBanner")?.remove();
 };
@@ -55,7 +56,7 @@ window.acceptCookies = function () {
 /* =========================
    CALL STATUS
 ========================= */
-window.showCallStatus = function (text) {
+window.showCallStatus = function(text) {
   const status = el("callStatus");
   if (!status) return;
 
@@ -71,7 +72,7 @@ window.showCallStatus = function (text) {
 /* =========================
    FILE UPLOAD
 ========================= */
-window.openUpload = function () {
+window.openUpload = function() {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,video/*";
@@ -87,7 +88,7 @@ window.openUpload = function () {
   input.click();
 };
 
-window.openChatUpload = function () {
+window.openChatUpload = function() {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,video/*,audio/*";
@@ -156,7 +157,7 @@ function setupAuthWatcher() {
 }
 
 /* =========================
-   LOAD MODULES SAFELY
+   LOAD MODULES BACKGROUND
 ========================= */
 async function loadModules() {
   const modules = [
@@ -166,14 +167,16 @@ async function loadModules() {
     "./settings.js"
   ];
 
-  for (const file of modules) {
-    try {
-      await import(file);
-      console.log("Loaded:", file);
-    } catch (error) {
-      console.log("Module failed:", file, error);
-    }
-  }
+  Promise.all(
+    modules.map(async file => {
+      try {
+        await import(file);
+        console.log("Loaded:", file);
+      } catch (error) {
+        console.log("Module failed:", file, error);
+      }
+    })
+  );
 }
 
 /* =========================
@@ -205,27 +208,30 @@ function bindButtons() {
 }
 
 /* =========================
-   APP START
+   START APP
 ========================= */
-async function startApp() {
+function startApp() {
   try {
+    restoreLocalProfile();
+    setupAuthWatcher();
+    bindButtons();
+
+    window.switchTab("feed");
+
     setTimeout(() => {
       el("welcomeCard")?.remove();
-    }, 1200);
+    }, 1000);
 
     if (localStorage.getItem("cookieAccepted") === "yes") {
       el("cookieBanner")?.remove();
     }
 
-    restoreLocalProfile();
-    setupAuthWatcher();
-    await loadModules();
-    bindButtons();
+    loadModules();
 
-    window.switchTab("feed");
   } catch (error) {
     console.log("App startup failed:", error);
 
+    el("welcomeCard")?.remove();
     document.body.style.visibility = "visible";
   }
 }
