@@ -1,5 +1,5 @@
 // firebase.js
-import { API, el } from "./script.js";
+import { API } from "./script.js";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
@@ -21,30 +21,44 @@ const firebaseConfig = {
   apiKey: "AIzaSyCz9rReG2zuaj0AGuafpTzpCUopuHMD_wQ",
   authDomain: "reelmind-ai-f07cb.firebaseapp.com",
   projectId: "reelmind-ai-f07cb",
-  storageBucket: "reelmind-ai-f07cb.firebasestorage.app",
+  storageBucket: "reelmind-ai-f07cb.appspot.com",
   messagingSenderId: "731354245603",
   appId: "1:731354245603:web:1db1952458a8473082d8d6",
   measurementId: "G-F23DP2G9MW"
 };
 
 /* =========================
-   INIT FIREBASE
+   SAFE INIT
 ========================= */
-const app = initializeApp(firebaseConfig);
+let app = null;
+let auth = null;
+let provider = null;
 
-export const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  provider = new GoogleAuthProvider();
+
+  console.log("Firebase initialized");
+} catch (error) {
+  console.log("Firebase init failed:", error);
+}
+
+export { auth };
 
 /* =========================
-   BACKEND SYNC
+   SAFE BACKEND SYNC
 ========================= */
 async function syncUserToBackend(user) {
-  if (!user) return;
+  if (!user || !auth) return;
 
   try {
     const token = await user.getIdToken();
 
-    await fetch(`${API}/auth/sync-user`, {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
+    await fetch(`${API}/auth/sync`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -52,38 +66,55 @@ async function syncUserToBackend(user) {
       },
       body: JSON.stringify({
         uid: user.uid,
-        email: user.email,
+        email: user.email || "",
         name: user.displayName || "",
-        photo: user.photoURL || ""
-      })
+        photoURL: user.photoURL || ""
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeout);
   } catch (error) {
     console.log("Backend sync failed:", error.message);
   }
 }
 
 /* =========================
-   UI UPDATE
+   SAFE UI UPDATE
 ========================= */
 function updateUserUI(user) {
-  if (el("userEmail")) {
-    el("userEmail").innerText = user?.email || "Guest";
-  }
+  try {
+    const userEmail = document.getElementById("userEmail");
+    const avatar = document.getElementById("profileAvatar");
+    const nameInput = document.getElementById("profileNameInput");
 
-  if (user?.photoURL && el("profileAvatar")) {
-    el("profileAvatar").src = user.photoURL;
-  }
+    if (userEmail) {
+      userEmail.innerText = user?.email || "Guest";
+    }
 
-  if (user?.displayName && el("profileNameInput")) {
-    el("profileNameInput").value = user.displayName;
+    if (avatar && user?.photoURL) {
+      avatar.src = user.photoURL;
+    }
+
+    if (nameInput && user?.displayName) {
+      nameInput.value = user.displayName;
+    }
+  } catch (error) {
+    console.log("UI update failed:", error);
   }
 }
 
 /* =========================
-   AUTH METHODS
+   SIGNUP
 ========================= */
 export async function signup(email, password, name = "") {
-  const result = await createUserWithEmailAndPassword(auth, email, password);
+  if (!auth) throw new Error("Firebase unavailable");
+
+  const result = await createUserWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
 
   if (name) {
     await updateProfile(result.user, {
@@ -92,22 +123,45 @@ export async function signup(email, password, name = "") {
   }
 
   await syncUserToBackend(result.user);
+
   return result;
 }
 
+/* =========================
+   LOGIN
+========================= */
 export async function login(email, password) {
-  const result = await signInWithEmailAndPassword(auth, email, password);
+  if (!auth) throw new Error("Firebase unavailable");
+
+  const result = await signInWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
+
   await syncUserToBackend(result.user);
+
   return result;
 }
 
+/* =========================
+   GOOGLE LOGIN
+========================= */
 export async function loginWithGoogle() {
+  if (!auth) throw new Error("Firebase unavailable");
+
   const result = await signInWithPopup(auth, provider);
+
   await syncUserToBackend(result.user);
+
   return result;
 }
 
+/* =========================
+   LOGOUT
+========================= */
 export async function logout() {
+  if (!auth) return;
   await signOut(auth);
 }
 
@@ -115,7 +169,12 @@ export async function logout() {
    WATCH USER
 ========================= */
 export function watchUser(callback) {
-  onAuthStateChanged(auth, async (user) => {
+  if (!auth) {
+    callback?.(null);
+    return;
+  }
+
+  onAuthStateChanged(auth, async user => {
     updateUserUI(user);
 
     if (user) {
