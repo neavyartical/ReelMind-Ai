@@ -11,6 +11,22 @@
   <meta name="theme-color" content="#020617">
 
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      visibility: hidden;
+    }
+
+    body.app-ready {
+      visibility: visible;
+    }
+
+    .welcome-card.fade-out {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+  </style>
 </head>
 <body>
 
@@ -72,16 +88,12 @@
         <option value="ultra">Ultra</option>
       </select>
 
-      <button id="generateBtn" class="action">
-        ✨ Generate with AI
-      </button>
+      <button id="generateBtn" class="action">✨ Generate with AI</button>
     </div>
 
     <div id="result"></div>
 
-    <button id="downloadBtn" class="download-btn">
-      ⬇ Download
-    </button>
+    <button id="downloadBtn" class="download-btn">⬇ Download</button>
   </section>
 
   <!-- CHAT -->
@@ -99,18 +111,9 @@
 
     <div class="chat-input-bar">
       <button id="chatUploadBtn" class="chat-icon">➕</button>
-
-      <input
-        id="messageInput"
-        type="text"
-        placeholder="Type your message..."
-      >
-
+      <input id="messageInput" type="text" placeholder="Type your message...">
       <button id="chatMicBtn" class="chat-icon">🎤</button>
-
-      <button id="sendBtn" class="send-btn">
-        ➤
-      </button>
+      <button id="sendBtn" class="send-btn">➤</button>
     </div>
   </section>
 
@@ -118,53 +121,33 @@
   <section id="profile" class="tab-section container">
     <div class="profile-card">
       <img id="profileAvatar" class="avatar" src="" alt="Profile">
-
-      <input
-        id="profileNameInput"
-        type="text"
-        placeholder="Your name"
-      >
-
-      <textarea
-        id="profileBioInput"
-        placeholder="Write your bio"
-      ></textarea>
+      <input id="profileNameInput" type="text" placeholder="Your name">
+      <textarea id="profileBioInput" placeholder="Write your bio"></textarea>
 
       <p>Followers: <span id="followers">0</span></p>
       <p>Following: <span id="following">0</span></p>
       <p>Videos: <span id="videoCount">0</span></p>
       <p>Status: <span id="onlineStatus">Offline</span></p>
 
-      <button id="saveProfileBtn" class="action">
-        Save Profile
-      </button>
+      <button id="saveProfileBtn" class="action">Save Profile</button>
     </div>
   </section>
 
   <!-- SETTINGS -->
   <section id="settings" class="tab-section container">
-
     <div class="info-page">
       <h3>Appearance</h3>
-      <label>
-        Dark Mode
-        <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
-      </label>
+      <label>Dark Mode <input type="checkbox" id="themeToggle" onchange="toggleTheme()"></label>
     </div>
 
     <div class="info-page">
       <h3>Notifications</h3>
-      <label>
-        Enable Notifications
-        <input type="checkbox" id="notificationsToggle" onchange="toggleNotifications()">
-      </label>
+      <label>Enable Notifications <input type="checkbox" id="notificationsToggle" onchange="toggleNotifications()"></label>
     </div>
 
     <div class="info-page">
       <h3>Credits</h3>
-      <button id="buyCreditsBtn" class="action">
-        💳 Buy Credits
-      </button>
+      <button id="buyCreditsBtn" class="action">💳 Buy Credits</button>
     </div>
 
     <div class="info-page">
@@ -178,18 +161,14 @@
       <h3>Support</h3>
       <p>Email: neavyartical@gmail.com</p>
     </div>
-
   </section>
 
-  <!-- CALL STATUS -->
+  <!-- STATUS -->
   <div id="callStatus" class="call-status"></div>
 
-  <!-- FLOATING GLOBAL -->
+  <!-- FLOATING -->
   <button id="uploadBtn" class="floating-btn upload-btn">📤</button>
   <button id="voiceBtn" class="floating-btn mic-btn">🎤</button>
-
-  <!-- HIDDEN PICKER -->
-  <input type="file" id="mediaPicker" accept="image/*,video/*" hidden>
 
   <!-- COOKIE -->
   <div id="cookieBanner" class="cookie-banner">
@@ -197,12 +176,10 @@
     <button id="cookieAcceptBtn">Accept</button>
   </div>
 
-  <!-- FOOTER -->
   <footer class="footer">
     <p>© 2026 ReelMind AI — Powered by Artical Neavy</p>
   </footer>
 
-  <!-- MAIN SCRIPT -->
   <script type="module" src="script.js"></script>
 
 </body>
